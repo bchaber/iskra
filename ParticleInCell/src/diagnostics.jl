@@ -35,11 +35,10 @@ macro diagnostics_scatter(it, pE, part)
   end
 end
 
-macro diagnostics_heatmap(it, spacing, origin, Ex, Ey, ϕ, ρ)
+macro diagnostics_heatmap(it, spacing, origin, Ex, Ey, ρ)
   quote
     local _Ex = $(esc(Ex)) 
     local _Ey = $(esc(Ey)) 
-    local _ϕ  = $(esc(ϕ)) 
     local _ρ  = $(esc(ρ)) 
     local _it = $(esc(it)) 
     local _spacing = $(esc(spacing)) 
@@ -47,7 +46,6 @@ macro diagnostics_heatmap(it, spacing, origin, Ex, Ey, ϕ, ρ)
 
     pvd_add_timestep(pvd_heatmap, heatmap("Ex" =>_Ex, "/tmp/Ex", spacing=_spacing, origin=_origin; it=_it, save=false), _it)
     pvd_add_timestep(pvd_heatmap, heatmap("Ey" =>_Ey, "/tmp/Ey", spacing=_spacing, origin=_origin; it=_it, save=false), _it)
-    pvd_add_timestep(pvd_heatmap, heatmap("ϕ" =>_ϕ, "/tmp/phi",  spacing=_spacing, origin=_origin; it=_it, save=false), _it)
     pvd_add_timestep(pvd_heatmap, heatmap("ρ" =>_ρ, "/tmp/rho",  spacing=_spacing, origin=_origin; it=_it, save=false), _it)
   end
 end

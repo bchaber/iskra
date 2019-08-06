@@ -1,47 +1,25 @@
-import FiniteDifferenceMethod
 import ParticleInCell
-import RegularGrid
-
-const RG = RegularGrid
-const FDM = FiniteDifferenceMethod
-const PIC = ParticleInCell
-const LOAD = ParticleInCell.Loader
+import FiniteDifferenceMethod
 
 mutable struct Config
-  field_solver
-  loader
-  ############
-  cells
-  grid
+  solver
+  source
+  pusher
   species
+  grid
 end
 
 function add_electrode(nodes, voltage)
-  dof = config.grid.dof
-  config.field_solver.apply_dirichlet(dof[nodes], voltage)
+  solver, dof = config.solver, config.grid.dof
+  FiniteDifferenceMethod.apply_dirichlet(solver, dof[nodes], voltage)
 end
 
-function add_species(name, N, q, m, np2c)
-  species = PIC.Species(name, N)
+function create_species(name, N, q, m, np2c)
+  species = ParticleInCell.Species(name, N)
   species.q = q
   species.m = m
   species.np2c = np2c
-  config.species = species
+  return species
 end
 
-function add_particle_source(max_np, xe, ye, vth, vdr)
-  config.loader.setup(max_np, xe, ye, vth, vdr)
-end
-
-function create_domain(xs, ys)
-  nx, ny = length(xs), length(ys)
-  hx, hy = xs[2] - xs[1], ys[2] - ys[1]
-  xm, ym = xs[2:nx] .- hx/2, ys[2:ny] .- hy/2
-
-  config.cells = RG.UniformGrid(xs, ys)
-  config.grid  = RG.UniformGrid(xm, ym)
-
-  config.field_solver.setup(config.grid)
-end
-
-Config() = Config(FDM, LOAD, nothing, nothing, nothing)
+Config() = Config(nothing, nothing, nothing, nothing, nothing)

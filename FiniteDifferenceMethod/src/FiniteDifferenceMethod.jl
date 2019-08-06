@@ -1,20 +1,28 @@
 module FiniteDifferenceMethod
-    export setup, solve
+    export calculate_electric_field
 
     using RegularGrid
     using LinearAlgebra
     using Printf:@sprintf,println
 
-    function setup(grid::UniformGrid)
-        global A
-        global b
+    mutable struct LinearSystemOfEquations
+      A :: AbstractArray{Float64,2}
+      b :: AbstractArray{Float64,1}
+    end
+ 
+    struct PoissonSolver
+      Δh :: Float64
+    end
+   
+    lse = LinearSystemOfEquations(zeros(0,0), zeros(0))
 
+    function create_poisson_solver(grid::UniformGrid)
         nx, ny = size(grid)
         nn = nx⋅ny
         Δh = grid.Δh
 
-        A = zeros(nn, nn)
-        b = zeros(nn, 1)
+        A = lse.A = zeros(nn, nn)
+        b = lse.b = zeros(nn)
         ϕ = reshape(1:nn, nx, ny)
         # set regular stencil on internal nodes
         for j=2:ny-1             # only internal nodes
@@ -116,16 +124,15 @@ module FiniteDifferenceMethod
                 A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
             end
         end
+        return PoissonSolver(Δh)
     end
 
     function solve!()
-      return A\b
+      return lse.A\lse.b
     end
 
-    function apply_dirichlet(dofs, value)
-        global A
-        global b
-
+    function apply_dirichlet(::PoissonSolver, dofs, value)
+        A, b = lse.A, lse.b
         for dof=dofs
             ϕ = reshape(1:length(A), size(A))
             i, j = findfirst(x -> x == dof, ϕ).I
@@ -141,10 +148,12 @@ module FiniteDifferenceMethod
         return ϕ
     end
     
-    function calculate_electric_field(ϕ, Δh)
+    function calculate_electric_field(ps::PoissonSolver, ρ)
+        ϕ = calculate_electric_potential(ρ)
         nx, ny = size(ϕ)
         Ex = zeros(nx, ny)
         Ey = zeros(nx, ny)
+	Δh = ps.Δh
 
         Ex[2:nx-1,:] = ϕ[1:nx-2,:] - ϕ[3:nx,:]  # central difference on internal nodes
         Ey[:,2:ny-1] = ϕ[:,1:ny-2] - ϕ[:,3:ny]  # central difference on internal nodes

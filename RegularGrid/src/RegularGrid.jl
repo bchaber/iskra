@@ -13,12 +13,7 @@ module RegularGrid
     Base.size(g::UniformGrid) = (g.nx, g.ny)
     Base.length(g::UniformGrid) = g.nx*g.ny
 
-    function UniformGrid(xs, ys, xe, ye, Δh)
-        xx, yy = xs:Δh:xe, ys:Δh:ye
-        UniformGrid(xx, yy)
-    end
-   
-    function UniformGrid(xx, yy)
+    function create_uniform_grid(xx, yy)
         nx, ny = length(xx), length(yy)
         xs, ys = xx[1], yy[1]
         Δh = xx[2] - xx[1]

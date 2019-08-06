@@ -1,7 +1,5 @@
 module ParticleInCell
   export solve
-  
-  using LinearAlgebra
 
   import Printf:@sprintf,println
 
@@ -11,10 +9,11 @@ module ParticleInCell
   include("pic/macroparticle.jl")
   include("pic/cloud_in_cell.jl")
 
-  include("BorisPusher.jl")
-  include("Loader.jl")
-
-  const Pusher = BorisPusher
+  include("Pusher.jl")
+  include("Source.jl")
+  using .Pusher
+  using .Source
+  using FiniteDifferenceMethod
 
   function particle_cell(px, p, Δh)
     fij = 1 .+ px[p,:] ./ Δh
@@ -26,9 +25,10 @@ module ParticleInCell
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
-    loader = config.loader
+    pusher = config.pusher
+    source = config.source
     species = config.species
-    field_solver = config.field_solver
+    solver = config.solver
     grid = config.grid
 
     nx, ny = size(grid)
@@ -36,25 +36,24 @@ module ParticleInCell
     Δh² = Δh^2
     spacing = [1,1]*grid.Δh
     origin  = grid.origin
-    part = config.species
+    part = config.species[1]
 
     heatmap("dof" => reshape(1:length(grid),nx,ny), "/tmp/grid"; origin=origin,spacing=spacing)
 
 @diagnostics_init
 
     for iteration=1:timesteps # iterate for ts time step
-      new_part = loader.load_particles(species, iteration, 1500)
+      new_part = create_particles(source, iteration, 3)
       add!(new_part,part)
       
       ρ = particle_to_grid(part, grid)
-      ϕ = field_solver.calculate_electric_potential(ρ)
-      Ex, Ey = field_solver.calculate_electric_field(ϕ,Δh)
+      Ex, Ey = calculate_electric_field(solver, ρ)
       pE = grid_to_particle(grid, part, Ex, Ey)
 
 @diagnostics_scatter iteration pE part
-@diagnostics_heatmap iteration spacing origin Ex Ey ϕ ρ
+@diagnostics_heatmap iteration spacing origin Ex Ey ρ
 
-      Pusher.push!(part, pE, Δh, Δt)
+      push_particles!(pusher, part, pE, Δt)
 
       # remove particles outside the computational domain
       p = 1
