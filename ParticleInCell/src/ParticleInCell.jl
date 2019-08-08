@@ -4,7 +4,6 @@ module ParticleInCell
   import Printf:@sprintf,println
 
   include("sugar.jl")
-  include("diagnostics.jl")
 
   include("pic/macroparticle.jl")
   include("pic/cloud_in_cell.jl")
@@ -24,6 +23,11 @@ module ParticleInCell
     return i, j, hx, hy
   end
 
+  # hooks
+  function enter_loop() end
+  function after_loop(it) end
+  function exit_loop() end
+
   function solve(config, Δt=1e-5, timesteps=200)
     pusher = config.pusher
     source = config.source
@@ -38,20 +42,15 @@ module ParticleInCell
     origin  = grid.origin
     part = config.species[1]
 
-    heatmap("dof" => reshape(1:length(grid),nx,ny), "/tmp/grid"; origin=origin,spacing=spacing)
-
-@diagnostics_init
+    enter_loop()
 
     for iteration=1:timesteps # iterate for ts time step
       new_part = create_particles(source, iteration, 3)
       add!(new_part,part)
       
       ρ = particle_to_grid(part, grid)
-      Ex, Ey = calculate_electric_field(solver, ρ)
+      Ex, Ey = calculate_electric_field(solver, ρ, iteration)
       pE = grid_to_particle(grid, part, Ex, Ey)
-
-@diagnostics_scatter iteration pE part
-@diagnostics_heatmap iteration spacing origin Ex Ey ρ
 
       push_particles!(pusher, part, pE, Δt)
 
@@ -66,11 +65,12 @@ module ParticleInCell
         p = p + 1
       end
 
+      after_loop(iteration)
+
       println(@sprintf "Time Step #%d, Particles #%d" iteration part.np)
     end
 
-@diagnostics_save
-
+    exit_loop()
     println("Complete!")
   end
 end

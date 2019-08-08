@@ -15,13 +15,13 @@ v_drift = -1mps # ion injection velocity
 v_th = sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
 λD = sqrt(ɛ0*Te/(n0*qe)) # Debye length
 # set simulation domain
-nx = 20             # number of nodes in x direction
-ny = 20             # number of nodes in y direction
-ts = 50            # number of time steps
-Δh = 0.05m          # cell size
-Δt = 30μs           # time step
-#Δt = 100ns           # time step
-nn = nx*ny          # total number of nodes
+nx = 20         # number of nodes in x direction
+ny = 20         # number of nodes in y direction
+ts = 75         # number of time steps
+Δh = 0.05m      # cell size
+Δt = 30μs       # time step
+#Δt = 100ns     # time step
+nn = nx*ny      # total number of nodes
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
@@ -48,5 +48,23 @@ bcs[nx, 1:10] .= 2
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)
 ############################################
-import ParticleInCell: solve
-@time solve(config, Δt, ts)
+import ParticleInCell
+import Diagnostics
+
+function ParticleInCell.enter_loop()
+  Diagnostics.open_container("problem")
+end
+
+function ParticleInCell.after_loop(it)
+  Diagnostics.save_diagnostic("ϕ","problem",it)
+  Diagnostics.save_diagnostic("Ex","problem",it)
+  Diagnostics.save_diagnostic("Ey","problem",it)
+  Diagnostics.save_diagnostic("pvO+","problem",it)
+  Diagnostics.save_diagnostic("pEO+","problem",it)
+end
+
+function ParticleInCell.exit_loop()
+  Diagnostics.close_container("problem")
+end
+
+@time ParticleInCell.solve(config, Δt, ts)
