@@ -1,5 +1,5 @@
 - allow multiple species, sources
-- figure out diagnostics
++ figure out diagnostics
 - wrap my head around np2c (where should I put it?)
 - optimize memory allocation
 - implement boundary crossing
