@@ -11,14 +11,14 @@ n0 = 1e12       # density in #/m^3
 ϕp =+1V         # wall potential
 Te = 1.0eV      # electron temperature in eV
 Ti = 0.1eV      # ion temperature in eV
-v_drift = -1mps # ion injection velocity
-v_th = sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
+v_drift = 0#-1mps # ion injection velocity
+v_th = 0#sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
 λD = sqrt(ɛ0*Te/(n0*qe)) # Debye length
 # set simulation domain
-nx = 20         # number of nodes in x direction
-ny = 20         # number of nodes in y direction
+nx = 10         # number of nodes in x direction
+ny = 10         # number of nodes in y direction
 ts = 75         # number of time steps
-Δh = 0.05m      # cell size
+Δh = 0.1m       # cell size
 Δt = 30μs       # time step
 #Δt = 100ns     # time step
 nn = nx*ny      # total number of nodes
@@ -42,8 +42,8 @@ bcs = zeros(Int8, size(config.grid))
 inbox = (0.02m .<= config.grid.x .<= 0.05m) .&
         (0.02m .<= config.grid.y .<= 0.04m)
 bcs[inbox].= 5;
-bcs[ 1,10:ny] .= 1
-bcs[nx, 1:10] .= 2
+bcs[ 1, 10:ny] .= 1
+bcs[nx,  1:10] .= 2
 
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)
@@ -52,19 +52,21 @@ import ParticleInCell
 import Diagnostics
 
 function ParticleInCell.enter_loop()
-  Diagnostics.open_container("problem")
+  Diagnostics.open_container("problem-field")
+  Diagnostics.open_container("problem-particle")
 end
 
 function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("ϕ","problem",it)
-  Diagnostics.save_diagnostic("Ex","problem",it)
-  Diagnostics.save_diagnostic("Ey","problem",it)
-  Diagnostics.save_diagnostic("pvO+","problem",it)
-  Diagnostics.save_diagnostic("pEO+","problem",it)
+  Diagnostics.save_diagnostic("ρ","problem-field",it)
+  Diagnostics.save_diagnostic("ϕ","problem-field",it)
+  Diagnostics.save_diagnostic("E","problem-field",it)
+  Diagnostics.save_diagnostic("pvO+","problem-particle",it)
+  Diagnostics.save_diagnostic("pEO+","problem-particle",it)
 end
 
 function ParticleInCell.exit_loop()
-  Diagnostics.close_container("problem")
+  Diagnostics.close_container("problem-field")
+  Diagnostics.close_container("problem-particle")
 end
 
 @time ParticleInCell.solve(config, Δt, ts)

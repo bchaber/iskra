@@ -2,9 +2,9 @@ module PlotVTK
   using WriteVTK
   using Printf
 
-  export heatmap
-  export plot
-  export scatter
+  export field_as_vectors
+  export field_as_surface
+  export field_as_points
   export pvd_save
   export pvd_create
   export pvd_add_timestep
@@ -21,8 +21,8 @@ module PlotVTK
     vtk_save(pvd)
   end
 
-  function heatmap(image::Pair, filename::String; it=nothing, save=true, origin=[0.,0.,0.], spacing=[1.,1.,1.])
-    name, data = image
+  function field_as_surface(field::Pair, filename::String; it=nothing, save=true, origin=[0.,0.,0.], spacing=[1.,1.,1.])
+    name, data = field
     N = size(data) .+ 1
     if it != nothing
       filename = @sprintf "%s_%i" filename it
@@ -38,15 +38,14 @@ module PlotVTK
     return vtkfile
   end
 
-  function plot(x::Pair, y::Pair, filename::String; it=nothing, save=true)
-    xname, xval = x
-    yname, yval = y
+  function field_as_points(field::Pair, filename::String; it=nothing, save=true, origin=[0.,0.,0.], spacing=[1.,1.,1.])
+    name, data = field
+    N = size(data)
     if it != nothing
       filename = @sprintf "%s_%i" filename it
     end
-    vtkfile = vtk_grid(filename, length(xval), 1)
-    vtk_point_data(vtkfile, xval, xname)
-    vtk_point_data(vtkfile, yval, yname)
+    vtkfile = vtk_grid(filename, N)
+    vtk_point_data(vtkfile, data, name)
 
     if save
       vtk_save(vtkfile)
@@ -55,7 +54,7 @@ module PlotVTK
     return vtkfile
   end
 
-  function scatter(x::AbstractArray{Float64,1}, y::AbstractArray{Float64,1},
+  function field_as_vectors(x::AbstractArray{Float64,1}, y::AbstractArray{Float64,1},
                    filename::String, data::Pair...; it=nothing, save=true)
     if it != nothing
       filename = @sprintf "%s_%i" filename it
@@ -69,7 +68,7 @@ module PlotVTK
     end
 
     vtkfile = vtk_grid(filename, x, y, cells)
-    for datum=data
+    for datum in data
       vtk_point_data(vtkfile, datum.second, datum.first)
     end
 

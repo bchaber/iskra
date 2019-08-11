@@ -12,21 +12,22 @@ module FiniteDifferenceMethod
  
     struct PoissonSolver
       Δh :: Float64
+    grid :: UniformGrid 
     end
    
     lse = LinearSystemOfEquations(zeros(0,0), zeros(0))
 
 import Diagnostics
-struct GridData <: Diagnostics.DiagnosticData
-  u :: Array{Float64,2}
+struct NodeData <: Diagnostics.DiagnosticData
+  u :: Array
  sp :: Array{Float64,1}
  or :: Array{Float64,1}
  it :: Integer
 end
 
-import PlotVTK: pvd_add_timestep, heatmap
-Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, it::Integer) =
-  pvd_add_timestep(c, heatmap(dname => d.u, dname, spacing=d.sp, origin=d.or, it=it, save=false), it)
+import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors
+Diagnostics.save_diagnostic(dname::String, d::NodeData, cname::String, c::Any, it::Integer) =
+  pvd_add_timestep(c, field_as_points(dname  => d.u, dname, spacing=d.sp, origin=d.or, it=it, save=false), it)
 
 function create_poisson_solver(grid::UniformGrid)
     nx, ny = size(grid)
@@ -136,7 +137,7 @@ function create_poisson_solver(grid::UniformGrid)
             A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
         end
     end
-    return PoissonSolver(Δh)
+    return PoissonSolver(Δh, grid)
 end
 
 function solve!()
@@ -154,34 +155,36 @@ function apply_dirichlet(::PoissonSolver, dofs, value)
     end
 end
 
-function calculate_electric_potential(ρ)
+function calculate_electric_potential(ps::PoissonSolver, ρ)
     x = solve!()
     ϕ = reshape(x, size(ρ))
     return ϕ
 end
 
 function calculate_electric_field(ps::PoissonSolver, ρ, it)
-    ϕ = calculate_electric_potential(ρ)
+    ϕ = calculate_electric_potential(ps, ρ)
     nx, ny = size(ϕ)
-    Ex = zeros(nx, ny)
-    Ey = zeros(nx, ny)
+    E = zeros(nx, ny, 2)
     Δh = ps.Δh
 
-    Ex[2:nx-1,:] = ϕ[1:nx-2,:] - ϕ[3:nx,:]  # central difference on internal nodes
-    Ey[:,2:ny-1] = ϕ[:,1:ny-2] - ϕ[:,3:ny]  # central difference on internal nodes
-    Ex[1 ,:]  = 2*(ϕ[1,:]    - ϕ[ 2,:])     #  forward difference on x=0
-    Ex[nx,:]  = 2*(ϕ[nx-1,:] - ϕ[nx,:])     # backward difference on x=Lx
-    Ey[:, 1]  = 2*(ϕ[:,1]    - ϕ[:, 2])     #  forward difference on y=0
-    Ey[:,ny]  = 2*(ϕ[:,ny-1] - ϕ[:,ny])     # backward difference on y=Ly
+    E[2:nx-1,:,1] = ϕ[1:nx-2,:] - ϕ[3:nx,:]  # central difference on internal nodes
+    E[:,2:ny-1,2] = ϕ[:,1:ny-2] - ϕ[:,3:ny]  # central difference on internal nodes
+    E[1 ,:,1]  = 2*(ϕ[1,:]    - ϕ[ 2,:])     #  forward difference on x=0
+    E[nx,:,1]  = 2*(ϕ[nx-1,:] - ϕ[nx,:])     # backward difference on x=Lx
+    E[:, 1,2]  = 2*(ϕ[:,1]    - ϕ[:, 2])     #  forward difference on y=0
+    E[:,ny,2]  = 2*(ϕ[:,ny-1] - ϕ[:,ny])     # backward difference on y=Ly
 
-    Ex = Ex/2Δh
-    Ey = Ey/2Δh
+    E = E./2Δh
 
     origin, spacing = [Δh,Δh], [0,0]
-    Diagnostics.register_diagnostic("ϕ",  GridData(ϕ,  origin, spacing, it))
-    Diagnostics.register_diagnostic("Ex", GridData(Ex, origin, spacing, it))
-    Diagnostics.register_diagnostic("Ey", GridData(Ey, origin, spacing, it))
+    Ef = zeros(3, nx, ny, 1)
+    Ef[1,:,:,1] .= E[:,:,1]
+    Ef[2,:,:,1] .= E[:,:,2]
+    Ef[3,:,:,1] .= zeros(nx, ny)
+    Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing, it))
+    Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing, it))
+    #Diagnostics.register_diagnostic("E", NodeData(Ef,origin, spacing, it))
 
-    return Ex, Ey
+    return E
 end
 end

@@ -14,6 +14,18 @@ module ParticleInCell
   using .Source
   using FiniteDifferenceMethod
 
+  function remove_particles!(part, Δh, matches)
+    p = 1
+    while p <= part.np
+      i, j, hx, hy = particle_cell(part.x[1:part.np,:], p, Δh)
+      if matches(i,j)
+        remove!(part, p)
+        continue
+      end
+      p = p + 1
+    end
+  end
+
   function particle_cell(px, p, Δh)
     fij = 1 .+ px[p,:] ./ Δh
     ij = floor.(Int64, fij)
@@ -45,25 +57,15 @@ module ParticleInCell
     enter_loop()
 
     for iteration=1:timesteps # iterate for ts time step
-      new_part = create_particles(source, iteration, 3)
+      new_part = create_particles(source, iteration, 1)
       add!(new_part,part)
       
-      ρ = particle_to_grid(part, grid)
-      Ex, Ey = calculate_electric_field(solver, ρ, iteration)
-      pE = grid_to_particle(grid, part, Ex, Ey)
+      ρ  = particle_to_grid(part, grid, (p) -> part.np2c * part.q/Δh^2)
+      E  = calculate_electric_field(solver, ρ, iteration)
+      pE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
 
       push_particles!(pusher, part, pE, Δt)
-
-      # remove particles outside the computational domain
-      p = 1
-      while p <= part.np
-        i, j, hx, hy = particle_cell(part.x[1:part.np,:], p, Δh)
-        if i < 1 || i >= nx || j < 1 || j >= ny
-          remove!(part, p)
-          continue                           # repeat for the new particle
-        end
-        p = p + 1
-      end
+      remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
 
       after_loop(iteration)
 
