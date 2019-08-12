@@ -6,6 +6,7 @@ module RegularGrid
         Δh::AbstractFloat
         x::AbstractArray
         y::AbstractArray
+        z::AbstractArray
         dof::AbstractArray
         origin::AbstractArray
     end
@@ -17,10 +18,11 @@ module RegularGrid
         nx, ny = length(xx), length(yy)
         xs, ys = xx[1], yy[1]
         Δh = xx[2] - xx[1]
-        x = repeat(xx, 1, ny)
-        y = repeat(yy, 1, nx)'
+        x = repeat(xx,   1, ny)
+        y = repeat(yy', nx,  1)
+        z = zeros(nx, ny)
         n = nx*ny
         dof = reshape(1:n, nx, ny)
-        return UniformGrid(nx, ny, Δh, x, y, dof, [xs,ys])
+        return UniformGrid(nx, ny, Δh, x, y, z, dof, [xs,ys])
     end
 end

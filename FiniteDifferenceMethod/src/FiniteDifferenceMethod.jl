@@ -25,9 +25,17 @@ struct NodeData <: Diagnostics.DiagnosticData
  it :: Integer
 end
 
-import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors
+struct GridData <: Diagnostics.DiagnosticData
+  u :: Array
+ gr :: UniformGrid
+ it :: Integer
+end
+
+import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors, field_as_grid
 Diagnostics.save_diagnostic(dname::String, d::NodeData, cname::String, c::Any, it::Integer) =
   pvd_add_timestep(c, field_as_points(dname  => d.u, dname, spacing=d.sp, origin=d.or, it=it, save=false), it)
+Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, it::Integer) =
+  pvd_add_timestep(c, field_as_grid(d.gr, dname  => d.u, dname, it=it, save=false), it)
 
 function create_poisson_solver(grid::UniformGrid)
     nx, ny = size(grid)
@@ -177,14 +185,9 @@ function calculate_electric_field(ps::PoissonSolver, ρ, it)
     E = E./2Δh
 
     origin, spacing = [Δh,Δh], [0,0]
-    Ef = zeros(3, nx, ny, 1)
-    Ef[1,:,:,1] .= E[:,:,1]
-    Ef[2,:,:,1] .= E[:,:,2]
-    Ef[3,:,:,1] .= zeros(nx, ny)
     Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing, it))
     Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing, it))
-    #Diagnostics.register_diagnostic("E", NodeData(Ef,origin, spacing, it))
-
+    Diagnostics.register_diagnostic("E", GridData(E, ps.grid, it))
     return E
 end
 end
