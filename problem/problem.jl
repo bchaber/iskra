@@ -11,14 +11,14 @@ n0 = 1e12       # density in #/m^3
 ϕp =+1V         # wall potential
 Te = 1.0eV      # electron temperature in eV
 Ti = 0.1eV      # ion temperature in eV
-v_drift = 0#-1mps # ion injection velocity
+v_drift =  5mps # ion injection velocity
 v_th = 0#sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
 λD = sqrt(ɛ0*Te/(n0*qe)) # Debye length
 # set simulation domain
-nx = 50         # number of nodes in x direction
-ny = 50         # number of nodes in y direction
+nx = 20         # number of nodes in x direction
+ny = 20         # number of nodes in y direction
 ts = 75         # number of time steps
-Δh = 1cm        # cell size
+Δh =  5cm       # cell size
 Δt = 30μs       # time step
 #Δt = 100ns     # time step
 nn = nx*ny      # total number of nodes
@@ -43,8 +43,8 @@ bcs = zeros(Int8, nx, ny)
 inbox = (0.02m .<= config.grid.x .<= 0.05m) .&
         (0.02m .<= config.grid.y .<= 0.04m)
 bcs[inbox].= 5;
-bcs[ 1, 1:5] .= 1
-bcs[nx, 1:5] .= 2
+bcs[1,  1] = 1
+bcs[1, ny] = 2
 
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)
