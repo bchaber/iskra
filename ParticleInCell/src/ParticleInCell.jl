@@ -78,7 +78,7 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
     enter_loop()
 
     for iteration=1:timesteps # iterate for ts time step
-      new_part = create_particles(source, iteration, 1)
+      new_part = create_particles(source, iteration, 100)
       add!(new_part,part)
       
       ρ  = particle_to_grid(part, grid, (p) -> part.np2c * part.q/Δh^2)

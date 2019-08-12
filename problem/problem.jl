@@ -15,10 +15,10 @@ v_drift = 0#-1mps # ion injection velocity
 v_th = 0#sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
 λD = sqrt(ɛ0*Te/(n0*qe)) # Debye length
 # set simulation domain
-nx = 20         # number of nodes in x direction
-ny = 20         # number of nodes in y direction
+nx = 50         # number of nodes in x direction
+ny = 50         # number of nodes in y direction
 ts = 75         # number of time steps
-Δh = 5cm        # cell size
+Δh = 1cm        # cell size
 Δt = 30μs       # time step
 #Δt = 100ns     # time step
 nn = nx*ny      # total number of nodes
