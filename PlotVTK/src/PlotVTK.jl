@@ -45,6 +45,11 @@ module PlotVTK
     vtkfile = vtk_grid(filename, x, y)
 
     nx, ny, nc = size(data)
+    if nc == 2
+      data = cat(data, zeros(nx, ny); dims=3)
+      nc = 3
+    end
+
     data = permutedims(reshape(data, nx, ny, nc, 1), [3,1,2,4])
     vtk_point_data(vtkfile, data, name)
 
