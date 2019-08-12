@@ -4,11 +4,12 @@ using Unitful
 ↦(value::Unitful.Quantity, unit::Unitful.Units) = uconvert(unit, value).val
 
 # units
-const C = u"C" ↦ u"C"
-const V = u"V" ↦ u"V"
-const m = u"m" ↦ u"m"
-const u = u"u" ↦ u"kg"
-const s = u"s" ↦ u"s"
+const C  = u"C"  ↦ u"C"
+const V  = u"V"  ↦ u"V"
+const m  = u"m"  ↦ u"m"
+const cm = u"cm" ↦ u"m"
+const u  = u"u"  ↦ u"kg"
+const s  = u"s"  ↦ u"s"
 const ns = u"ns" ↦ u"s"
 const μs = u"μs" ↦ u"s"
 const MV = u"MV" ↦ u"V"
