@@ -43,8 +43,8 @@ bcs = zeros(Int8, nx, ny)
 inbox = (0.02m .<= config.grid.x .<= 0.05m) .&
         (0.02m .<= config.grid.y .<= 0.04m)
 bcs[inbox].= 5;
-bcs[ 1, 5:ny] .= 1
-bcs[nx, 1:5 ] .= 2
+bcs[ 1, 1:5] .= 1
+bcs[nx, 1:5] .= 2
 
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)

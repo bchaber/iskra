@@ -27,7 +27,7 @@ module PlotVTK
     if it != nothing
       filename = @sprintf "%s_%i" filename it
     end
-    vtkfile = vtk_grid(filename, N)
+    vtkfile = vtk_grid(filename, N, origin=origin, spacing=spacing)
     vtk_point_data(vtkfile, data, name)
 
     if save
@@ -37,12 +37,12 @@ module PlotVTK
     return vtkfile
   end
  
-  function field_as_grid(grid, field::Pair, filename::String; it=nothing, save=true)
+  function field_as_grid(x::Array, y::Array, field::Pair, filename::String; it=nothing, save=true)
     name, data = field
     if it != nothing
       filename = @sprintf "%s_%i" filename it
     end
-    vtkfile = vtk_grid(filename, grid.x, grid.y)
+    vtkfile = vtk_grid(filename, x, y)
 
     nx, ny, nc = size(data)
     data = permutedims(reshape(data, nx, ny, nc, 1), [3,1,2,4])

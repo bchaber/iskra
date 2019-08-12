@@ -1,9 +1,9 @@
 module FiniteDifferenceMethod
     export calculate_electric_field
+    export calculate_electric_potential
 
     using RegularGrid
     using LinearAlgebra
-    using Printf:@sprintf,println
 
     mutable struct LinearSystemOfEquations
       A :: AbstractArray{Float64,2}
@@ -12,30 +12,9 @@ module FiniteDifferenceMethod
  
     struct PoissonSolver
       Δh :: Float64
-    grid :: UniformGrid 
     end
    
     lse = LinearSystemOfEquations(zeros(0,0), zeros(0))
-
-import Diagnostics
-struct NodeData <: Diagnostics.DiagnosticData
-  u :: Array
- sp :: Array{Float64,1}
- or :: Array{Float64,1}
- it :: Integer
-end
-
-struct GridData <: Diagnostics.DiagnosticData
-  u :: Array
- gr :: UniformGrid
- it :: Integer
-end
-
-import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors, field_as_grid
-Diagnostics.save_diagnostic(dname::String, d::NodeData, cname::String, c::Any, it::Integer) =
-  pvd_add_timestep(c, field_as_points(dname  => d.u, dname, spacing=d.sp, origin=d.or, it=it, save=false), it)
-Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, it::Integer) =
-  pvd_add_timestep(c, field_as_grid(d.gr, dname  => d.u, dname, it=it, save=false), it)
 
 function create_poisson_solver(grid::UniformGrid)
     nx, ny = size(grid)
@@ -145,7 +124,7 @@ function create_poisson_solver(grid::UniformGrid)
             A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
         end
     end
-    return PoissonSolver(Δh, grid)
+    return PoissonSolver(Δh)
 end
 
 function solve!()
@@ -169,8 +148,7 @@ function calculate_electric_potential(ps::PoissonSolver, ρ)
     return ϕ
 end
 
-function calculate_electric_field(ps::PoissonSolver, ρ, it)
-    ϕ = calculate_electric_potential(ps, ρ)
+function calculate_electric_field(ps::PoissonSolver, ϕ)
     nx, ny = size(ϕ)
     E = zeros(nx, ny, 2)
     Δh = ps.Δh
@@ -184,10 +162,6 @@ function calculate_electric_field(ps::PoissonSolver, ρ, it)
 
     E = E./2Δh
 
-    origin, spacing = [Δh,Δh], [0,0]
-    Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing, it))
-    Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing, it))
-    Diagnostics.register_diagnostic("E", GridData(E, ps.grid, it))
     return E
 end
 end

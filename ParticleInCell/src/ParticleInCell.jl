@@ -14,6 +14,27 @@ module ParticleInCell
   using .Source
   using FiniteDifferenceMethod
 
+import Diagnostics
+struct NodeData <: Diagnostics.DiagnosticData
+  u :: Array{Float64,2}
+ or :: Array{Float64,1}
+ sp :: Array{Float64,1}
+ it :: Integer
+end
+
+struct GridData <: Diagnostics.DiagnosticData
+  u :: Array{Float64,3}
+  x :: Array{Float64,2}
+  y :: Array{Float64,2}
+ it :: Integer
+end
+
+import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors, field_as_grid
+Diagnostics.save_diagnostic(dname::String, d::NodeData, cname::String, c::Any, it::Integer) =
+  pvd_add_timestep(c, field_as_points(dname  => d.u, dname, spacing=d.sp, origin=d.or, it=it, save=false), it)
+Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, it::Integer) =
+  pvd_add_timestep(c, field_as_grid(d.x, d.y, dname  => d.u, dname, it=it, save=false), it)
+
   function remove_particles!(part, Δh, matches)
     p = 1
     while p <= part.np
@@ -61,8 +82,13 @@ module ParticleInCell
       add!(new_part,part)
       
       ρ  = particle_to_grid(part, grid, (p) -> part.np2c * part.q/Δh^2)
-      E  = calculate_electric_field(solver, ρ, iteration)
+      ϕ  = calculate_electric_potential(solver, ρ)
+      E  = calculate_electric_field(solver, ϕ)
       pE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
+
+    Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing, iteration))
+    Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing, iteration))
+    Diagnostics.register_diagnostic("E", GridData(E, grid.x,  grid.y, iteration))
 
       push_particles!(pusher, part, pE, Δt)
       remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
