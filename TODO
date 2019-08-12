@@ -3,3 +3,4 @@
 + wrap my head around np2c (where should I put it?)
 - optimize memory allocation (views and output arrays)
 - implement boundary crossing
+- warn when particle crosses more than one cell
