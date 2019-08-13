@@ -10,8 +10,8 @@ mutable struct MaxwellianSourceConfiguration
    v :: AbstractArray{Float64,2}
 end
 
-function create_maxwellian_source(sps, n, x, v)
-  MaxwellianSourceConfiguration(sps, n, x, v)
+function create_maxwellian_source(species, n, x, v)
+  MaxwellianSourceConfiguration(species, n, x, v)
 end
 
 function create_particles!(config :: MaxwellianSourceConfiguration, it)

@@ -30,7 +30,7 @@ function save_diagnostic(dname::String, cname::String, it::Integer)
     Printf.println("Couldn't find diagnostic "*dname)
   end
 end
- 
+
 function close_container(cname::String)
   pvd_save(containers[cname])
   delete!(containers, cname)
