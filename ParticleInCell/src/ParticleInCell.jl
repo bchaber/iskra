@@ -93,36 +93,37 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
     origin  = grid.origin
     enter_loop()
 
+    ρ = zeros(nx, ny)
+    E = zeros(nx, ny, 2)
     for iteration=1:timesteps # iterate for ts time step
-      ρ  = zeros(nx, ny)
-
+      # Create particles
       for src in sources
         part = src.species
         px, pv = @views part.x[1+part.np:end,:], part.v[1+part.np:end,:]
         n = create_particles!(src, px, pv, Δt)
         part.np += n
       end
-
+      # Remove particles
+      for part in species
+        partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
+        push_particles!(pusher, part, partE, Δt)
+        remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
+        Diagnostics.register_diagnostic("pv"*part.name, ParticleVectorData(part.x,part.v,part.id, part.np))
+        Diagnostics.register_diagnostic("pE"*part.name, ParticleVectorData(part.x,partE, part.id, part.np))
+      end
+      # Calculate charge density
+      ρ .= 0.0
       for part in species
         n   = particle_to_grid(part, grid, (p) -> part.np2c)
-        Diagnostics.register_diagnostic("n"*part.name, NodeData(n, origin, spacing))
         ρ .+= n .* part.q
+        Diagnostics.register_diagnostic("n"*part.name, NodeData(n, origin, spacing))
       end
-
-      ϕ  = calculate_electric_potential(solver, ρ)
+      # Calculate electric field
+      ϕ  = 5calculate_electric_potential(solver, ρ)
       E  = calculate_electric_field(solver, ϕ)
-
       Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing))
       Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing))
       Diagnostics.register_diagnostic("E", GridData(E, grid.x,  grid.y))
-
-      for part in species
-        partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
-        Diagnostics.register_diagnostic("pv"*part.name, ParticleVectorData(part.x,part.v,part.id, part.np))
-        Diagnostics.register_diagnostic("pE"*part.name, ParticleVectorData(part.x,partE, part.id, part.np))
-        push_particles!(pusher, part, partE, Δt)
-        remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
-      end
 
       after_loop(iteration)
 
