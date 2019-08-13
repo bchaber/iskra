@@ -8,10 +8,10 @@ function particle_to_grid(part, grid, pu)
   for p=1:np
     i, j, hx, hy = particle_cell(px, p, Δh)
     # interpolate charge to nodes
-    u[i  ,j]   += (1-hx)*(1-hy)* pu(p)
-    u[i+1,j]   +=    hx *(1-hy)* pu(p)
-    u[i  ,j+1] += (1-hx)*   hy * pu(p)
-    u[i+1,j+1] +=    hx *   hy * pu(p)
+    u[i  ,j]   += (1-hx)*(1-hy)* pu(p)/Δh^2
+    u[i+1,j]   +=    hx *(1-hy)* pu(p)/Δh^2
+    u[i  ,j+1] += (1-hx)*   hy * pu(p)/Δh^2
+    u[i+1,j+1] +=    hx *   hy * pu(p)/Δh^2
   end
 
   u[1,:]  = 2u[1,:]

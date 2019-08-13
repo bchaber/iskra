@@ -4,11 +4,11 @@ module RegularGrid
         nx::Integer
         ny::Integer
         Δh::AbstractFloat
-        x::AbstractArray
-        y::AbstractArray
-        z::AbstractArray
-        dof::AbstractArray
-        origin::AbstractArray
+         x::AbstractArray
+         y::AbstractArray
+         z::AbstractArray
+       dof::AbstractArray
+    origin::AbstractArray
     end
 
     Base.size(g::UniformGrid) = (g.nx, g.ny)

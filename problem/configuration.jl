@@ -3,15 +3,19 @@ import FiniteDifferenceMethod
 
 mutable struct Config
   solver
-  source
   pusher
   species
+  sources
   grid
 end
 
 function add_electrode(nodes, voltage)
   solver, dof = config.solver, config.grid.dof
   FiniteDifferenceMethod.apply_dirichlet(solver, dof[nodes], voltage)
+end
+
+function create_gamma_ionization_source(electrons, rate, x, v)
+  ParticleInCell.Source.create_maxwellian_source(electrons, rate, x, v)
 end
 
 function create_species(name, N, q, m, np2c)
