@@ -30,8 +30,7 @@ sx, sv = [0 Lx; 0 Ly], [v_th v_drift; v_th 0]
 e  = create_species("e-", 20_000,-1qe, 1me, 100)
 iO = create_species("O+", 20_000,+1qe,  1u, 100)
 #chem = create_chemical_reactions("O")
-γe = create_gamma_ionization_source( e, 500, sx, sv)
-γO = create_gamma_ionization_source(iO, 100, sx, sv)
+γe = create_gamma_ionization_source( e, 0.1/Δt, sx, sv)
 
 import RegularGrid, FiniteDifferenceMethod
 import ParticleInCell: Source, Pusher
@@ -39,7 +38,9 @@ config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
 config.pusher  = Pusher.create_boris_pusher()
 config.species = [iO, e]
-config.sources = [γe, γO]
+config.sources = [γe]
+
+sO = ParticleInCell.Source.create_maxwellian_source(iO, 100/Δt, sx, sv)
 ############################################
 nx, ny = size(config.grid)
 bcs = zeros(Int8, nx, ny)
@@ -62,6 +63,7 @@ end
 
 function ParticleInCell.after_loop(it)
   Diagnostics.save_diagnostic("ρ",   "problem-field",   it)
+  Diagnostics.save_diagnostic("ϕ",   "problem-field",   it)
   Diagnostics.save_diagnostic("nO+", "problem-field",   it)
   Diagnostics.save_diagnostic("ne-", "problem-field",   it)
   Diagnostics.save_diagnostic("pvO+","problem-particle",it)
@@ -73,4 +75,5 @@ function ParticleInCell.exit_loop()
   Diagnostics.close_container("problem-particle")
 end
 
+ParticleInCell.init(sO, Δt)
 @time ParticleInCell.solve(config, Δt, ts)

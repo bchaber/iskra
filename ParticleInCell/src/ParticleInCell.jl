@@ -73,6 +73,10 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
   function after_loop(it) end
   function exit_loop() end
 
+  function init(src, Δt)
+    create_particles!(src, Δt)
+  end
+
   function solve(config, Δt=1e-5, timesteps=200)
     pusher = config.pusher
     sources = config.sources
@@ -92,7 +96,7 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
       ρ  = zeros(nx, ny)
 
       for src in sources
-        create_particles!(src, iteration)
+        create_particles!(src, Δt)
       end
 
       for part in species
