@@ -22,7 +22,7 @@ function remove!(sp, i::Int64)
   np = sp.np
   sp.x[i,:] .= sp.x[np,:]
   sp.v[i,:] .= sp.v[np,:]
-  sp.id[i]   = sp.id[np]
+  sp.id[i], sp.id[np] = sp.id[np], sp.id[i]
   sp.np = np - 1
 end
 
