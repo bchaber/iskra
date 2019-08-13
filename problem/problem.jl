@@ -30,7 +30,7 @@ sx, sv = [0 Lx; 0 Ly], [v_th v_drift; v_th 0]
 e  = create_species("e-", 20_000,-1qe, 1me, 100)
 iO = create_species("O+", 20_000,+1qe,  1u, 100)
 #chem = create_chemical_reactions("O")
-γe = create_gamma_ionization_source( e, 0.1/Δt, sx, sv)
+γe = create_gamma_ionization_source( e, 0.3/Δt, sx, sv)
 
 import RegularGrid, FiniteDifferenceMethod
 import ParticleInCell: Source, Pusher

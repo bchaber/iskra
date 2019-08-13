@@ -16,27 +16,26 @@ module ParticleInCell
 
 import Diagnostics
 struct ParticleVectorData <: Diagnostics.DiagnosticData
-  x :: Array{Float64,1}
-  y :: Array{Float64,1}
-  u :: Array{Float64,1}
-  v :: Array{Float64,1}
-  w :: Array{Float64,1}
- id :: Array{UInt64,1}
- it :: Integer
+   x :: Array{Float64,1}
+   y :: Array{Float64,1}
+   u :: Array{Float64,1}
+   v :: Array{Float64,1}
+   w :: Array{Float64,1}
+  id :: Array{UInt64,1}
 end
+ParticleVectorData(x,u,id,np) =
+ParticleVectorData(copy(x[1:np,1]), copy(x[1:np,2]), copy(u[1:np,1]), copy(u[1:np,2]), zeros(np), copy(id[1:np]))
 
 struct NodeData <: Diagnostics.DiagnosticData
   u :: Array{Float64,2}
  or :: Array{Float64,1}
  sp :: Array{Float64,1}
- it :: Integer
 end
 
 struct GridData <: Diagnostics.DiagnosticData
   u :: Array{Float64,3}
   x :: Array{Float64,2}
   y :: Array{Float64,2}
- it :: Integer
 end
 
 import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors, field_as_grid, field_as_vectors
@@ -74,7 +73,10 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
   function exit_loop() end
 
   function init(src, Δt)
-    create_particles!(src, Δt)
+    part = src.species
+    px, pv = @views part.x[1+part.np:end,:], part.v[1+part.np:end,:]
+    n = create_particles!(src, px, pv, Δt)
+    part.np += n
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
@@ -89,36 +91,35 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
     Δh² = Δh^2
     spacing = [1,1]*grid.Δh
     origin  = grid.origin
-
     enter_loop()
 
     for iteration=1:timesteps # iterate for ts time step
       ρ  = zeros(nx, ny)
 
       for src in sources
-        create_particles!(src, Δt)
+        part = src.species
+        px, pv = @views part.x[1+part.np:end,:], part.v[1+part.np:end,:]
+        n = create_particles!(src, px, pv, Δt)
+        part.np += n
       end
 
       for part in species
         n   = particle_to_grid(part, grid, (p) -> part.np2c)
-        ρ .+= particle_to_grid(part, grid, (p) -> part.np2c * part.q)
-        Diagnostics.register_diagnostic("n"*part.name, NodeData(n, origin, spacing, iteration))
+        Diagnostics.register_diagnostic("n"*part.name, NodeData(n, origin, spacing))
+        ρ .+= n .* part.q
       end
 
       ϕ  = calculate_electric_potential(solver, ρ)
       E  = calculate_electric_field(solver, ϕ)
 
-      Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing, iteration))
-      Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing, iteration))
-      Diagnostics.register_diagnostic("E", GridData(E, grid.x,  grid.y, iteration))
+      Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing))
+      Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing))
+      Diagnostics.register_diagnostic("E", GridData(E, grid.x,  grid.y))
 
       for part in species
         partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
-        px, pv = part.x[1:part.np,:], part.v[1:part.np,:]
-        pE = partE[1:part.np,:]
-        pid = part.id[1:part.np]
-        Diagnostics.register_diagnostic("pv"*part.name, ParticleVectorData(px[:,1],px[:,2],pv[:,1],pv[:,2],zeros(part.np),pid, 1))
-        Diagnostics.register_diagnostic("pE"*part.name, ParticleVectorData(px[:,1],px[:,2],pE[:,1],pE[:,2],zeros(part.np),pid, 1))
+        Diagnostics.register_diagnostic("pv"*part.name, ParticleVectorData(part.x,part.v,part.id, part.np))
+        Diagnostics.register_diagnostic("pE"*part.name, ParticleVectorData(part.x,partE, part.id, part.np))
         push_particles!(pusher, part, partE, Δt)
         remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
       end
