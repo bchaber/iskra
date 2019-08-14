@@ -119,7 +119,7 @@ Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, i
         Diagnostics.register_diagnostic("n"*part.name, NodeData(n, origin, spacing))
       end
       # Calculate electric field
-      ϕ  = 5calculate_electric_potential(solver, ρ)
+      ϕ  = calculate_electric_potential(solver, ρ)
       E  = calculate_electric_field(solver, ϕ)
       Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing))
       Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing))
