@@ -1,7 +1,7 @@
 + allow multiple species, sources
 + figure out diagnostics
 + wrap my head around np2c (where should I put it?)
-- optimize memory allocation (views and output arrays)
+/ optimize memory allocation (views and output arrays) -- made no difference
 - implement boundary crossing
 - warn when particle crosses more than one cell
 - add histograms
