@@ -69,8 +69,8 @@ module ParticleInCell
       for src in sources
         part = src.species
         px, pv = @views part.x[1+part.np:end,:], part.v[1+part.np:end,:]
-        n = create_particles!(src, px, pv, Δt)
-        part.np += n
+        np = create_particles!(src, px, pv, Δt)
+        part.np += np
       end
       # Remove particles
       for part in species
