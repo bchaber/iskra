@@ -4,3 +4,5 @@
 - optimize memory allocation (views and output arrays)
 - implement boundary crossing
 - warn when particle crosses more than one cell
+- add histograms
+- implement another solver (Boundary Element Method?)
