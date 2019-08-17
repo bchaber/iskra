@@ -1,5 +1,6 @@
 module FiniteDifferenceMethod
     export calculate_electric_field
+    export calculate_electric_field!
     export calculate_electric_potential
 
     using RegularGrid
@@ -150,7 +151,11 @@ end
 
 function calculate_electric_field(ps::PoissonSolver, ϕ)
     nx, ny = size(ϕ)
-    E = zeros(nx, ny, 2)
+    calculate_electric_field!(ps, ϕ, zeros(nx, ny, 2))
+end
+
+function calculate_electric_field!(ps::PoissonSolver, ϕ, E)
+    nx, ny = size(ϕ)
     Δh = ps.Δh
 
     E[2:nx-1,:,1] = ϕ[1:nx-2,:] - ϕ[3:nx,:]  # central difference on internal nodes
@@ -160,7 +165,7 @@ function calculate_electric_field(ps::PoissonSolver, ϕ)
     E[:, 1,2]  = 2*(ϕ[:,1]    - ϕ[:, 2])     #  forward difference on y=0
     E[:,ny,2]  = 2*(ϕ[:,ny-1] - ϕ[:,ny])     # backward difference on y=Ly
 
-    E = E./2Δh
+    E ./=  2Δh
 
     return E
 end
