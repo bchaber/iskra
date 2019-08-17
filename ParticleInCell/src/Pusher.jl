@@ -12,7 +12,7 @@ function push_particles!(::BorisPusher, part, E, Δt)
   F = q*E # Lorentz force, F=qE
   a = F/m # acceleration,  F=ma
 
-  v[1:np,:] .= v[1:np,:] .+ Δt * a[1:np,:]
-  x[1:np,:] .= x[1:np,:] .+ Δt * v[1:np,:]
+  v[1:np,:] .= @views v[1:np,:] .+ Δt * a[1:np,:]
+  x[1:np,:] .= @views x[1:np,:] .+ Δt * v[1:np,:]
 end
 end
