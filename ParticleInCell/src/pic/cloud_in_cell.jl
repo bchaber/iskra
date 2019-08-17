@@ -18,6 +18,10 @@ function particle_to_grid(part, grid, pu)
   u[nx,:] = 2u[nx,:]
   u[:,1]  = 2u[:,1]
   u[:,ny] = 2u[:,ny]
+  u[ 1,:] .*= 2
+  u[nx,:] .*= 2
+  u[:, 1] .*= 2
+  u[:,ny] .*= 2
 
   return u
 end
