@@ -57,7 +57,6 @@ module ParticleInCell
 
     nx, ny = size(grid)
     Δh = grid.Δh
-    Δh² = Δh^2
     spacing = [1,1]*grid.Δh
     origin  = grid.origin
     enter_loop()
