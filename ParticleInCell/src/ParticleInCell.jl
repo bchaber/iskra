@@ -84,7 +84,7 @@ module ParticleInCell
       for part in species
         n   = particle_to_grid(part, grid, (p) -> part.np2c)
         ρ .+= n .* part.q
-        @diagnostics "n"*part.name NodeData(n, origin, spacing)
+        @diag "n"*part.name NodeData(n, origin, spacing)
       end
       # Calculate electric field
       ϕ  = calculate_electric_potential(solver, ρ)

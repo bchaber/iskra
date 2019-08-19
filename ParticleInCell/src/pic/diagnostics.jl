@@ -30,4 +30,4 @@ Diagnostics.save_diagnostic(dname::String, d::NodeData, cname::String, c::Any, i
 Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, it::Integer) =
   pvd_add_timestep(c, field_as_grid(d.x, d.y, dname  => d.u, dname, it=it, save=false), it)
 
-import Diagnostics: @diagnostics
+import Diagnostics: @diag
