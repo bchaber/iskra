@@ -76,22 +76,22 @@ module ParticleInCell
         partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
         push_particles!(pusher, part, partE, Δt)
         remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
-        Diagnostics.register_diagnostic("pv"*part.name, ParticleVectorData(part.x,part.v,part.id, part.np))
-        Diagnostics.register_diagnostic("pE"*part.name, ParticleVectorData(part.x,partE, part.id, part.np))
+        @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.np)
+        @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.np)
       end
       # Calculate charge density
       ρ .= 0.0
       for part in species
         n   = particle_to_grid(part, grid, (p) -> part.np2c)
         ρ .+= n .* part.q
-        Diagnostics.register_diagnostic("n"*part.name, NodeData(n, origin, spacing))
+        @diagnostics "n"*part.name NodeData(n, origin, spacing)
       end
       # Calculate electric field
       ϕ  = calculate_electric_potential(solver, ρ)
       E  = calculate_electric_field(solver, ϕ)
-      Diagnostics.register_diagnostic("ρ", NodeData(ρ, origin, spacing))
-      Diagnostics.register_diagnostic("ϕ", NodeData(ϕ, origin, spacing))
-      Diagnostics.register_diagnostic("E", GridData(E, grid.x,  grid.y))
+      @diag "ρ" NodeData(ρ, origin, spacing)
+      @diag "ϕ" NodeData(ϕ, origin, spacing)
+      @diag "E" GridData(E, grid.x,  grid.y)
 
       after_loop(iteration)
 
