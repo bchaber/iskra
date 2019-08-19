@@ -32,15 +32,14 @@ iO = create_species("O+", 20_000,+1qe,  1u, 100)
 #chem = create_chemical_reactions("O")
 γe = create_gamma_ionization_source( e, 0.3/Δt, sx, sv)
 
-import RegularGrid, FiniteDifferenceMethod
-import ParticleInCell: Source, Pusher
+import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
-config.pusher  = Pusher.create_boris_pusher()
+config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [iO, e]
 config.sources = [γe]
 
-sO = ParticleInCell.Source.create_maxwellian_source(iO, 100/Δt, sx, sv)
+sO = ParticleInCell.create_maxwellian_source(iO, 200/Δt, sx, sv)
 ############################################
 nx, ny = size(config.grid)
 bcs = zeros(Int8, nx, ny)

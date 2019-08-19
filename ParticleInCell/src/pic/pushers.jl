@@ -1,5 +1,3 @@
-module Pusher
-export push_particles!
 struct BorisPusher end
 
 function create_boris_pusher()
@@ -14,5 +12,4 @@ function push_particles!(::BorisPusher, part, E, Δt)
 
   v[1:np,:] .= @views v[1:np,:] .+ Δt * a[1:np,:]
   x[1:np,:] .= @views x[1:np,:] .+ Δt * v[1:np,:]
-end
 end

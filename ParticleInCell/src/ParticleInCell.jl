@@ -1,19 +1,13 @@
 module ParticleInCell
-  export solve
-
-  import Printf:@sprintf,println
-
+  using FiniteDifferenceMethod
+  
   include("sugar.jl")
 
   include("pic/macroparticle.jl")
   include("pic/cloud_in_cell.jl")
   include("pic/diagnostics.jl")
-
-  include("Pusher.jl")
-  include("Source.jl")
-  using .Pusher
-  using .Source
-  using FiniteDifferenceMethod
+  include("pic/pushers.jl")
+  include("pic/sources.jl")
 
   function remove_particles!(part, Δh, matches)
     p = 1
@@ -76,26 +70,29 @@ module ParticleInCell
         partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
         push_particles!(pusher, part, partE, Δt)
         remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
+
         @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.np)
         @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.np)
       end
       # Calculate charge density
-      ρ .= 0.0
+      fill!(ρ, 0.0)
       for part in species
-        n   = particle_to_grid(part, grid, (p) -> part.np2c)
+        n = particle_to_grid(part, grid, (p) -> part.np2c)
         ρ .+= n .* part.q
+
         @diag "n"*part.name NodeData(n, origin, spacing)
       end
       # Calculate electric field
       ϕ  = calculate_electric_potential(solver, ρ)
       E  = calculate_electric_field(solver, ϕ)
+
       @diag "ρ" NodeData(ρ, origin, spacing)
       @diag "ϕ" NodeData(ϕ, origin, spacing)
       @diag "E" GridData(E, grid.x,  grid.y)
 
       after_loop(iteration)
 
-      println(@sprintf "Time Step #%d, Particles #%s" iteration [part.np for part in config.species])
+      println("Time Step #", iteration, ", Particles #", [part.np for part in config.species])
     end
 
     exit_loop()

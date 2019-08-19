@@ -1,8 +1,3 @@
-module Source
-export create_particles!
-
-include("pic/macroparticle.jl")
-
 mutable struct MaxwellianSourceConfiguration
    species
    rate :: Float64
@@ -29,5 +24,4 @@ function create_particles!(config :: MaxwellianSourceConfiguration, px, pv, Δt)
   config.n -= n
 
   return n
-end
 end

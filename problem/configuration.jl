@@ -15,7 +15,7 @@ function add_electrode(nodes, voltage)
 end
 
 function create_gamma_ionization_source(electrons, rate, x, v)
-  ParticleInCell.Source.create_maxwellian_source(electrons, rate, x, v)
+  ParticleInCell.create_maxwellian_source(electrons, rate, x, v)
 end
 
 function create_species(name, N, q, m, np2c)
