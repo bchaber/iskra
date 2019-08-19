@@ -36,4 +36,10 @@ function close_container(cname::String)
   delete!(containers, cname)
 end
 
+macro diag(dname, data)
+  quote
+   Diagnostics.register_diagnostic($(esc(dname)), $(esc(data)))
+  end
+end
+
 end
