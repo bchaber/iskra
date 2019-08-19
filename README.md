@@ -5,7 +5,12 @@ A particle-in-cell simulator for spark simulations ("iskra" is the Polish word f
 The code started as a loosely based version of Lubos Brieda's MATLAB code ES-PIC (https://www.particleincell.com/2011/particle-in-cell-example/). Right now only 2D (XY) electrostatic simulations of collisionless plasma is possible, but it will change in the future.
 
 # running
-To run this code few dependencies have to be installed in Julia (version >= 1.1). After that one has to add to `~/.julia/config/startup.jl` following lines:
+To run this code few dependencies have to be installed in Julia (version >= 1.1):
+
+* ```WriteVTK``` ( enter Julia ```julia```  then press key ```]```  to enter packager mode and then just install ```add WriteVTK```)
+* ```Unitful```
+
+After that one has to add to `~/.julia/config/startup.jl` following lines:
 
 ```push!(LOAD_PATH, <PATH TO THE CLONED REPOSITORY>)```
 
