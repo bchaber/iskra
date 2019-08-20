@@ -10,7 +10,6 @@ mutable struct Species
 end
 
 particle_uuids(N::Int64) = collect(1:UInt32(N))
-#particle_uuids(N::Int64) = [rand(UInt32) for i in 1:N]
 
 Species(x::AbstractArray{Float64,2},
         v::AbstractArray{Float64,2},
