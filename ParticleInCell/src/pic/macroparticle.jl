@@ -15,7 +15,7 @@ Species(x::AbstractArray{Float64,2},
         v::AbstractArray{Float64,2},
         m::Float64, q::Float64, name::String,
         np2c::Int64, np::Int64) = Species(x, v, m, q, name, np2c, np, particle_uuids(np))
-Species(name::String, N::Int64) = Species(zeros(N,2), zeros(N,2), 0, 1, name, 1, 0, particle_uuids(N))
+Species(name::String, N::Int64) = Species(zeros(N,3), zeros(N,3), 0, 1, name, 1, 0, particle_uuids(N))
 
 function remove!(sp, i::Int64)
   np = sp.np

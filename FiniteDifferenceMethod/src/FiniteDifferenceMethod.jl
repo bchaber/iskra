@@ -151,7 +151,7 @@ end
 
 function calculate_electric_field(ps::PoissonSolver, ϕ)
     nx, ny = size(ϕ)
-    calculate_electric_field!(ps, ϕ, zeros(nx, ny, 2))
+    calculate_electric_field!(ps, ϕ, zeros(nx, ny, 3))
 end
 
 function calculate_electric_field!(ps::PoissonSolver, ϕ, E)

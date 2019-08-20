@@ -56,7 +56,7 @@ module ParticleInCell
     enter_loop()
 
     ρ = zeros(nx, ny)
-    E = zeros(nx, ny, 2)
+    E = zeros(nx, ny, 3)
     for iteration=1:timesteps # iterate for ts time step
       # Create particles
       for src in sources

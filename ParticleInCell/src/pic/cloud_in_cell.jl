@@ -30,7 +30,7 @@ function grid_to_particle(grid, part, u)
   np = part.np
   Δh = grid.Δh
   px = part.x[1:np,:]
-  pu = zeros(np, 2)
+  pu = zeros(np, 3)
 
   for p=1:np
     i, j, hx, hy = particle_cell(px, p, Δh)

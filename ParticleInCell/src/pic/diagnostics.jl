@@ -8,7 +8,7 @@ struct ParticleVectorData <: Diagnostics.DiagnosticData
   id :: Array{UInt64,1}
 end
 ParticleVectorData(x,u,id,np) =
-ParticleVectorData(x[1:np,1], x[1:np,2], u[1:np,1], u[1:np,2], zeros(np), id[1:np])
+ParticleVectorData(x[1:np,1], x[1:np,2], u[1:np,1], u[1:np,2], u[1:np,3], id[1:np])
 
 struct NodeData <: Diagnostics.DiagnosticData
   u :: Array{Float64,2}
