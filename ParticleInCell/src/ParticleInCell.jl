@@ -12,7 +12,7 @@ module ParticleInCell
   function remove_particles!(part, Δh, matches)
     p = 1
     while p <= part.np
-      i, j, hx, hy = particle_cell(part.x[1:part.np,:], p, Δh)
+      i, j, hx, hy = particle_cell(view(part.x, 1:part.np, :), p, Δh)
       if matches(i,j)
         remove!(part, p)
         continue
@@ -22,7 +22,7 @@ module ParticleInCell
   end
 
   function particle_cell(px, p, Δh)
-    fij = 1 .+ px[p,:] ./ Δh
+    fij = 1 .+ view(px, p, :) ./ Δh
     ij = floor.(Int64, fij)
     hxy = fij .- ij
     i, j  = ij

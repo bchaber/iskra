@@ -2,7 +2,7 @@ function particle_to_grid(part, grid, pu)
   nx, ny = size(grid)
   Δh = grid.Δh
   np = part.np
-  px = part.x[1:np,:]
+  px = view(part.x, 1:np, :)
   u  = zeros(nx, ny)   # distribution of pu on grid
 
   for p=1:np
@@ -29,7 +29,7 @@ end
 function grid_to_particle(grid, part, u)
   np = part.np
   Δh = grid.Δh
-  px = part.x[1:np,:]
+  px = view(part.x, 1:np, :)
   pu = zeros(np, 3)
 
   for p=1:np
