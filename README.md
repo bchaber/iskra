@@ -7,7 +7,7 @@ The code started as a loosely based version of Lubos Brieda's MATLAB code ES-PIC
 # running
 To run this code few dependencies have to be installed in Julia (version >= 1.1):
 
-* ```WriteVTK``` ( enter Julia ```julia```  then press key ```]```  to enter packager mode and then just install ```add WriteVTK```)
+* ```WriteVTK``` ( ```] add WriteVTK```)
 * ```Unitful```
 
 After that one has to add to `~/.julia/config/startup.jl` following lines:
