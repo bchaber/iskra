@@ -23,7 +23,7 @@ module ParticleInCell
   end
 
   function particle_cell(px, p, Δh)
-    fij = 1 .+ view(px, p, :) ./ Δh
+    fij = @views 1 .+ px[p, :] ./ Δh
     ij = floor.(Int64, fij)
     hxy = fij .- ij
     i, j  = ij
