@@ -34,6 +34,7 @@ iO = create_species("O+", 20_000,+1qe,  1u, 100)
 
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
+config.cells   = RegularGrid.create_yee_grid(config.grid)
 config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [iO, e]
@@ -48,6 +49,7 @@ inbox = (0.02m .<= config.grid.x .<= 0.05m) .&
 bcs[inbox].= 5;
 bcs[1,  1] = 1
 bcs[1, ny] = 2
+config.cells["ε"] = 1ε0 * ones(size(config.cells))
 
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)

@@ -128,8 +128,8 @@ function create_poisson_solver(grid::UniformGrid)
     return PoissonSolver(Δh)
 end
 
-function solve!()
-  return lse.A\lse.b
+function solve!(f)
+  return lse.A\(lse.b .+ f)
 end
 
 function apply_dirichlet(::PoissonSolver, dofs, value)
@@ -143,9 +143,9 @@ function apply_dirichlet(::PoissonSolver, dofs, value)
     end
 end
 
-function calculate_electric_potential(ps::PoissonSolver, ρ)
-    x = solve!()
-    ϕ = reshape(x, size(ρ))
+function calculate_electric_potential(ps::PoissonSolver, f)
+    x = solve!(f[:])
+    ϕ = reshape(x, size(f))
     return ϕ
 end
 

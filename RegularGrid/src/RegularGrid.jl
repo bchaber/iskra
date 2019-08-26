@@ -1,6 +1,7 @@
 module RegularGrid
     export create, UniformGrid
     struct UniformGrid
+      data::Dict{String,AbstractArray}
         nx::Integer
         ny::Integer
         Δh::AbstractFloat
@@ -13,6 +14,8 @@ module RegularGrid
 
     Base.size(g::UniformGrid) = (g.nx, g.ny)
     Base.length(g::UniformGrid) = g.nx*g.ny
+    Base.getindex(g::UniformGrid, k) = g.data[k]
+    Base.setindex!(g::UniformGrid, v, k) = setindex!(g.data, v, k)
 
     function create_uniform_grid(xx, yy)
         nx, ny = length(xx), length(yy)
@@ -23,6 +26,16 @@ module RegularGrid
         z = zeros(nx, ny)
         n = nx*ny
         dof = reshape(1:n, nx, ny)
-        return UniformGrid(nx, ny, Δh, x, y, z, dof, [xs,ys])
+        data = Dict{String,AbstractArray}()
+        return UniformGrid(data, nx, ny, Δh, x, y, z, dof, [xs,ys])
+    end
+
+    function create_yee_grid(g::UniformGrid)
+        x0, xn = extrema(g.x)
+        y0, yn = extrema(g.y)
+        Δh = g.Δh
+        xs = range(x0-Δh/2, xn+Δh/2, length=g.nx+1)
+        ys = range(y0-Δh/2, yn+Δh/2, length=g.ny+1)
+        create_uniform_grid(xs, ys)
     end
 end

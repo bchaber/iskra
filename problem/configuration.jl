@@ -7,6 +7,7 @@ mutable struct Config
   species
   sources
   grid
+  cells
 end
 
 function add_electrode(nodes, voltage)
@@ -26,4 +27,4 @@ function create_species(name, N, q, m, np2c)
   return species
 end
 
-Config() = Config(nothing, nothing, nothing, nothing, nothing)
+Config() = Config(nothing, nothing, nothing, nothing, nothing, nothing)
