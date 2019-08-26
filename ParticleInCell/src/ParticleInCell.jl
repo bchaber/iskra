@@ -57,6 +57,8 @@ module ParticleInCell
     solver = config.solver
     cells = config.cells
     grid  = config.grid
+    ε = cells["ε"]
+    ε̂ = cell_to_grid(ε, grid)
     
     nx, ny = size(grid)
     Δh = grid.Δh
@@ -66,7 +68,10 @@ module ParticleInCell
 
     ρ = zeros(nx, ny)
     E = zeros(nx, ny, 3)
-    ε = cell_to_grid(cells["ε"], grid)
+
+    @diag "ε" GridData(ε, cells.x,cells.y)
+    @diag "ε̂" NodeData(ε̂, origin, spacing)
+
     for iteration=1:timesteps # iterate for ts time step
       # Create particles
       for src in sources
@@ -93,7 +98,7 @@ module ParticleInCell
         @diag "n"*part.name NodeData(n, origin, spacing)
       end
       # Calculate electric field
-      ϕ  = calculate_electric_potential(solver, ρ./ε)
+      ϕ  = calculate_electric_potential(solver, ρ./ε̂)
       E  = calculate_electric_field(solver, ϕ)
 
       @diag "ρ" NodeData(ρ, origin, spacing)

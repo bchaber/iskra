@@ -43,13 +43,21 @@ config.sources = [γe]
 sO = ParticleInCell.create_maxwellian_source(iO, 200/Δt, sx, sv)
 ############################################
 nx, ny = size(config.grid)
+mx, my = size(config.cells)
+εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny)
-inbox = (0.02m .<= config.grid.x .<= 0.05m) .&
-        (0.02m .<= config.grid.y .<= 0.04m)
-bcs[inbox].= 5;
-bcs[1,  1] = 1
-bcs[1, ny] = 2
-config.cells["ε"] = 1ε0 * ones(size(config.cells))
+inbox = (0.0m .<= config.cells.x .<= 0.2m) .&
+        (0.0m .<= config.cells.y .<= 1.0m)
+inbox = reshape(inbox, mx, my, 1)
+println("inbox ", size(inbox))
+#bcs[1,  1] = 1
+#bcs[1, ny] = 2
+bcs[1, 1:ny] .= 1
+bcs[nx,1:ny] .= 2
+println("grid", nx, "×", ny)
+println("cells",mx, "×", my)
+εr[inbox] .= 10.
+config.cells["ε"] = ε0*εr
 
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)
@@ -60,10 +68,14 @@ import Diagnostics
 function ParticleInCell.enter_loop()
   Diagnostics.open_container("problem-field")
   Diagnostics.open_container("problem-particle")
+  Diagnostics.open_container("problem-cells")
 end
 
 function ParticleInCell.after_loop(it)
+  Diagnostics.save_diagnostic("ε",   "problem-cells",   it)
+  Diagnostics.save_diagnostic("ε̂",   "problem-field",   it)
   Diagnostics.save_diagnostic("ρ",   "problem-field",   it)
+  Diagnostics.save_diagnostic("E",   "problem-field",   it)
   Diagnostics.save_diagnostic("ϕ",   "problem-field",   it)
   Diagnostics.save_diagnostic("nO+", "problem-field",   it)
   Diagnostics.save_diagnostic("ne-", "problem-field",   it)
@@ -74,6 +86,7 @@ end
 function ParticleInCell.exit_loop()
   Diagnostics.close_container("problem-field")
   Diagnostics.close_container("problem-particle")
+  Diagnostics.close_container("problem-cells")
 end
 
 ParticleInCell.init(sO, Δt)
