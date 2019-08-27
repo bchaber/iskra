@@ -19,6 +19,11 @@ module FiniteDifferenceMethod
 
 function create_poisson_solver(grid::UniformGrid)
     nx, ny = size(grid)
+    create_generalized_poisson_solver(grid, ones(nx+1, ny+1, 1))
+end
+
+function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64,3})
+    nx, ny = size(grid)
     nn = nx⋅ny
     Δh = grid.Δh
 
@@ -28,101 +33,98 @@ function create_poisson_solver(grid::UniformGrid)
     # set regular stencil on internal nodes
     for j=2:ny-1             # only internal nodes
         for i=2:nx-1
-            A[ϕ[i,j],ϕ[i,j]]   +=-2/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] += 1/Δh^2 # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i+1,j]] += 1/Δh^2 # ϕ(i+1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-2/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
-            A[ϕ[i,j],ϕ[i,j+1]] += 1/Δh^2 # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
         end
     end
 
     # y=0
     for j=1
         for i=2:nx-1
-            A[ϕ[i,j],ϕ[i,j]]   +=-2/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] += 1/Δh^2 # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i+1,j]] += 1/Δh^2 # ϕ(i+1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] += 1/Δh^2 # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
         end
     end
 
     # y=Ly
     for j=ny
         for i=2:nx-1
-            A[ϕ[i,j],ϕ[i,j]]   +=-2/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] += 1/Δh^2 # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i+1,j]] += 1/Δh^2 # ϕ(i+1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
         end
     end
 
     # x=Lx
     for i=nx
         for j=2:ny-1
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] += 1/Δh^2 # ϕ(i-1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-2/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
-            A[ϕ[i,j],ϕ[i,j+1]] += 1/Δh^2 # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
         end
     end
 
     # x=0
     for i=1
         for j=2:ny-1
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i+1,j]] += 1/Δh^2 # ϕ(i+1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-2/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
-            A[ϕ[i,j],ϕ[i,j+1]] += 1/Δh^2 # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
         end
     end
     
     for i=1
         for j=1
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i+1,j]] += 1/Δh^2 # ϕ(i+1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] += 1/Δh^2 # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
         end
     end
     
     for i=1
         for j=ny
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i+1,j]] += 1/Δh^2 # ϕ(i+1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
         end
     end
     
     for i=nx
         for j=1
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] += 1/Δh^2 # ϕ(i-1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] += 1/Δh^2 # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
         end
     end
     
     for i=nx
         for j=ny
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] += 1/Δh^2 # ϕ(i-1,j)
-
-            A[ϕ[i,j],ϕ[i,j]]   +=-1/Δh^2 # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] += 1/Δh^2 # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
         end
     end
     return PoissonSolver(Δh)

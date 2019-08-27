@@ -27,10 +27,10 @@ module RegularGrid
         n = nx*ny
         dof = reshape(1:n, nx, ny)
         data = Dict{String,AbstractArray}()
-        return UniformGrid(data, nx, ny, Δh, x, y, z, dof, [xs,ys])
+        UniformGrid(data, nx, ny, Δh, x, y, z, dof, [xs,ys])
     end
 
-    function create_yee_grid(g::UniformGrid)
+    function create_staggered_grid(g::UniformGrid)
         x0, xn = extrema(g.x)
         y0, yn = extrema(g.y)
         Δh = g.Δh

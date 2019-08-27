@@ -34,7 +34,7 @@ iO = create_species("O+", 20_000,+1qe,  1u, 100)
 
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
-config.cells   = RegularGrid.create_yee_grid(config.grid)
+config.cells   = RegularGrid.create_staggered_grid(config.grid)
 config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [iO, e]
@@ -57,8 +57,8 @@ bcs[nx,1:ny] .= 2
 println("grid", nx, "×", ny)
 println("cells",mx, "×", my)
 εr[inbox] .= 10.
-config.cells["ε"] = ε0*εr
-
+config.cells["εr"] = εr
+set_permittivity(εr)
 add_electrode(bcs .== 1,-1V)
 add_electrode(bcs .== 2,+1V)
 ############################################
@@ -72,8 +72,7 @@ function ParticleInCell.enter_loop()
 end
 
 function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("ε",   "problem-cells",   it)
-  Diagnostics.save_diagnostic("ε̂",   "problem-field",   it)
+  Diagnostics.save_diagnostic("εr",  "problem-cells",   it)
   Diagnostics.save_diagnostic("ρ",   "problem-field",   it)
   Diagnostics.save_diagnostic("E",   "problem-field",   it)
   Diagnostics.save_diagnostic("ϕ",   "problem-field",   it)
@@ -90,4 +89,4 @@ function ParticleInCell.exit_loop()
 end
 
 ParticleInCell.init(sO, Δt)
-@time ParticleInCell.solve(config, Δt, ts)
+@time ParticleInCell.solve(config, Δt, ts, ε0)

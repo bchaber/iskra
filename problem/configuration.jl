@@ -10,6 +10,11 @@ mutable struct Config
   cells
 end
 
+function set_permittivity(εr)
+  grid = config.grid
+  FiniteDifferenceMethod.create_generalized_poisson_solver(grid, εr)
+end
+
 function add_electrode(nodes, voltage)
   solver, dof = config.solver, config.grid.dof
   FiniteDifferenceMethod.apply_dirichlet(solver, dof[nodes], voltage)
