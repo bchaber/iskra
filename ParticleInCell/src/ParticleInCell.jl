@@ -57,7 +57,6 @@ module ParticleInCell
     solver = config.solver
     cells = config.cells
     grid  = config.grid
-    εr = cells["εr"]
     
     nx, ny = size(grid)
     Δh = grid.Δh
@@ -68,7 +67,7 @@ module ParticleInCell
     ρ = zeros(nx, ny)
     E = zeros(nx, ny, 3)
 
-    @diag "εr" GridData(εr, cells.x,cells.y)
+    @diag "εr" GridData(cells["εr"], cells.x,cells.y)
 
     for iteration=1:timesteps # iterate for ts time step
       # Create particles
