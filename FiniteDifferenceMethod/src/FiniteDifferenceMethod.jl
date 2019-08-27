@@ -22,6 +22,8 @@ function create_poisson_solver(grid::UniformGrid)
     create_generalized_poisson_solver(grid, ones(nx+1, ny+1, 1))
 end
 
+# Implement generalized Poisson solver from (eq. 37-40):
+# https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel 2012 - Solving the Generalized Poisson Equation using FDM.pdf
 function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64,3})
     nx, ny = size(grid)
     nn = nx⋅ny
