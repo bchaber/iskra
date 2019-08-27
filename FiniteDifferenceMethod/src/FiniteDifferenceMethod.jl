@@ -33,38 +33,38 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
     # set regular stencil on internal nodes
     for j=2:ny-1             # only internal nodes
         for i=2:nx-1
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j]   # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1]   - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1]   + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j]     - 0.5εr[i,j+1]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j]     + 0.5εr[i,j+1]   # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j]   - 0.5εr[i,j]     # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j]   + 0.5εr[i,j]     # ϕ(i,j-1)
         end
     end
 
     # y=0
     for j=1
         for i=2:nx-1
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j]   # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1]   - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1]   + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j]     - 0.5εr[i,j+1]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j]     + 0.5εr[i,j+1]   # ϕ(i,j+1)
         end
     end
 
     # y=Ly
     for j=ny
         for i=2:nx-1
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j]   # ϕ(i+1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1]   - 0.5εr[i+1,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1]   + 0.5εr[i+1,j+1] # ϕ(i-1,j)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j]   - 0.5εr[i,j]     # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j]   + 0.5εr[i,j]     # ϕ(i,j-1)
         end
     end
 
@@ -73,10 +73,10 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
         for j=2:ny-1
             A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
             A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j]   - 0.5εr[i,j+1]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j]   + 0.5εr[i,j+1]   # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j]     # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j]     # ϕ(i,j-1)
         end
     end
 
@@ -85,10 +85,10 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
         for j=2:ny-1
             A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
             A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j]     - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j]     + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j]   - 0.5εr[i,j]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j]   + 0.5εr[i,j]   # ϕ(i,j-1)
         end
     end
     
@@ -96,8 +96,8 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
         for j=1
             A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
             A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j]     - 0.5εr[i,j+1] # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j]     + 0.5εr[i,j+1] # ϕ(i,j+1)
         end
     end
     
@@ -105,8 +105,8 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
         for j=ny
             A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j] # ϕ(i,j)
             A[ϕ[i,j],ϕ[i+1,j]] +=  0.5εr[i+1,j+1] + 0.5εr[i+1,j] # ϕ(i+1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j]   - 0.5εr[i,j]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j]   + 0.5εr[i,j]   # ϕ(i,j-1)
         end
     end
     
@@ -114,8 +114,8 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
         for j=1
             A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
             A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j] - 0.5εr[i,j+1] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j] + 0.5εr[i,j+1] # ϕ(i,j+1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j]   - 0.5εr[i,j+1]   # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j+1]] +=  0.5εr[i,j]   + 0.5εr[i,j+1]   # ϕ(i,j+1)
         end
     end
     
@@ -123,8 +123,8 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
         for j=ny
             A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i,j+1] - 0.5εr[i+1,j+1] # ϕ(i,j)
             A[ϕ[i,j],ϕ[i-1,j]] +=  0.5εr[i,j+1] + 0.5εr[i+1,j+1] # ϕ(i-1,j)
-            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j] # ϕ(i,j)
-            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j] # ϕ(i,j-1)
+            A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j] - 0.5εr[i,j]     # ϕ(i,j)
+            A[ϕ[i,j],ϕ[i,j-1]] +=  0.5εr[i+1,j] + 0.5εr[i,j]     # ϕ(i,j-1)
         end
     end
     return PoissonSolver(Δh)
