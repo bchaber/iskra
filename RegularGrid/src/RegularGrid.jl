@@ -15,7 +15,7 @@ module RegularGrid
     Base.size(g::UniformGrid) = (g.nx, g.ny)
     Base.length(g::UniformGrid) = g.nx*g.ny
     Base.getindex(g::UniformGrid, k) = g.data[k]
-    Base.setindex!(g::UniformGrid, v, k) = setindex!(g.data, v, k)
+    Base.setindex!(g::UniformGrid, v, k) = if length(v) ≠ length(g) error("Size mismatch!") else setindex!(g.data, v, k) end
 
     function create_uniform_grid(xx, yy)
         nx, ny = length(xx), length(yy)
