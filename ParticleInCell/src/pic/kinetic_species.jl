@@ -1,4 +1,4 @@
-mutable struct Species
+mutable struct KineticSpecies
   x :: AbstractArray{Float64,2} # position
   v :: AbstractArray{Float64,2} # velocity
   m :: Float64 # mass
@@ -11,13 +11,13 @@ end
 
 particle_uuids(N::Int64) = collect(1:UInt32(N))
 
-Species(x::AbstractArray{Float64,2},
+KineticSpecies(x::AbstractArray{Float64,2},
         v::AbstractArray{Float64,2},
         m::Float64, q::Float64, name::String,
-        np2c::Int64, np::Int64) = Species(x, v, m, q, name, np2c, np, particle_uuids(np))
-Species(name::String, N::Int64) = Species(zeros(N,3), zeros(N,3), 0, 1, name, 1, 0, particle_uuids(N))
+        np2c::Int64, np::Int64) = KineticSpecies(x, v, m, q, name, np2c, np, particle_uuids(np))
+KineticSpecies(name::String, N::Int64) = KineticSpecies(zeros(N,3), zeros(N,3), 0, 1, name, 1, 0, particle_uuids(N))
 
-function remove!(sp, i::Int64)
+function remove!(sp::KineticSpecies, i::Int64)
   np = sp.np
   sp.x[i,:] .= sp.x[np,:]
   sp.v[i,:] .= sp.v[np,:]

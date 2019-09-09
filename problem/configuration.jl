@@ -25,7 +25,7 @@ function create_gamma_ionization_source(electrons, rate, x, v)
 end
 
 function create_species(name, N, q, m, np2c)
-  species = ParticleInCell.Species(name, N)
+  species = ParticleInCell.KineticSpecies(name, N)
   species.q = q
   species.m = m
   species.np2c = np2c
