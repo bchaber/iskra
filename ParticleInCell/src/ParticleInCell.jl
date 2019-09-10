@@ -3,7 +3,8 @@ module ParticleInCell
   
   include("sugar.jl")
 
-  include("pic/kinetic_species.jl")
+  include("pic/kinetic.jl")
+  include("pic/fluid.jl")
   include("pic/cloud_in_cell.jl")
   include("pic/diagnostics.jl")
   include("pic/pushers.jl")

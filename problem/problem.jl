@@ -26,9 +26,9 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [v_th v_drift; v_th 0]
-e  = create_species("e-", 20_000,-1qe, 1me, 100)
-iO = create_species("O+", 20_000,+1qe,  1u, 100)
+sx, sv = [0 Lx; 0 Ly], [v_therm v_drift; v_therm 0]
+e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 10_0000)
+iO = create_kinetic_species("O+", 20_000,+1qe,  1u,  1_0000)
 #chem = create_chemical_reactions("O")
 γe = create_gamma_ionization_source( e, 0.3/Δt, sx, sv)
 

@@ -24,11 +24,17 @@ function create_gamma_ionization_source(electrons, rate, x, v)
   ParticleInCell.create_maxwellian_source(electrons, rate, x, v)
 end
 
-function create_species(name, N, q, m, np2c)
+function create_kinetic_species(name, N, q, m, np2c)
   species = ParticleInCell.KineticSpecies(name, N)
   species.q = q
   species.m = m
   species.np2c = np2c
+  return species
+end
+
+function create_fluid_species(name, μ, q, grid)
+  nx, ny, _ = size(grid)
+  species = ParticleInCell.FluidSpecies(name, μ, q, zeros(nx, ny))
   return species
 end
 
