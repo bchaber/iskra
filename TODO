@@ -5,5 +5,8 @@
 - implement boundary crossing
 - warn when particle crosses more than one cell
 - add histograms
-- implement another solver (Boundary Element Method?)
+- implement another solver (FiniteVolumeMethod? Boundary Element Method?)
 - run some well-known tests, like two-stream instability
+- store fields like ne-, nO+ with grid/cells
+- implement chemical reactions
+- implement cylindrical coordinate system (rz)
