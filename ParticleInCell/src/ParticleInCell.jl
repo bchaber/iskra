@@ -31,13 +31,6 @@ module ParticleInCell
     return i, j, hx, hy
   end
 
-  function cell_to_grid(cells, grid)
-    nx, ny = size(grid)
-    v = cells[1:nx,1:ny  ] .+ cells[2:nx+1,1:ny  ] .+
-        cells[1:nx,2:ny+1] .+ cells[2:nx+1,2:ny+1]
-    v ./= 4
-  end
-
   # hooks
   function enter_loop() end
   function after_loop(it) end
