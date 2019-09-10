@@ -34,3 +34,18 @@ function add!(src, dst)
     dst.np += src.np
   end
 end
+
+function remove_particles!(part, Δh, matches)
+  p = 1
+  px = view(part.x, 1:part.np, :)
+  while p <= part.np
+    i, j, _, _ = particle_cell(px, p, Δh)
+    if matches(i,j)
+      remove!(part, p)
+      continue
+    end
+    p = p + 1
+  end
+end
+
+density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.np2c)

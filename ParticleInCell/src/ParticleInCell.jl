@@ -10,19 +10,6 @@ module ParticleInCell
   include("pic/pushers.jl")
   include("pic/sources.jl")
 
-  function remove_particles!(part, Δh, matches)
-    p = 1
-    px = view(part.x, 1:part.np, :)
-    while p <= part.np
-      i, j, _, _ = particle_cell(px, p, Δh)
-      if matches(i,j)
-        remove!(part, p)
-        continue
-      end
-      p = p + 1
-    end
-  end
-
   function particle_cell(px, p, Δh)
     fij = @views 1 .+ px[p, :] ./ Δh
     ij = floor.(Int64, fij)
