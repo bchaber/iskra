@@ -32,10 +32,9 @@ function create_kinetic_species(name, N, q, m, np2c)
   return species
 end
 
-function create_fluid_species(name, μ, q, grid)
-  nx, ny, _ = size(grid)
-  species = ParticleInCell.FluidSpecies(name, μ, q, zeros(nx, ny))
+function create_fluid_species(name, μ, q, m)
+  species = ParticleInCell.FluidSpecies(name, μ, q, m, zeros(0, 0))
   return species
 end
 
-Config() = Config(nothing, nothing, nothing, nothing, nothing, nothing)
+Config() = Config(nothing, nothing, [], [], nothing, nothing)

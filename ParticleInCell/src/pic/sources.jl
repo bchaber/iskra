@@ -1,4 +1,8 @@
-mutable struct MaxwellianSourceConfiguration
+mutable struct ConstantDensitySource
+  δ :: Float64
+end
+
+mutable struct MaxwellianSource
    species
    rate :: Float64
    x :: AbstractArray{Float64,2}
@@ -7,11 +11,13 @@ mutable struct MaxwellianSourceConfiguration
 end
 
 function create_maxwellian_source(species, rate, x, v)
-  MaxwellianSourceConfiguration(species, rate, x, v, 0.0)
+  MaxwellianSource(species, rate, x, v, 0.0)
 end
-
-function create_particles!(config :: MaxwellianSourceConfiguration, px, pv, Δt)
+  
+function sample!(config :: MaxwellianSource, species :: KineticSpecies, Δt)
+  np = species.np
   cx, cv = config.x, config.v
+  px, pv = @views species.x[1+np:end,:], species.v[1+np:end,:]
 
   config.n += config.rate*Δt
   n = minimum([size(px, 1), floor(Integer, config.n)])
@@ -21,7 +27,11 @@ function create_particles!(config :: MaxwellianSourceConfiguration, px, pv, Δt)
   # sample Maxwellian in x and y, add drift velocity in x
   pv[1:n,1]=1.0*(-1.5.+rand(n,1).+rand(n,1).+rand(n,1))*cv[1,1] .+ cv[1,2]
   pv[1:n,2]=0.5*(-1.5.+rand(n,1).+rand(n,1).+rand(n,1))*cv[2,1] .+ cv[2,2]
-  config.n -= n
 
-  return n
+  config.n   -= n
+  species.np += n
+end
+
+function sample!(config :: ConstantDensitySource, species :: FluidSpecies, Δt)
+  species.n .= δ
 end

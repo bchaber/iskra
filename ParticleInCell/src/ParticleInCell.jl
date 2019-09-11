@@ -25,10 +25,43 @@ module ParticleInCell
   function exit_loop() end
 
   function init(src, Δt)
-    part = src.species
-    px, pv = @views part.x[1+part.np:end,:], part.v[1+part.np:end,:]
-    n = create_particles!(src, px, pv, Δt)
-    part.np += n
+    sample!(src, src.species, Δt)
+  end
+
+  function advance!(part :: KineticSpecies, E, Δt, config)
+    pusher = config.pusher
+    grid = config.grid
+    nx, ny = size(grid)
+
+    partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
+    push_particles!(pusher, part, partE, Δt)
+    remove_particles!(part, grid.Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
+
+    @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.np)
+    @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.np)
+  end
+  
+  function advance!(fluid :: FluidSpecies, E, Δt, config)
+    nx, ny = size(fluid.n)
+    q, m, n = fluid.q, fluid.m, fluid.n
+    v = Δt*E*(q/m)
+    vx = view(v,:,:,1)
+    vy = view(v,:,:,2)
+    D = 1
+    Δh = config.grid.Δh
+    Δn = zeros(nx, ny)
+    # D Δn + n ∇⋅ν + ∇n⋅ν = ∂n/∂n
+    for i=2:nx-1
+      for j=2:ny-1
+        Δn[i,j] += Δt*D*(n[i-1,j] + n[i,j-1] - 4n[i,j] + n[i+1,j] + n[i,j+1])/Δh^2
+        Δn[i,j] += Δt*n[i,j] * (vx[i+1,j] - vx[i-1,j] + vy[i,j+1] - vy[i,j-1])/2Δh
+        Δn[i,j] += Δt*(vx[i,j] * (n[i+1,j] - n[i-1,j]) + vy[i,j] * (n[i,j+1] - n[i,j-1]))/Δh 
+      end
+    end
+    n .+= Δn  
+
+    @diag "Δn"*fluid.name NodeData(Δn, config.grid.origin, [1,1]*Δh)
+    @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
   function solve(config, Δt=1e-5, timesteps=200, ε0=1.0)
@@ -53,24 +86,16 @@ module ParticleInCell
     for iteration=1:timesteps # iterate for ts time step
       # Create particles
       for src in sources
-        part = src.species
-        px, pv = @views part.x[1+part.np:end,:], part.v[1+part.np:end,:]
-        np = create_particles!(src, px, pv, Δt)
-        part.np += np
+        sample!(src, src.species, Δt)
       end
-      # Remove particles
+      # Advance species
       for part in species
-        partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
-        push_particles!(pusher, part, partE, Δt)
-        remove_particles!(part, Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
-
-        @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.np)
-        @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.np)
+        advance!(part, E, Δt, config)
       end
       # Calculate charge density
       fill!(ρ, 0.0)
       for part in species
-        n = particle_to_grid(part, grid, (p) -> part.np2c)
+        n = density(part, grid)
         ρ .+= n .* part.q
 
         @diag "n"*part.name NodeData(n, origin, spacing)
@@ -86,7 +111,7 @@ module ParticleInCell
 
       after_loop(iteration)
 
-      println("Time Step #", iteration, ", Particles #", [part.np for part in config.species])
+      println("Time Step #", iteration)#, ", Particles #", [part.np for part in config.species])
     end
 
     exit_loop()
