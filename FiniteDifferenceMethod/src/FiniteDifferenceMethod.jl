@@ -2,7 +2,7 @@ module FiniteDifferenceMethod
     export calculate_electric_field
     export calculate_electric_field!
     export calculate_electric_potential
-
+    export calculate_advection_diffusion
     using RegularGrid
     using LinearAlgebra
 
@@ -56,7 +56,7 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
     return PoissonSolver(Δh)
 end
 
-function solve!(f)
+function solve(f)
   return lse.A\(lse.b .+ f)
 end
 
@@ -71,8 +71,25 @@ function apply_dirichlet(::PoissonSolver, dofs, value)
     end
 end
 
+function calculate_advection_diffusion(n, v, Δh, Δt)
+    nx, ny = size(n)
+    vx = view(v,:,:,1)
+    vy = view(v,:,:,2)
+    Δn = zeros(nx, ny)
+
+    for i=2:nx-1
+      for j=2:ny-1
+        Δn[i,j] += Δt*1*(n[i-1,j] + n[i,j-1] - 4n[i,j] + n[i+1,j] + n[i,j+1])/Δh^2
+        Δn[i,j] += Δt*n[i,j] * (vx[i+1,j] - vx[i-1,j] + vy[i,j+1] - vy[i,j-1])/2Δh
+        Δn[i,j] += Δt*(vx[i,j] * (n[i+1,j] - n[i-1,j]) + vy[i,j] * (n[i,j+1] - n[i,j-1]))/Δh 
+      end
+    end
+
+    return Δn
+end
+
 function calculate_electric_potential(ps::PoissonSolver, f)
-    x = solve!(f[:])
+    x = solve(f[:])
     ϕ = reshape(x, size(f))
     return ϕ
 end
