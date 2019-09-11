@@ -6,21 +6,16 @@ config = Config()
 ############################################
 include("units_and_constants.jl")
 ############################################
-n0 = 1e12       # density in #/m^3
 ϕ0 =-1V         # reference potential
 ϕp =+1V         # wall potential
-Te = 1.0eV      # electron temperature in eV
 Ti = 0.1eV      # ion temperature in eV
-v_drift =  5mps # ion injection velocity
-v_th = 0#sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
-λD = sqrt(ɛ0*Te/(n0*qe)) # Debye length
-# set simulation domain
+v_drift = 5mps # ion injection velocity
+v_therm = 0#sqrt(2qe*Ti/100u)  # thermal velocity with Ti in eV
 nx = 20         # number of nodes in x direction
 ny = 20         # number of nodes in y direction
-ts = 75         # number of time steps
+ts = 200        # number of time steps
 Δh =  5cm       # cell size
-#Δt = 30μs       # time step
-Δt = 100ns     # time step
+Δt = 100ns      # time step
 nn = nx*ny      # total number of nodes
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
@@ -30,7 +25,7 @@ sx, sv = [0 Lx; 0 Ly], [v_therm v_drift; v_therm 0]
 e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 10_0000)
 iO = create_kinetic_species("O+", 20_000,+1qe,  1u,  1_0000)
 #chem = create_chemical_reactions("O")
-γe = create_gamma_ionization_source( e, 0.3/Δt, sx, sv)
+γe = create_gamma_ionization_source( e, .5/Δt, sx, sv)
 
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
@@ -40,27 +35,22 @@ config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [iO, e]
 config.sources = [γe]
 
-sO = ParticleInCell.create_maxwellian_source(iO, 200/Δt, sx, sv)
+sO = ParticleInCell.create_maxwellian_source(iO, 10/Δt, sx, sv)
 ############################################
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
 εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny)
-inbox = (0.0m .<= config.cells.x .<= 0.2m) .&
-        (0.0m .<= config.cells.y .<= 1.0m)
+inbox = (0.4m .<= config.cells.x .<= 0.6m) .&
+        (-.5m .<= config.cells.y .<= 1.5m)
 inbox = reshape(inbox, mx, my, 1)
-println("inbox ", size(inbox))
-#bcs[1,  1] = 1
-#bcs[1, ny] = 2
 bcs[1, 1:ny] .= 1
 bcs[nx,1:ny] .= 2
-println("grid", nx, "×", ny)
-println("cells",mx, "×", my)
-εr[inbox] .= 10.
+εr[inbox] .= 1.
 config.cells["εr"] = εr
 set_permittivity(εr)
-add_electrode(bcs .== 1,-1V)
-add_electrode(bcs .== 2,+1V)
+add_electrode(bcs .== 1, ϕ0)
+add_electrode(bcs .== 2, ϕp)
 ############################################
 import ParticleInCell
 import Diagnostics
