@@ -5,9 +5,9 @@ macro reaction(ex)
 end
 
 struct Reaction
-  rate
-  reactants
-  stoichiometry
+  rate # might be any symbol: function or variable
+  reactants # list of reactant's name and its order
+  stoichiometry # list of net coefficients 
 end
 
 function def_reaction_network(ex::Expr)
@@ -115,8 +115,3 @@ print_reactions(@reaction begin
     k2, V --> ∅
      F, U --> ∅
 end)
-# OrderedDict(:U=>1,:V=>2,:∅=>3)   OUT       IN
-# k1, [U, V]: Tuple{Int64,Int64}[(U, -1), (V,  1)]
-#  F, [∅]:    Tuple{Int64,Int64}[(V,  1), (∅, -1)]
-# k2, [V]:    Tuple{Int64,Int64}[(V, -1), (∅,  1)]
-#  F, [U]:    Tuple{Int64,Int64}[(U, -1), (∅,  1)]
