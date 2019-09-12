@@ -32,13 +32,14 @@ function parse(ex::Expr, reactions, mapping)
       stoichiometry = :([]) # net stoichiometry
 
       reacs, prods = parse_reaction(eqn, mapping)
-
       for (id, ix) in mapping
+        P = get(prods, string(id), 0)
+        R = get(reacs, string(id), 0)
         if haskey(reacs, id)
-          push!(reactants.args, id)
+          push!(reactants.args, :((string($id), $R)))
         end
 
-        net = get(prods, string(id), 0) - get(reacs, string(id), 0)
+        net = P - R
 
         if net != 0
           push!(stoichiometry.args, :((string($id), $net)))
@@ -101,9 +102,18 @@ function print_reactions(reactions)
   end
 end
 
-k = 0.1
+σ(E) = 0.1
 print_reactions(@reaction begin
-    k, O₂ + e⁻ --> O₂⁺ + 2e⁻
+    σ, O₂ + e⁻ --> O₂⁺ + 2e⁻
+end)
+k1() = 0.05
+k2() = 0.1
+F()  = 1.
+print_reactions(@reaction begin
+    k1, U + 2V --> 3V
+     F, ∅ --> V
+    k2, V --> ∅
+     F, U --> ∅
 end)
 # OrderedDict(:U=>1,:V=>2,:∅=>3)   OUT       IN
 # k1, [U, V]: Tuple{Int64,Int64}[(U, -1), (V,  1)]
