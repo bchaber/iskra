@@ -12,7 +12,7 @@ end
 
 function def_reaction_network(ex::Expr)
   reactions = :([])
-  mapping = OrderedDict{Symbol,Int}()
+  mapping = OrderedDict{String,Int}()
 
   for arg in ex.args
     parse(arg, reactions, mapping)
@@ -35,13 +35,13 @@ function parse(ex::Expr, reactions, mapping)
 
       for (id, ix) in mapping
         if haskey(reacs, id)
-          push!(reactants.args, ix)
+          push!(reactants.args, id)
         end
 
-        net = get(prods, id, 0) - get(reacs, id, 0)
+        net = get(prods, string(id), 0) - get(reacs, string(id), 0)
 
         if net != 0
-          push!(stoichiometry.args, :(($ix, $net)))
+          push!(stoichiometry.args, :((string($id), $net)))
         end
       end
 
@@ -50,8 +50,8 @@ function parse(ex::Expr, reactions, mapping)
 end
 
 function parse_reaction(ex::Expr, mapping)
-  reactants = Dict{Symbol,Int}()
-  products  = Dict{Symbol,Int}()
+  reactants = Dict{String,Int}()
+  products  = Dict{String,Int}()
 
   if ex.head == :-->
     exr = ex.args[1] # LHS
@@ -73,20 +73,20 @@ function add_participants!(dict, ex, mapping)
     end
 
     id = ex
-    val = get(dict, id, 0)
+    val = get(dict, string(id), 0)
 
-    dict[id] = val + 1
+    dict[string(id)] = val + 1
   
   elseif isa(ex, Expr) && ex.args[1] == :* # species symbol has a coefficient
     id    = ex.args[3]
     coeff = ex.args[2]
 
     if !haskey(mapping, id)
-      mapping[id] = length(mapping) + 1
+      mapping[string(id)] = length(mapping) + 1
     end
 
-    val = get(dict, id, 0)
-    dict[id] = val + coeff
+    val = get(dict, string(id), 0)
+    dict[string(id)] = val + coeff
 
   elseif isa(ex, Expr) # found something else, probably of the form (a A + b B)
     for i in 2:length(ex.args)
@@ -102,6 +102,9 @@ function print_reactions(reactions)
 end
 
 
+print_reactions(@reaction begin
+    π, 3U + 2V --> 5V
+end)
 # OrderedDict(:U=>1,:V=>2,:∅=>3)   OUT       IN
 # k1, [U, V]: Tuple{Int64,Int64}[(U, -1), (V,  1)]
 #  F, [∅]:    Tuple{Int64,Int64}[(V,  1), (∅, -1)]
