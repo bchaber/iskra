@@ -69,7 +69,7 @@ end
 function add_participants!(dict, ex, mapping)
   if isa(ex, Symbol) # found a species symbol
     if !haskey(mapping, ex)
-      mapping[ex] = length(mapping) + 1
+      mapping[string(ex)] = length(mapping) + 1
     end
 
     id = ex
@@ -101,9 +101,9 @@ function print_reactions(reactions)
   end
 end
 
-
+k = 0.1
 print_reactions(@reaction begin
-    π, 3U + 2V --> 5V
+    k, O₂ + e⁻ --> O₂⁺ + 2e⁻
 end)
 # OrderedDict(:U=>1,:V=>2,:∅=>3)   OUT       IN
 # k1, [U, V]: Tuple{Int64,Int64}[(U, -1), (V,  1)]
