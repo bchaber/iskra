@@ -1,6 +1,6 @@
 import DataStructures: OrderedDict
 
-macro reaction(ex)
+macro reactions(ex)
   def_reaction_network(ex)
 end
 
@@ -46,7 +46,7 @@ function parse(ex::Expr, reactions, mapping)
         end
       end
 
-      push!(reactions.args, :(Reaction($rate, $reactants, $stoichiometry)))
+      push!(reactions.args, :(Reaction($(esc(rate)), $reactants, $stoichiometry)))
     end
 end
 
@@ -95,23 +95,3 @@ function add_participants!(dict, ex, mapping)
     end
   end
 end
-
-function print_reactions(reactions)
-  for reaction in reactions
-    println(reaction.rate, ", ", reaction.reactants, ": ", reaction.stoichiometry)
-  end
-end
-
-σ(E) = 0.1
-print_reactions(@reaction begin
-    σ, O₂ + e⁻ --> O₂⁺ + 2e⁻
-end)
-k1() = 0.05
-k2() = 0.1
-F()  = 1.
-print_reactions(@reaction begin
-    k1, U + 2V --> 3V
-     F, ∅ --> V
-    k2, V --> ∅
-     F, U --> ∅
-end)
