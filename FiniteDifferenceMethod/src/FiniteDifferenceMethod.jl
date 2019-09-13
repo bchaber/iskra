@@ -79,9 +79,9 @@ function calculate_advection_diffusion(n, v, Δh, Δt)
 
     for i=2:nx-1
       for j=2:ny-1
-        Δn[i,j] += Δt*1*(n[i-1,j] + n[i,j-1] - 4n[i,j] + n[i+1,j] + n[i,j+1])/Δh^2
-        Δn[i,j] += Δt*n[i,j] * (vx[i+1,j] - vx[i-1,j] + vy[i,j+1] - vy[i,j-1])/2Δh
-        Δn[i,j] += Δt*(vx[i,j] * (n[i+1,j] - n[i-1,j]) + vy[i,j] * (n[i,j+1] - n[i,j-1]))/Δh 
+        Δn[i,j] -= Δt*1*(n[i-1,j] + n[i,j-1] - 4n[i,j] + n[i+1,j] + n[i,j+1])/Δh^2
+        Δn[i,j] -= Δt*n[i,j] * (vx[i+1,j] - vx[i-1,j] + vy[i,j+1] - vy[i,j-1])/2Δh
+        Δn[i,j] -= Δt*(vx[i,j] * (n[i+1,j] - n[i-1,j]) + vy[i,j] * (n[i,j+1] - n[i,j-1]))/Δh 
       end
     end
 
