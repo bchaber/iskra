@@ -10,12 +10,8 @@ mutable struct KineticSpecies
 end
 
 particle_uuids(N::Int64) = collect(1:UInt32(N))
-
-KineticSpecies(x::AbstractArray{Float64,2},
-        v::AbstractArray{Float64,2},
-        m::Float64, q::Float64, name::String,
-        np2c::Int64, np::Int64) = KineticSpecies(x, v, m, q, name, np2c, np, particle_uuids(np))
-KineticSpecies(name::String, N::Int64) = KineticSpecies(zeros(N,3), zeros(N,3), 0, 1, name, 1, 0, particle_uuids(N))
+KineticSpecies(name::String, N::Int64) = KineticSpecies(zeros(N,3), zeros(N,3), zeros(0,0),
+0, 1, name, 1, 0, particle_uuids(N))
 
 function remove!(sp::KineticSpecies, i::Int64)
   np = sp.np
