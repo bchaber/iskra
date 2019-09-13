@@ -4,6 +4,7 @@ import FiniteDifferenceMethod
 mutable struct Config
   solver
   pusher
+  chemistry
   species
   sources
   grid
@@ -37,4 +38,4 @@ function create_fluid_species(name, μ, q, m)
   return species
 end
 
-Config() = Config(nothing, nothing, [], [], nothing, nothing)
+Config() = Config(nothing, nothing, nothing, [], [], nothing, nothing)
