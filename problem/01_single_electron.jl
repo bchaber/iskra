@@ -16,8 +16,8 @@ Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
-e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 100_000)
-γe = create_gamma_ionization_source( e, 1/Δt, sx, sv)
+e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
+γ = create_gamma_ionization_source( e, 1/Δt, sx, sv)
 
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
@@ -57,5 +57,5 @@ function ParticleInCell.exit_loop()
   Diagnostics.close_container("problem-particle")
 end
 
-ParticleInCell.init(γe, Δt)
+ParticleInCell.init(γ, e, Δt)
 @time ParticleInCell.solve(config, Δt, ts, ε0)

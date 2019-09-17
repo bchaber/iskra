@@ -1,6 +1,7 @@
 mutable struct KineticSpecies
   x :: AbstractArray{Float64,2} # position
   v :: AbstractArray{Float64,2} # velocity
+  n :: AbstractArray{Float64,2} # density
   m :: Float64 # mass
   q :: Float64 # charge
   name::String
@@ -9,6 +10,7 @@ mutable struct KineticSpecies
   id :: AbstractArray{UInt32,1}   # identifier
 end
 
+Base.show(io::IO, sp::KineticSpecies) = print(io, sp.name)
 particle_uuids(N::Int64) = collect(1:UInt32(N))
 KineticSpecies(name::String, N::Int64) = KineticSpecies(zeros(N,3), zeros(N,3), zeros(0,0),
 0, 1, name, 1, 0, particle_uuids(N))

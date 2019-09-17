@@ -5,5 +5,5 @@ mutable struct FluidSpecies
 	m :: Float64 # mass of a single particle
 	n :: Array{Float64,2} # density of the species
 end
-
-density(species :: FluidSpecies, grid) = species.n
+Base.show(io::IO, sp::FluidSpecies) = print(io, sp.name)
+density(species :: FluidSpecies, _) = species.n

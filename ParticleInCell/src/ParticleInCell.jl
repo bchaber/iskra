@@ -1,6 +1,7 @@
 module ParticleInCell
   using FiniteDifferenceMethod
-  
+  using Chemistry
+
   include("sugar.jl")
 
   include("pic/kinetic.jl")
@@ -24,8 +25,8 @@ module ParticleInCell
   function after_loop(it) end
   function exit_loop() end
 
-  function init(src, Δt)
-    sample!(src, src.species, Δt)
+  function init(src, species, Δt)
+    sample!(src, species, Δt)
   end
 
   function advance!(part :: KineticSpecies, E, Δt, config)
@@ -51,8 +52,28 @@ module ParticleInCell
     @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
+  function react(reactions, Δt)
+    Δn = Dict()
+    for reaction in reactions
+      rate = reaction.rate.(1.0)
+      for (species, coeff) in reaction.stoichiometry
+        n = species.n
+        if haskey(Δn, species) ≠ true
+          Δn[species] = zeros(size(n))
+        end
+        concentration = ones(size(n))
+        for (species, order) in reaction.reactants
+          concentration .*= species.n.^order
+        end
+        Δn[species] .+= coeff .* rate .* concentration
+      end
+    end
+    return Δn
+  end
+
   function solve(config, Δt=1e-5, timesteps=200, ε0=1.0)
     pusher = config.pusher
+    chemistry = config.chemistry
     sources = config.sources
     species = config.species
     solver = config.solver
@@ -75,6 +96,7 @@ module ParticleInCell
       for src in sources
         sample!(src, src.species, Δt)
       end
+
       # Advance species
       for part in species
         advance!(part, E, Δt, config)
@@ -82,10 +104,18 @@ module ParticleInCell
       # Calculate charge density
       fill!(ρ, 0.0)
       for part in species
-        n = density(part, grid)
-        ρ .+= n .* part.q
+        part.n = density(part, grid)
+        ρ .+= part.n .* part.q
 
-        @diag "n"*part.name NodeData(n, origin, spacing)
+        @diag "n"*part.name NodeData(part.n, origin, spacing)
+      end
+      # Solve reactions
+      if chemistry ≠ nothing
+        Δn = react(chemistry, Δt)
+        for part in keys(Δn)                                       
+          sample!(DensitySource(Δn[part], grid), part, Δt)
+          @diag "Δn"*part.name NodeData(Δn[part], origin, spacing)
+        end
       end
       # Calculate electric field
       Q  = ρ .* Δh .^2

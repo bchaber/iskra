@@ -12,7 +12,7 @@ end
 
 function def_reaction_network(ex::Expr)
   reactions = :([])
-  mapping = OrderedDict{String,Int}()
+  mapping = OrderedDict{Symbol,Int}()
 
   for arg in ex.args
     parse(arg, reactions, mapping)
@@ -33,16 +33,16 @@ function parse(ex::Expr, reactions, mapping)
 
       reacs, prods = parse_reaction(eqn, mapping)
       for (id, ix) in mapping
-        P = get(prods, string(id), 0)
-        R = get(reacs, string(id), 0)
+        P = get(prods, (id), 0)
+        R = get(reacs, (id), 0)
         if haskey(reacs, id)
-          push!(reactants.args, :((string($id), $R)))
+          push!(reactants.args, :(($(esc(id)), $R)))
         end
 
         net = P - R
 
         if net != 0
-          push!(stoichiometry.args, :((string($id), $net)))
+          push!(stoichiometry.args, :(($(esc(id)), $net)))
         end
       end
 
@@ -51,8 +51,8 @@ function parse(ex::Expr, reactions, mapping)
 end
 
 function parse_reaction(ex::Expr, mapping)
-  reactants = Dict{String,Int}()
-  products  = Dict{String,Int}()
+  reactants = Dict{Symbol,Int}()
+  products  = Dict{Symbol,Int}()
 
   if ex.head == :-->
     exr = ex.args[1] # LHS
@@ -70,24 +70,24 @@ end
 function add_participants!(dict, ex, mapping)
   if isa(ex, Symbol) # found a species symbol
     if !haskey(mapping, ex)
-      mapping[string(ex)] = length(mapping) + 1
+      mapping[(ex)] = length(mapping) + 1
     end
 
     id = ex
-    val = get(dict, string(id), 0)
+    val = get(dict, (id), 0)
 
-    dict[string(id)] = val + 1
+    dict[(id)] = val + 1
   
   elseif isa(ex, Expr) && ex.args[1] == :* # species symbol has a coefficient
     id    = ex.args[3]
     coeff = ex.args[2]
 
     if !haskey(mapping, id)
-      mapping[string(id)] = length(mapping) + 1
+      mapping[(id)] = length(mapping) + 1
     end
 
-    val = get(dict, string(id), 0)
-    dict[string(id)] = val + coeff
+    val = get(dict, (id), 0)
+    dict[(id)] = val + coeff
 
   elseif isa(ex, Expr) # found something else, probably of the form (a A + b B)
     for i in 2:length(ex.args)

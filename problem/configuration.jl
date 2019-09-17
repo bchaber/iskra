@@ -33,8 +33,8 @@ function create_kinetic_species(name, N, q, m, np2c)
   return species
 end
 
-function create_fluid_species(name, μ, q, m)
-  species = ParticleInCell.FluidSpecies(name, μ, q, m, zeros(0, 0))
+function create_fluid_species(name, μ, q, m, nx, ny)
+  species = ParticleInCell.FluidSpecies(name, μ, q, m, zeros(nx, ny))
   return species
 end
 
