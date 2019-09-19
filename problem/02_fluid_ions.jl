@@ -53,5 +53,5 @@ function ParticleInCell.exit_loop()
   Diagnostics.close_container("problem-field")
 end
 
-ParticleInCell.init(ParticleInCell.DensitySource(1e9δ, config.grid), iO, Δt)
+ParticleInCell.init(ParticleInCell.DensitySource(1e5δ, config.grid), iO, Δt)
 @time ParticleInCell.solve(config, Δt, ts, ε0)
