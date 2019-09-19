@@ -88,8 +88,6 @@ module ParticleInCell
     ρ = zeros(nx, ny)
     E = zeros(nx, ny, 3)
 
-    @diag "εr" GridData(cells["εr"], cells.x,cells.y)
-
     for iteration=1:timesteps # iterate for ts time step
       # Create particles
       for src in sources

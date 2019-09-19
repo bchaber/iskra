@@ -32,7 +32,6 @@ mx, my = size(config.cells)
 bcs = zeros(Int8, nx, ny)
 bcs[ nx,  1] = 1
 bcs[ nx, ny] = 2
-config.cells["εr"] = εr
 set_permittivity(εr)
 add_electrode(bcs .== 1, +1V)
 add_electrode(bcs .== 2, -1V)
