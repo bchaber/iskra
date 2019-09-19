@@ -109,7 +109,7 @@ module ParticleInCell
       # Solve reactions
       if chemistry ≠ nothing
         Δn = react(chemistry, Δt)
-        for part in keys(Δn)                                       
+        for part in keys(Δn)
           sample!(DensitySource(Δn[part], grid), part, Δt)
           @diag "Δn"*part.name NodeData(Δn[part], origin, spacing)
         end
