@@ -10,7 +10,7 @@ nx = 20         # number of nodes in x direction
 ny = 20         # number of nodes in y direction
 ts = 200        # number of time steps
 Δh = 5cm        # cell size
-Δt = 20ns       # time step
+Δt = 50ns       # time step
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
@@ -28,7 +28,7 @@ config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [O, iO, e]
 
 #σ = CrossSection(0:0.3:1.5, [0, 0.1e-4, 0.4e-4, 0.5e-4, 0.7e-4, 0.9e-4])
-σ(E) = 4e-7
+σ(E) = 100
 config.chemistry = @reactions begin
     σ, e + O --> 2e + iO
 end
