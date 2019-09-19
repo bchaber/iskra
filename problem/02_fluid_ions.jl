@@ -16,7 +16,7 @@ Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
-iO  = create_fluid_species("O+", 1.0, 8qe, 8mp)
+iO  = create_fluid_species("O+", 1.0, 8qe, 8mp, nx+1, ny+1)
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.cells   = RegularGrid.create_staggered_grid(config.grid)
