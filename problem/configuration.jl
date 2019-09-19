@@ -25,11 +25,12 @@ function create_gamma_ionization_source(electrons, rate, x, v)
   ParticleInCell.create_maxwellian_source(electrons, rate, x, v)
 end
 
-function create_kinetic_species(name, N, q, m, np2c)
+function create_kinetic_species(name, N, q, m, weight)
   species = ParticleInCell.KineticSpecies(name, N)
   species.q = q
   species.m = m
-  species.np2c = np2c
+  species.wg .*= weight
+  species.w0 = weight
   return species
 end
 

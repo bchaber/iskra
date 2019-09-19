@@ -1,6 +1,7 @@
-- reaction rate should depend on E
 - bug in sample! when we need more particles than we can hold
 
++ reaction rate should depend on E
++ variable spwt
 + negative density does not remove kinetic species
 + don't forget about np2c
 + allow multiple species, sources

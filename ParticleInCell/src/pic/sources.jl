@@ -37,33 +37,67 @@ function sample!(config :: DensitySource, species :: FluidSpecies, Δt)
   species.n .+= config.δ
 end
 
-function sample!(config :: DensitySource, species :: KineticSpecies, Δt)
+function create!(species :: KineticSpecies, grid, n)
   np = species.np
-  px, pv = @views species.x[1+np:end,:], species.v[1+np:end,:]
-  δ = round.(Integer, config.δ * config.grid.Δh^2/species.np2c)
-  n = minimum([size(px, 1), sum(max.(δ, 0))])
-  px[1:n,1]=rand(n,1)*config.grid.Δh # relative x position in cell
-  px[1:n,2]=rand(n,1)*config.grid.Δh # relative y position in cell
-  pv[1:n,1]=1.0*(-1.5.+rand(n,1).+rand(n,1).+rand(n,1))
-  pv[1:n,2]=0.5*(-1.5.+rand(n,1).+rand(n,1).+rand(n,1))
+  px, pv, pw = @views species.x[1+np:end,:], species.v[1+np:end,:], species.wg[1+np:end]
+  nx, ny = size(n)
+  N = ceil.(max.(n/species.w0, 0))
+  N = ceil(Int64, sum(N))
+  pv[1:N,1]=rand(N,1).+rand(N,1).+rand(N,1).-1.5
+  pv[1:N,2]=rand(N,1).+rand(N,1).+rand(N,1).-1.5
+  px[1:N,1]=rand(N,1)*grid.Δh.-grid.Δh/2 # relative x position in cell
+  px[1:N,2]=rand(N,1)*grid.Δh.-grid.Δh/2 # relative y position in cell
   s = 1
-  nx, ny = size(config.δ)
-  for i=1:nx
-    for j=1:ny
-      dn = δ[i,j]
-      if dn > 0
-        px[s:s+dn-1,1] .+= config.grid.x[i,j]
-        px[s:s+dn-1,2] .+= config.grid.y[i,j]
+  for i=2:nx-1
+    for j=2:ny-1
+      if n[i,j] > species.w0
+        dn = floor(Int64, n[i,j]/species.w0)
+        px[s:s+dn-1,1] .+= grid.x[i,j]
+        px[s:s+dn-1,2] .+= grid.y[i,j]
+        n[i,j] -= dn*species.w0
         s += dn
+      end
+      if n[i,j] > 1
+        px[s,1] += grid.x[i,j]
+        px[s,2] += grid.y[i,j]
+        pw[s] = n[i,j]
+        n[i,j] = 0
+        s += 1
       end
     end
   end
-  remove_particles!(species, config.grid.Δh, (i,j) -> begin
-    if δ[i,j] < 0
-      δ[i,j] += 1
-      return true
+  species.np += (s-1)
+end
+
+function destroy!(species :: KineticSpecies, grid, n)
+  np, p = species.np, 1
+  px, pw = @views species.x[1:np,:], species.wg[1:np]
+  while p <= np
+    i, j, _, _ = particle_cell(px, p, grid.Δh)
+    if n[i,j] >= 0
+      p = p + 1
+      continue
     end
-    return false
-  end)
-  species.np += n
+
+    if pw[p] < -n[i,j]
+      n[i,j] += pw[p]
+      remove!(species, p)
+      np -= 1
+      continue
+    end
+
+    if pw[p] > -n[i,j]
+      pw[p] -= n[i,j]
+      n[i,j] = 0
+    end
+    p = p + 1
+  end
+end
+
+function sample!(config :: DensitySource, species :: KineticSpecies, Δt)
+  n = config.δ * config.grid.Δh^2
+  n[[1,end],:] .= 0#./= 2
+  n[:,[1,end]] .= 0#./= 2
+  destroy!(species, config.grid, n)
+  create!(species, config.grid, n)
 end

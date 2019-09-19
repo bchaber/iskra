@@ -4,21 +4,23 @@ mutable struct KineticSpecies
   n :: AbstractArray{Float64,2} # density
   m :: Float64 # mass
   q :: Float64 # charge
-  name::String
-  np2c :: Int64 # number of particles per macroparticle
   np :: Int64     # current number of particles
-  id :: AbstractArray{UInt32,1}   # identifier
+  w0 :: Float64   # default weight of new particle
+  wg :: AbstractArray{Float64,1}  # number of particles per macroparticle
+  id :: AbstractArray{UInt32,1} # identifier
+  name::String
 end
 
 Base.show(io::IO, sp::KineticSpecies) = print(io, sp.name)
 particle_uuids(N::Int64) = collect(1:UInt32(N))
 KineticSpecies(name::String, N::Int64) = KineticSpecies(zeros(N,3), zeros(N,3), zeros(0,0),
-0, 1, name, 1, 0, particle_uuids(N))
+.0, .0, 0, 1., ones(N), particle_uuids(N), name)
 
 function remove!(sp::KineticSpecies, i::Int64)
   np = sp.np
   sp.x[i,:] .= sp.x[np,:]
   sp.v[i,:] .= sp.v[np,:]
+  sp.wg[i], sp.wg[np] = sp.wg[np], sp.w0
   sp.id[i], sp.id[np] = sp.id[np], sp.id[i]
   sp.np = np - 1
 end
@@ -46,4 +48,4 @@ function remove_particles!(part, Δh, matches)
   end
 end
 
-density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.np2c)
+density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.wg[p])
