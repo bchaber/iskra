@@ -64,6 +64,7 @@ function ParticleInCell.after_loop(it)
   Diagnostics.save_diagnostic("ne-", "problem-field",   it)
   Diagnostics.save_diagnostic("ΔnO", "problem-field",   it)
   Diagnostics.save_diagnostic("ΔnO+","problem-field",   it)
+  Diagnostics.save_diagnostic("Δne-","problem-field",   it)
   Diagnostics.save_diagnostic("pvO+","problem-particle",it)
   Diagnostics.save_diagnostic("pve-","problem-particle",it)
 end
