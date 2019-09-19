@@ -64,7 +64,7 @@ module ParticleInCell
         for (species, order) in reaction.reactants
           concentration .*= species.n.^order
         end
-        Δn[species] .+= coeff .* rate .* concentration
+        Δn[species] .+= Δt .* coeff .* rate .* concentration
       end
     end
     return Δn
