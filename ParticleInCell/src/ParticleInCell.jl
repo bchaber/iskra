@@ -38,8 +38,8 @@ module ParticleInCell
     push_particles!(pusher, part, partE, Δt)
     remove_particles!(part, grid.Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
 
-    @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.np)
-    @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.np)
+    @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.wg, part.np)
+    @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
   end
   
   function advance!(fluid :: FluidSpecies, E, Δt, config)
