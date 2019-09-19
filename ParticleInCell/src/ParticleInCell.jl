@@ -45,10 +45,9 @@ module ParticleInCell
   function advance!(fluid :: FluidSpecies, E, Δt, config)
     q, m = fluid.q, fluid.m
     v = E*Δt*(q/m)
-    Δn = calculate_advection_diffusion(fluid.n, v, config.grid.Δh, Δt)
-    fluid.n .+= Δn  
-
-    @diag "Δn"*fluid.name NodeData(Δn, config.grid.origin, [1,1]*config.grid.Δh)
+    Δn = calculate_advection_diffusion(fluid.n, fluid.μ, v, config.grid.Δh, Δt)
+    fluid.n .+= Δn
+    
     @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
