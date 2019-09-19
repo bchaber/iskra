@@ -57,7 +57,7 @@ function create!(species :: KineticSpecies, grid, n)
         n[i,j] -= dn*species.w0
         s += dn
       end
-      if n[i,j] > 1
+      if n[i,j] > 1e-6species.w0
         px[s,1] += grid.x[i,j]
         px[s,2] += grid.y[i,j]
         pw[s] = n[i,j]
