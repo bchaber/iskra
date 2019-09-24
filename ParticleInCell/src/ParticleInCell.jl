@@ -1,6 +1,6 @@
 module ParticleInCell
+  using LinearAlgebra
   using FiniteDifferenceMethod
-  using Chemistry
 
   include("sugar.jl")
 
@@ -10,6 +10,8 @@ module ParticleInCell
   include("pic/diagnostics.jl")
   include("pic/pushers.jl")
   include("pic/sources.jl")
+
+  using Chemistry
 
   function particle_cell(px, p, Δh)
     fij = @views 1 .+ px[p, :] ./ Δh
@@ -51,10 +53,37 @@ module ParticleInCell
     @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
-  function react(reactions, Δt)
+  function perform!(mcc::MonteCarloCollisions, Δt, grid, E)
+    Δh = grid.Δh
+    collision = mcc.collisions[1] # assume only one collision
+    source, target = collision.source, collision.target
+    for p=1:source.np
+      i, j, _, _ = particle_cell(source.x, p, grid.Δh)
+      n = density(target, grid)[i,j]
+      if n < 0
+        println("Density is negative, skipping")
+        continue
+      end
+      sv = source.v
+      tv = (target.q/target.m)*E*Δt
+      gv = norm(tv[i,j,:] .- sv[p,:])
+      σ  = collision.rate(gv)
+      P  = @. 1 - exp(-σ * gv * Δt * n);
+      R  = rand()
+      if P < R
+        continue
+      end
+
+      for product in collision.products
+        sample!(MaxwellianSource(1/Δt, [grid.x[i,j] Δh; grid.y[i,j] Δh], [0 0; 0 0]), product, Δt)
+      end
+    end
+  end
+
+  function perform!(network::ChemicalReactionNetwork, Δt, grid, E)
     Δn = Dict()
-    for reaction in reactions
-      rate = reaction.rate.(1.0)
+    for reaction in network.reactions
+      rate = reaction.rate.(E[:,:,1])
       for (species, coeff) in reaction.stoichiometry
         n = species.n
         if haskey(Δn, species) ≠ true
@@ -67,12 +96,16 @@ module ParticleInCell
         Δn[species] .+= Δt .* coeff .* rate .* concentration
       end
     end
-    return Δn
+
+    for species in keys(Δn)
+      species.n .+= Δn[species]
+      @diag "Δn"*species.name NodeData(Δn[species], grid.origin, [1,1]*grid.Δh)
+    end
   end
 
   function solve(config, Δt=1e-5, timesteps=200, ε0=1.0)
     pusher = config.pusher
-    chemistry = config.chemistry
+    interactions = config.interactions
     sources = config.sources
     species = config.species
     solver = config.solver
@@ -107,12 +140,8 @@ module ParticleInCell
         @diag "n"*part.name NodeData(part.n, origin, spacing)
       end
       # Solve reactions
-      if chemistry ≠ nothing
-        Δn = react(chemistry, Δt)
-        for part in keys(Δn)
-          sample!(DensitySource(Δn[part], grid), part, Δt)
-          @diag "Δn"*part.name NodeData(Δn[part], origin, spacing)
-        end
+      for interaction in interactions
+        perform!(interaction, Δt, grid, E)
       end
       # Calculate electric field
       Q  = ρ .* Δh .^2

@@ -6,30 +6,25 @@ mutable struct DensitySource
 end
 
 mutable struct MaxwellianSource
-   species
    rate :: Float64
    x :: AbstractArray{Float64,2}
    v :: AbstractArray{Float64,2}
-   n :: Float64
+   species
 end
-
-function create_maxwellian_source(species, rate, x, v)
-  MaxwellianSource(species, rate, x, v, 0.0)
-end
+MaxwellianSource(rate, x, v) =
+MaxwellianSource(rate, x, v, nothing)
   
 function sample!(config :: MaxwellianSource, species :: KineticSpecies, Δt)
   np = species.np
   cx, cv = config.x, config.v
   px, pv = @views species.x[1+np:end,:], species.v[1+np:end,:]
 
-  config.n += config.rate*Δt
-  n = minimum([size(px, 1), floor(Integer, config.n)])
-  px[1:n,1]=randn(n,1)*cx[1,2]/10 .+ cx[1,2]/2 # x position
-  px[1:n,2]=randn(n,1)*cx[2,2]/10 .+ cx[2,2]/2 # y position
-  pv[1:n,1]=1.0*(-1.5.+rand(n,1).+rand(n,1).+rand(n,1))*cv[1,1] .+ cv[1,2]
-  pv[1:n,2]=0.5*(-1.5.+rand(n,1).+rand(n,1).+rand(n,1))*cv[2,1] .+ cv[2,2]
+  n = minimum([size(px, 1), floor(Integer, config.rate*Δt)])
+  px[1:n,1]=rand(n,1)*cx[1,2]  .+ cx[1,1]
+  px[1:n,2]=rand(n,1)*cx[2,2]  .+ cx[2,1]
+  pv[1:n,1]=randn(n,1)*cv[1,2] .+ cv[1,1]
+  pv[1:n,2]=randn(n,1)*cv[2,2] .+ cv[2,1]
 
-  config.n   -= n
   species.np += n
 end
 
