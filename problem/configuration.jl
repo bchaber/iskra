@@ -4,7 +4,7 @@ import FiniteDifferenceMethod
 mutable struct Config
   solver
   pusher
-  chemistry
+  interactions
   species
   sources
   grid
@@ -21,8 +21,8 @@ function add_electrode(nodes, voltage)
   FiniteDifferenceMethod.apply_dirichlet(solver, dof[nodes], voltage)
 end
 
-function create_gamma_ionization_source(electrons, rate, x, v)
-  ParticleInCell.create_maxwellian_source(electrons, rate, x, v)
+function create_gamma_ionization_source(rate, x, v)
+  ParticleInCell.MaxwellianSource(rate, x, v)
 end
 
 function create_kinetic_species(name, N, q, m, weight)
@@ -39,4 +39,4 @@ function create_fluid_species(name, μ, q, m, nx, ny)
   return species
 end
 
-Config() = Config(nothing, nothing, nothing, [], [], nothing, nothing)
+Config() = Config(nothing, nothing, [], [], [], nothing, nothing)
