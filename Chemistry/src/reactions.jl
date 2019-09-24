@@ -4,14 +4,14 @@ macro reactions(ex)
   def_reaction_network(ex)
 end
 
-struct Reaction
+struct ChemicalReaction
   rate # might be any symbol: function or variable
   reactants # list of reactant's name and its order
   stoichiometry # list of net coefficients 
 end
 
 function def_reaction_network(ex::Expr)
-  reactions = :([])
+  reactions = :(ChemicalReaction[])
   mapping = OrderedDict{Symbol,Int}()
 
   for arg in ex.args
@@ -46,7 +46,7 @@ function parse(ex::Expr, reactions, mapping)
         end
       end
 
-      push!(reactions.args, :(Reaction($(esc(rate)), $reactants, $stoichiometry)))
+      push!(reactions.args, :(ChemicalReaction($(esc(rate)), $reactants, $stoichiometry)))
     end
 end
 

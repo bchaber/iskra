@@ -1,3 +1,4 @@
+import Chemistry
 mutable struct FluidSpecies
   name::String
 	μ :: Float64 # mobility of the species
@@ -6,4 +7,5 @@ mutable struct FluidSpecies
 	n :: Array{Float64,2} # density of the species
 end
 Base.show(io::IO, sp::FluidSpecies) = print(io, sp.name)
+Chemistry.is_fluid(species :: FluidSpecies) = true
 density(species :: FluidSpecies, _) = species.n
