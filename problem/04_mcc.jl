@@ -10,7 +10,7 @@ nx = 20         # number of nodes in x direction
 ny = 20         # number of nodes in y direction
 ts = 200        # number of time steps
 Δh = 5cm        # cell size
-Δt = 5ns        # time step
+Δt = .5ns        # time step
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
@@ -28,9 +28,10 @@ config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O, iO]
 
 #σ = CrossSection(0:0.3:1.5, [0, 0.1e-7, 0.4e-7, 0.5e-7, 0.7e-7, 0.9e-7])
-σ(E) = 5e-7
+σ(g) = 5e-16g
 collisions = ParticleInCell.mcc(@reactions begin
-    σ, e + O --> 2e + iO
+    #σ, e + O --> O + e
+    σ, e + O --> iO + 2e
 end)
 config.interactions = [collisions]
 ############################################
@@ -43,8 +44,8 @@ bcs = zeros(Int8, nx, ny)
 bcs[ nx,  1] = 1
 bcs[ nx, ny] = 2
 set_permittivity(εr)
-add_electrode(bcs .== 1, +1V)
-add_electrode(bcs .== 2, -1V)
+add_electrode(bcs .== 1, +1e3V)
+add_electrode(bcs .== 2, -1e3V)
 ############################################
 import ParticleInCell
 import Diagnostics
@@ -70,4 +71,4 @@ function ParticleInCell.exit_loop()
 end
 ParticleInCell.init(ParticleInCell.DensitySource(5e7δ, config.grid), e, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(5e7δ, config.grid), O, Δt)
-@time ParticleInCell.solve(config, Δt, ts, ε0)
+@time ParticleInCell.solve(config, Δt, 66, ε0)

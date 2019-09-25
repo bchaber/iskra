@@ -5,6 +5,7 @@ export CrossSection
 export ChemicalReaction
 export ChemicalReactionNetwork
 export MonteCarloCollisions
+export ElasticCollision, IonizationCollision
 export chemical, mcc
 
 is_fluid(x) = error("Implement is_fluid for ", typeof(x))

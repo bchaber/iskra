@@ -1,4 +1,10 @@
-struct Collision
+struct ElasticCollision
+	rate
+	source # particles
+	target # fluid
+end
+
+struct IonizationCollision
 	rate
 	source # particles
 	target # fluid
@@ -6,14 +12,15 @@ struct Collision
 end
 
 struct MonteCarloCollisions
-	collisions :: Array{Collision,1}
+	collisions
 end
 
 function mcc(reactions)
-	collisions = Collision[]
+	collisions = []
 	for reaction in reactions
 		products = []
 		source = target = nothing
+		@assert length(reaction.reactants) == 2 "Monte Carlo Collisions support only two reacting species: one fluid and one kinetic"
 		for (r,_) in reaction.reactants
 			if is_fluid(r) target = r else source = r end
 		end
@@ -21,7 +28,11 @@ function mcc(reactions)
 			if c > 0 push!(products, p) end
 		end
 		if source ≠ nothing && target ≠ nothing
-			push!(collisions, Collision(reaction.rate, source, target, products))
+			if length(products) > 0
+				push!(collisions, IonizationCollision(reaction.rate, source, target, products))
+			else
+				push!(collisions, ElasticCollision(reaction.rate, source, target))
+			end
 		else
 			if source == nothing error("Reaction without particle species") end
 			if target == nothing error("Reaction without fluid species") end
@@ -30,4 +41,5 @@ function mcc(reactions)
 	MonteCarloCollisions(collisions)
 end
 
-Base.show(io :: IO, c :: Collision) = print(io, c.source, "->", c.target, ":", c.products) 
+Base.show(io :: IO, r :: ElasticCollision) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.source, " + ", r.target, "\telastic") 
+Base.show(io :: IO, r :: IonizationCollision) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.products, "\tionization") 

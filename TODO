@@ -1,6 +1,7 @@
 - bug in sample! when we need more particles than we can hold
-
-- implement MCC and DSMC
+- bug in 
++ implement MCC (elastic/ionization)
+- implement DSMC
 + reaction rate should depend on E
 + variable spwt
 + negative density does not remove kinetic species

@@ -4,6 +4,8 @@ using Unitful
 ↦(value::Unitful.Quantity, unit::Unitful.Units) = uconvert(unit, value).val
 
 # units
+const °C = u"°C"
+const K  = u"K"
 const C  = u"C"  ↦ u"C"
 const V  = u"V"  ↦ u"V"
 const m  = u"m"  ↦ u"m"
@@ -20,6 +22,7 @@ const kmps = u"km/s" ↦ u"m/s"
 
 # constants
 const ɛ0 = u"ɛ0" ↦ u"F/m"
+const kB = u"k" ↦ u"eV/K"
 const qe = 1.602_176_6208e-19C  # elementary charge
 const me = 9.109_383_7015e-31kg # mass of electron
 const mp = 1.672_621_8982e-27kg # mass of proton

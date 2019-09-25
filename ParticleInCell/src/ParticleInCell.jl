@@ -53,6 +53,66 @@ module ParticleInCell
     @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
+  function maxwellian_velocity(ν)
+    v = [randn(), randn(), 0]
+    v ./ norm(v) .* ν
+  end
+
+  function perform!(collision::ElasticCollision, p, Δt, grid)
+    ν = norm(collision.source.v[p,:])
+    collision.source.v[p,:] .= maxwellian_velocity(ν)
+  end
+
+  function isotropic_velocity(ν)
+    θ = 2rand() * π
+    r = 2rand() - 1
+    a = sqrt(1 - r^2)
+    [cos(θ)*a, sin(θ)*a, r] .* ν
+  end
+
+  function thermal_velocity(T, m)
+    kB = 1.3806503e-23
+    sqrt(2kB*T/m)
+  end
+
+  function perform!(collision::IonizationCollision, p, Δt, grid)
+    source = collision.source
+    qe = 1.60217646e-19
+    sv = view(source.v, p, :)
+    sE = 0.5source.m*dot(sv, sv)/qe - 12.0697 #target.ionization_energy;
+    if sE < 0
+      println("Source species has not enough energy for ionization: ", sE)
+      return
+    end
+    # randomly redistribute the remaining energy to the two electrons
+    e1E = sE * rand()
+    e2E = sE - e1E
+    # speed reduced by the ionization energy
+    e1ν = sqrt(e1E*qe*2/source.m)
+    e2ν = sqrt(e2E*qe*2/source.m)
+            
+    sv .= isotropic_velocity(e1ν)
+
+    # assume the new electron and ion are created at the neutral temperature
+    T = 300 # target.temperature # 300K = 25°C
+    # create new ion and electron
+    source.x[source.np+1,:] .= source.x[p,:]
+    source.v[source.np+1,:] .= isotropic_velocity(e2ν);
+    source.np += 1
+    for product in collision.products
+      if product == source
+        continue
+      end
+      mp = source.w0/product.w0 + rand()
+      νth = thermal_velocity(T, product.m)
+      for i=1:round(Integer, mp)
+        product.x[product.np+1,:] .= source.x[p,:]
+        product.v[product.np+1,:] .= maxwellian_velocity(νth);
+        product.np += 1
+      end
+    end
+  end
+
   function perform!(mcc::MonteCarloCollisions, Δt, grid, E)
     Δh = grid.Δh
     collision = mcc.collisions[1] # assume only one collision
@@ -73,10 +133,7 @@ module ParticleInCell
       if P < R
         continue
       end
-
-      for product in collision.products
-        sample!(MaxwellianSource(1/Δt, [grid.x[i,j] Δh; grid.y[i,j] Δh], [0 0; 0 0]), product, Δt)
-      end
+      perform!(collision, p, Δt, grid)
     end
   end
 
