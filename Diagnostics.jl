@@ -19,15 +19,16 @@ function register_diagnostic(dname::String, data::DiagnosticData)
   diagnostics[dname] = data
 end
 
-function save_diagnostic(dname::String, d::DiagnosticData, cname::String, container, iteration::Integer)
+function save_diagnostic(dname::String, d::DiagnosticData, cname::String, container, iteration::Integer, t::Float64)
   println("Cannot save abstract diagnostic data")
 end
 
-function save_diagnostic(dname::String, cname::String, it::Integer)
+function save_diagnostic(dname::String, cname::String, it::Integer, t=nothing)
   if haskey(diagnostics, dname)
     data = diagnostics[dname]
     container = containers[cname]
-    save_diagnostic(directory*dname, data, directory*cname, container, it)
+    if isnothing(t) t = it end
+    save_diagnostic(directory*dname, data, directory*cname, container, it, float(t))
   else
     println("Couldn't find diagnostic "*dname)
   end
