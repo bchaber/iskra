@@ -28,7 +28,7 @@ function save_diagnostic(dname::String, cname::String, it::Integer, t=nothing)
     data = diagnostics[dname]
     container = containers[cname]
     if isnothing(t) t = it end
-    save_diagnostic(directory*dname, data, directory*cname, container, it, float(t))
+    save_diagnostic(dname, data, directory*cname*"_", container, it, float(t))
   else
     println("Couldn't find diagnostic "*dname)
   end

@@ -40,20 +40,20 @@ import ParticleInCell
 import Diagnostics
 
 function ParticleInCell.enter_loop()
-  Diagnostics.open_container("problem-field")
-  Diagnostics.open_container("problem-particle")
+  Diagnostics.open_container("01-field")
+  Diagnostics.open_container("01-particle")
 end
 
 function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "problem-field",   it)
-  Diagnostics.save_diagnostic("ϕ",   "problem-field",   it)
-  Diagnostics.save_diagnostic("ne-", "problem-field",   it)
-  Diagnostics.save_diagnostic("pve-","problem-particle",it)
+  Diagnostics.save_diagnostic("E",   "01-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("ϕ",   "01-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("ne-", "01-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("pve-","01-particle",it, Δt*it-Δt)
 end
 
 function ParticleInCell.exit_loop()
-  Diagnostics.close_container("problem-field")
-  Diagnostics.close_container("problem-particle")
+  Diagnostics.close_container("01-field")
+  Diagnostics.close_container("01-particle")
 end
 
 ParticleInCell.init(γ, e, Δt)

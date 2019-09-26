@@ -25,10 +25,10 @@ end
 
 import PlotVTK: pvd_add_timestep, field_as_points, field_as_vectors, field_as_grid, field_as_vectors
 Diagnostics.save_diagnostic(dname::String, d::ParticleVectorData, cname::String, c::Any, it::Integer, t::Float64) =
-  pvd_add_timestep(c, field_as_vectors(d.x, d.y, dname, dname => (d.u, d.v, d.w), "id" => (d.id,), "wg" => (d.wg,), it=it, save=false), t)
+  pvd_add_timestep(c, field_as_vectors(d.x, d.y, cname*dname, dname => (d.u, d.v, d.w), "id" => (d.id,), "wg" => (d.wg,), it=it, save=false), t)
 Diagnostics.save_diagnostic(dname::String, d::NodeData, cname::String, c::Any, it::Integer, t::Float64) =
-  pvd_add_timestep(c, field_as_points(dname  => d.u, dname, spacing=d.sp, origin=d.or, it=it, save=false), t)
+  pvd_add_timestep(c, field_as_points(dname  => d.u, cname*dname, spacing=d.sp, origin=d.or, it=it, save=false), t)
 Diagnostics.save_diagnostic(dname::String, d::GridData, cname::String, c::Any, it::Integer, t::Float64) =
-  pvd_add_timestep(c, field_as_grid(d.x, d.y, dname  => d.u, dname, it=it, save=false), t)
+  pvd_add_timestep(c, field_as_grid(d.x, d.y, dname  => d.u, cname*dname, it=it, save=false), t)
 
 import Diagnostics: @diag

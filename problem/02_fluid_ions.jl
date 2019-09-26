@@ -39,18 +39,18 @@ import ParticleInCell
 import Diagnostics
 
 function ParticleInCell.enter_loop()
-  Diagnostics.open_container("problem-field")
+  Diagnostics.open_container("02-field")
 end
 
 function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "problem-field",   it)
-  Diagnostics.save_diagnostic("ϕ",   "problem-field",   it)
-  Diagnostics.save_diagnostic("nO+", "problem-field",   it)
-  Diagnostics.save_diagnostic("vO+", "problem-field",   it)
+  Diagnostics.save_diagnostic("E",   "02-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("ϕ",   "02-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("nO+", "02-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("vO+", "02-field",   it, Δt*it-Δt)
 end
 
 function ParticleInCell.exit_loop()
-  Diagnostics.close_container("problem-field")
+  Diagnostics.close_container("02-field")
 end
 
 ParticleInCell.init(ParticleInCell.DensitySource(1e5δ, config.grid), iO, Δt)
