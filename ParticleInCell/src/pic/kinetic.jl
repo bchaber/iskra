@@ -1,4 +1,3 @@
-import Chemistry
 mutable struct KineticSpecies
   x :: AbstractArray{Float64,2} # position
   v :: AbstractArray{Float64,2} # velocity
@@ -49,5 +48,5 @@ function remove_particles!(part, Δh, matches)
   end
 end
 
-Chemistry.is_fluid(species :: KineticSpecies) = false
+is_fluid(species :: KineticSpecies) = false
 density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.wg[p])

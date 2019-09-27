@@ -4,13 +4,14 @@ export @reactions
 export CrossSection
 export ChemicalReaction
 export ChemicalReactionNetwork
-export MonteCarloCollisions
-export DirectSimulationMonteCarlo
-export ElasticCollision, IonizationCollision
-export DSMCElasticCollision, DSMCIonizationCollision
 export chemical, mcc, dsmc
 
 is_fluid(x) = error("Implement is_fluid for ", typeof(x))
+
+import LinearAlgebra: norm, dot
+import Diagnostics: @diag
+import ParticleInCell
+PIC = ParticleInCell
 
 include("reactions.jl")
 include("cross_section.jl")
