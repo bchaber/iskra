@@ -113,6 +113,16 @@ module ParticleInCell
     end
   end
 
+  function perform!(dsmc::DirectSimulationMonteCarlo, Δt, grid, E)
+    ν = zeros(size(grid)) # collision count
+    Δh = grid.Δh
+    for collision in dsmc.collisions
+      source, target = collision.source, collision.target
+      cache(source, target, dsmc) # assign particles to cells
+    end
+    @diag "ν-mcc" NodeData(ν, grid.origin, [Δh,Δh])
+  end
+
   function perform!(mcc::MonteCarloCollisions, Δt, grid, E)
     Δh = grid.Δh
     collision = mcc.collisions[1] # assume only one collision
