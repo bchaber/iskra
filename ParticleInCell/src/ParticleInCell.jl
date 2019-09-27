@@ -124,27 +124,31 @@ module ParticleInCell
   end
 
   function perform!(mcc::MonteCarloCollisions, Δt, grid, E)
+    ν = zeros(size(grid)) # collision count
     Δh = grid.Δh
-    collision = mcc.collisions[1] # assume only one collision
-    source, target = collision.source, collision.target
-    for p=1:source.np
-      i, j, _, _ = particle_cell(source.x, p, grid.Δh)
-      n = density(target, grid)[i,j]
-      if n < 0
-        println("Density is negative, skipping")
-        continue
+    for collision in mcc.collisions
+      source, target = collision.source, collision.target
+      for p=1:source.np
+        i, j, _, _ = particle_cell(source.x, p, grid.Δh)
+        n = density(target, grid)[i,j]
+        if n < 0
+          println("Density is negative, skipping")
+          continue
+        end
+        sv = source.v
+        tv = (target.q/target.m)*E*Δt
+        gv = norm(tv[i,j,:] .- sv[p,:])
+        σ  = collision.rate(gv)
+        P  = @. 1 - exp(-σ * gv * Δt * n);
+        R  = rand()
+        if P < R
+          continue
+        end
+        perform!(collision, p, Δt, grid)
+        ν[i,j] += 1
       end
-      sv = source.v
-      tv = (target.q/target.m)*E*Δt
-      gv = norm(tv[i,j,:] .- sv[p,:])
-      σ  = collision.rate(gv)
-      P  = @. 1 - exp(-σ * gv * Δt * n);
-      R  = rand()
-      if P < R
-        continue
-      end
-      perform!(collision, p, Δt, grid)
     end
+    @diag "ν-mcc" NodeData(ν, grid.origin, [Δh,Δh])
   end
 
   function perform!(network::ChemicalReactionNetwork, Δt, grid, E)
