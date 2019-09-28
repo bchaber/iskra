@@ -23,8 +23,9 @@ module ParticleInCell
   function after_loop(it) end
   function exit_loop() end
 
-  function perform!(interaction, Δt, grid, E) end
-  function advance!(part, E, Δt, config) end
+  # extension points
+  function perform!(interaction, E, Δt, config) end
+  function advance!(species, E, Δt, config) end
 
   function init(src, species, Δt)
     sample!(src, species, Δt)
@@ -90,7 +91,7 @@ module ParticleInCell
       end
       # Solve reactions
       for interaction in interactions
-        perform!(interaction, Δt, grid, E)
+        perform!(interaction, E, Δt, config)
       end
       # Calculate electric field
       Q  = ρ .* Δh .^2

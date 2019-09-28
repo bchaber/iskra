@@ -2,7 +2,7 @@ struct ChemicalReactionNetwork
 	reactions :: Array{ChemicalReaction,1}
 end
 
-function PIC.perform!(network::ChemicalReactionNetwork, Δt, grid, E)
+function PIC.perform!(network::ChemicalReactionNetwork, E, Δt, config)
 	Δn = Dict()
 	for reaction in network.reactions
 		rate = reaction.rate.(E[:,:,1])
@@ -21,7 +21,7 @@ function PIC.perform!(network::ChemicalReactionNetwork, Δt, grid, E)
 
 	for species in keys(Δn)
 		species.n .+= Δn[species]
-		@diag "Δn"*species.name PIC.NodeData(Δn[species], grid.origin, [1,1]*grid.Δh)
+		@diag "Δn"*species.name PIC.NodeData(Δn[species], config.grid.origin, [1,1]*config.grid.Δh)
 	end
 end
 

@@ -77,14 +77,14 @@ function perform!(collision::MCC.IonizationCollision, p, Δt, grid)
 	end
 end
 
-function PIC.perform!(mcc::MonteCarloCollisions, Δt, grid, E)
-	ν = zeros(size(grid)) # collision count
-	Δh = grid.Δh
+function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
+	ν = zeros(size(config.grid)) # collision count
+	Δh = config.grid.Δh
 	for collision in mcc.collisions
 		source, target = collision.source, collision.target
 		for p=1:source.np
-			i, j, _, _ = PIC.particle_cell(source.x, p, grid.Δh)
-			n = PIC.density(target, grid)[i,j]
+			i, j, _, _ = PIC.particle_cell(source.x, p, config.grid.Δh)
+			n = PIC.density(target, config.grid)[i,j]
 			if n < 0
 				println("Density is negative, skipping")
 				continue
@@ -98,11 +98,11 @@ function PIC.perform!(mcc::MonteCarloCollisions, Δt, grid, E)
 			if P < R
 				continue
 			end
-			perform!(collision, p, Δt, grid)
+			perform!(collision, p, Δt, config.grid)
 			ν[i,j] += 1
 		end
 	end
-	@diag "ν-mcc" PIC.NodeData(ν, grid.origin, [Δh,Δh])
+	@diag "ν-mcc" PIC.NodeData(ν, config.grid.origin, [Δh,Δh])
 end
 
 function mcc(reactions)

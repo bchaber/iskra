@@ -19,14 +19,14 @@ struct DirectSimulationMonteCarlo
 	reminder
 end
 
-function PIC.perform!(dsmc::DirectSimulationMonteCarlo, Δt, grid, E)
-	ν = zeros(size(grid)) # collision count
-	Δh = grid.Δh
+function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
+	ν = zeros(size(config.grid)) # collision count
+	Δh = config.grid.Δh
 	for collision in dsmc.collisions
 		source, target = collision.source, collision.target
 		cache(source, target, dsmc) # assign particles to cells
 	end
-	@diag "ν-mcc" PIC.NodeData(ν, grid.origin, [Δh,Δh])
+	@diag "ν-mcc" PIC.NodeData(ν, config.grid.origin, [Δh,Δh])
 end
 
 function dsmc(reactions)
