@@ -24,7 +24,7 @@ function isotropic_velocity(ν)
 	[cos(θ)*a, sin(θ)*a, r] .* ν
 end
 
-function thermal_velocity(T, m)
+function thermal_speed(T, m)
 	kB = 1.3806503e-23
 	sqrt(2kB*T/m)
 end
@@ -35,8 +35,21 @@ function maxwellian_velocity(ν)
 end
 
 function perform!(collision::MCC.ElasticCollision, p, Δt, grid)
-	ν = norm(collision.source.v[p,:])
-	collision.source.v[p,:] .= maxwellian_velocity(ν)
+	source, target = collision.source, collision.target
+	mr1 = source.m/(source.m + target.m)
+	mr2 = target.m/(source.m + target.m)
+	print("*")
+	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
+	g = source.v[p,:] .- tv
+	vc_cm = mr1 * source.v[p,:] + mr2 * tv
+
+    B = 2rand() - 1
+    A = sqrt(1 - B^2)
+	C = 2π*rand()
+	vr_cp = norm(g) * [B, A*cos(C), A*sin(C)]
+	    
+	source.v[p,:] = vc_cm .+ mr2 * vr_cp;
+	tv            = vc_cm .- mr1 * vr_cp;
 end
 
 function perform!(collision::MCC.IonizationCollision, p, Δt, grid)
@@ -48,6 +61,7 @@ function perform!(collision::MCC.IonizationCollision, p, Δt, grid)
 	  println("Source species has not enough energy for ionization: ", sE)
 	  return
 	end
+	print("!")
 	# randomly redistribute the remaining energy to the two electrons
 	e1E = sE * rand()
 	e2E = sE - e1E
@@ -68,7 +82,7 @@ function perform!(collision::MCC.IonizationCollision, p, Δt, grid)
 			continue
 		end
 		mp = source.w0/product.w0 + rand()
-		νth = thermal_velocity(T, product.m)
+		νth = thermal_speed(T, product.m)
 		for i=1:round(Integer, mp)
 			product.x[product.np+1,:] .= source.x[p,:]
 			product.v[product.np+1,:] .= maxwellian_velocity(νth);
@@ -102,7 +116,7 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 			ν[i,j] += 1
 		end
 	end
-	@diag "ν-mcc" PIC.NodeData(ν, config.grid.origin, [Δh,Δh])
+	@diag "ν" PIC.NodeData(ν, config.grid.origin, [Δh,Δh])
 end
 
 function mcc(reactions)
