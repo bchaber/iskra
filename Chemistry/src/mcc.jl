@@ -103,12 +103,16 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 				println("Density is negative, skipping")
 				continue
 			end
+
 			sv = source.v
 			tv = (target.q/target.m)*E*Δt
-			gv = norm(tv[i,j,:] .- sv[p,:])
-			σ  = collision.rate(gv)
-			P  = @. 1 - exp(-σ * gv * Δt * n);
+
+			g  = norm(tv[i,j,:] .- sv[p,:])
+			σ  = collision.rate(g)
+
+			P  = @. 1 - exp(-σ * g * Δt * n);
 			R  = rand()
+			
 			if P < R
 				continue
 			end

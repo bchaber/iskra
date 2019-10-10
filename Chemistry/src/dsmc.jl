@@ -112,16 +112,17 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 						tR = rand(dsmc.collision_target_candidates[i,j])
 					end
 
-					cr = norm(source.v[sR,:] - target.v[tR,:])
-					σcr = collision.rate(cr)
+					g = norm(source.v[sR,:] - target.v[tR,:])
+					σ = collision.rate(g)
 
-				    P = σcr / σmax
+				    P = σ / σmax
 				    R = rand()
 				    
-				    if P > R
-						perform!(collision, sR, tR)
-						ν[i,j] += 1
-					end
+				    if P < R
+				    	continue
+				    end
+					perform!(collision, sR, tR)
+					ν[i,j] += 1
 				end
 			end
 		end
