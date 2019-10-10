@@ -1,6 +1,3 @@
-using LinearAlgebra
-import ParticleInCell
-
 module DSMC
 	struct ElasticCollision
 		rate
@@ -27,7 +24,7 @@ DirectSimulationMonteCarlo(collisions) = DirectSimulationMonteCarlo(collisions, 
 
 function cache!(candidates, species, nx, ny, Δh)
 	for p=1:species.np
-		i, j, ~, ~ = ParticleInCell.particle_cell(species.x, p, Δh)
+		i, j, ~, ~ = PIC.particle_cell(species.x, p, Δh)
 		push!(candidates[i, j], p)
 	end
 end
@@ -38,7 +35,7 @@ function perform!(collision::DSMC.ElasticCollision, s, t)
 	mr1 = source.m/(source.m + target.m)
 	mr2 = target.m/(source.m + target.m)
 
-	g = (source.v[s,:] - target.v[t,:])
+	g = source.v[s,:] .- target.v[t,:]
 	vc_cm = mr1 * source.v[s,:] .+ mr2 * target.v[t,:]
 	vss_inv= 1.
 	print("*")
