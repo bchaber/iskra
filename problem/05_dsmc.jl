@@ -48,6 +48,11 @@ add_electrode(bcs .== 2, -1e3V)
 import ParticleInCell
 import Diagnostics
 
+function thermal_speed(T, m)
+  kB = 1.3806503e-23
+  sqrt(2kB*T/m)
+end
+
 function ParticleInCell.enter_loop()
   Diagnostics.open_container("05-field")
   Diagnostics.open_container("05-particle")
@@ -69,6 +74,7 @@ function ParticleInCell.exit_loop()
   Diagnostics.close_container("05-field")
   Diagnostics.close_container("05-particle")
 end
+νth = thermal_speed(300, O.m)
 ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
-ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [0.     0.; 0.     0.]), O, Δt)
+ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [0.     νth; 0.   νth]), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts, ε0)
