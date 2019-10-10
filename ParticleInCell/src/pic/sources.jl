@@ -88,11 +88,3 @@ function destroy!(species :: KineticSpecies, grid, n)
     p = p + 1
   end
 end
-
-function sample!(config :: DensitySource, species :: KineticSpecies, Δt)
-  n = config.δ * config.grid.Δh^2
-  n[[1,end],:] .= 0#./= 2
-  n[:,[1,end]] .= 0#./= 2
-  destroy!(species, config.grid, n)
-  create!(species, config.grid, n)
-end
