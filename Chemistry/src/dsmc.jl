@@ -101,8 +101,8 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 		for i=1:nx
 			for j=1:ny
 				for n=1:N
-					if length(dsmc.collision_source_candidates[i,j]) == 0 || 
-					   length(dsmc.collision_target_candidates[i,j]) == 0
+					if length(dsmc.collision_source_candidates[i,j]) < 2 || 
+					   length(dsmc.collision_target_candidates[i,j]) < 2
 						continue
 					end
 
