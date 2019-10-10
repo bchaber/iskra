@@ -4,6 +4,7 @@ mutable struct FluidSpecies
 	q :: Float64 # charge of a single particle
 	m :: Float64 # mass of a single particle
 	n :: Array{Float64,2} # density of the species
+	T :: Float64 # temperature
 end
 Base.show(io::IO, sp::FluidSpecies) = print(io, sp.name)
 is_fluid(species :: FluidSpecies) = true
