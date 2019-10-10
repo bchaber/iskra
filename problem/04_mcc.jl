@@ -17,8 +17,8 @@ Ly = ny*Δh      # domain length in y direction
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
 O  = create_fluid_species("O", 1.0, 0qe, 8mp, nx+1, ny+1)
-e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 1_000)
-iO = create_kinetic_species("O+", 20_000,+1qe, 8mp, 1_000)
+e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
+iO = create_kinetic_species("O+", 20_000,+1qe, 8mp, 1)
 using Chemistry
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
@@ -30,8 +30,8 @@ config.species = [e, O, iO]
 #σ = CrossSection(0:0.3:1.5, [0, 0.1e-7, 0.4e-7, 0.5e-7, 0.7e-7, 0.9e-7])
 σ = CrossSection(1.5e7:7.5e7:9e7, [0.1, 1.0])
 collisions = mcc(@reactions begin
-    #σ, e + O --> O + e
-    σ, e + O --> iO + 2e
+    σ, e + O --> O + e
+    #σ, e + O --> iO + 2e
 end)
 config.interactions = [collisions]
 ############################################
@@ -58,6 +58,7 @@ end
 function ParticleInCell.after_loop(it)
   Diagnostics.save_diagnostic("E",   "04-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("ϕ",   "04-field",   it, Δt*it-Δt)
+  Diagnostics.save_diagnostic("ν",   "04-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("nO",  "04-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("ne-", "04-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("nO+", "04-field",   it, Δt*it-Δt)
@@ -69,6 +70,6 @@ function ParticleInCell.exit_loop()
   Diagnostics.close_container("04-field")
   Diagnostics.close_container("04-particle")
 end
-ParticleInCell.init(ParticleInCell.DensitySource(5e7δ, config.grid), e, Δt)
-ParticleInCell.init(ParticleInCell.DensitySource(5e7δ, config.grid), O, Δt)
-@time ParticleInCell.solve(config, Δt, 66, ε0)
+ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
+ParticleInCell.init(ParticleInCell.DensitySource(5e3δ, config.grid), O, Δt)
+@time ParticleInCell.solve(config, Δt, ts, ε0)
