@@ -27,11 +27,9 @@ config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O, iO]
 
-#σ = CrossSection(0:0.3:1.5, [0, 0.1e-7, 0.4e-7, 0.5e-7, 0.7e-7, 0.9e-7])
 σ = CrossSection(1.5e7:7.5e7:9e7, [0.1, 1.0])
 collisions = mcc(@reactions begin
     σ, e + O --> O + e
-    #σ, e + O --> iO + 2e
 end)
 config.interactions = [collisions]
 ############################################
