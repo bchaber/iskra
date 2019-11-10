@@ -15,7 +15,7 @@ end
 
 mutable struct DirectSimulationMonteCarlo
 	collisions
-	collision_count :: Array{Float64,2}
+	collisions_remaining :: Array{Float64,2}
 	collision_source_candidates :: Array{Array{UInt32,1},2}
 	collision_target_candidates :: Array{Array{UInt32,1},2}
 end
@@ -82,30 +82,41 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 	nx, ny = size(config.grid)
 	Δh = config.grid.Δh
 	ν = zeros(nx, ny) # collision count
+	if length(dsmc.collisions_remaining) == 0
+		dsmc.collisions_remaining = zeros(nx, ny)
+	end
 	dsmc.collision_source_candidates = [Vector{UInt32}() for i=1:nx, j=1:ny]
 	dsmc.collision_target_candidates = [Vector{UInt32}() for i=1:nx, j=1:ny]
 	for collision in dsmc.collisions
 		source, target = collision.source, collision.target
 		cache!(dsmc.collision_source_candidates, source, nx, ny, Δh) # assign particles to cells
 		cache!(dsmc.collision_target_candidates, target, nx, ny, Δh) # assign particles to cells
-		Pab = target.w0/source.w0
-		Pba = source.w0/target.w0
-
-		if Pab > 1 Pab = 1 end
-		if Pba > 1 Pba = 1 end
+		Wa, Wb = source.w0, target.w0
+		if Wa > Wb
+			Pab, Pba = Wb/Wa, 1.
+		else
+			Pab, Pba = 1., 	Wa/Wb
+		end
 		
-		σmax = maximum(collision.rate)
-		N  = source.np * target.np * Δt/Δh^2 * σmax
-		N /= Pab + 1
-		N = floor(Int64, N)
+		σgmax = maximum(collision.rate) * argmax(collision.rate)
 		for i=1:nx
 			for j=1:ny
-				for n=1:N
-					if length(dsmc.collision_source_candidates[i,j]) < 2 || 
-					   length(dsmc.collision_target_candidates[i,j]) < 2
-						continue
-					end
+				Na = length(dsmc.collision_source_candidates[i,j])
+				Nb = length(dsmc.collision_target_candidates[i,j])
+				if Na < 2 || Nb < 2
+					continue
+				end
+				na  = Na * Wa / Δh^2
+				Nc  = na * Nb * Δt * σgmax
+				Nc /= Pab + (Wb/Wa) * Pba
+				if source ≠ target
+					Nc *= 2
+				end
 
+				Nc += dsmc.collisions_remaining[i,j]
+				dsmc.collisions_remaining[i,j] = Nc - floor(Int64, Nc)
+				
+				for ~=1:floor(Int64, Nc)
 				    sR = rand(dsmc.collision_source_candidates[i,j])
 					tR = rand(dsmc.collision_target_candidates[i,j])
 					while source ≠ target && sR == tR
@@ -113,9 +124,9 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 					end
 
 					g = norm(source.v[sR,:] - target.v[tR,:])
-					σ = collision.rate(g)
+					σg = collision.rate(g) * g
 
-				    P = σ / σmax
+				    P = σg / σgmax
 				    R = rand()
 				    
 				    if P < R
