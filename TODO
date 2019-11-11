@@ -1,10 +1,11 @@
+- add option to save checkpoint and continue simulation
 - bug in sample! when we need more particles than we can hold
 - implement Null-Collision
 - allow different timestep between collisions
 - implement reactions for null species, i.e. U --> 0, 0 --> V
 + check if paraview files can have time recorded to be displayed
 + implement MCC (elastic/ionization)
-- implement DSMC
++ implement DSMC
 + reaction rate should depend on E
 + variable spwt
 + negative density does not remove kinetic species
