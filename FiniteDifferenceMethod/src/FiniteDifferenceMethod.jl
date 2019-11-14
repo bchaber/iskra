@@ -5,17 +5,13 @@ module FiniteDifferenceMethod
     export calculate_advection_diffusion
     using RegularGrid
     using LinearAlgebra
-
-    mutable struct LinearSystemOfEquations
-      A :: AbstractArray{Float64,2}
-      b :: AbstractArray{Float64,1}
-    end
  
     struct PoissonSolver
+      A :: AbstractArray{Float64,2}
+      b :: AbstractArray{Float64,1}
+      εr:: AbstractArray{Float64,3}
       Δh :: Float64
     end
-   
-    lse = LinearSystemOfEquations(zeros(0,0), zeros(0))
 
 function create_poisson_solver(grid::UniformGrid)
     nx, ny = size(grid)
@@ -28,12 +24,10 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
     nx, ny = size(grid)
     nn = nx⋅ny
     Δh = grid.Δh
-
-    A = lse.A = zeros(nn, nn)
-    b = lse.b = zeros(nn)
+    A = zeros(nn, nn)
+    b = zeros(nn)
     ϕ = reshape(1:nn, nx, ny)
-    # set regular stencil on internal nodes
-    for j=1:ny             # only internal nodes
+    for j=1:ny
         for i=1:nx
             if i < nx
                 A[ϕ[i,j],ϕ[i,j]]   += -0.5εr[i+1,j+1] - 0.5εr[i+1,j]   # ϕ(i,j)
@@ -53,15 +47,15 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
             end
         end
     end
-    return PoissonSolver(Δh)
+    return PoissonSolver(A, b, εr, Δh)
 end
 
-function solve(f)
-  return lse.A\(lse.b .+ f)
+function solve(ps::PoissonSolver, f)
+  return ps.A\(ps.b .+ f)
 end
 
-function apply_dirichlet(::PoissonSolver, dofs, value)
-    A, b = lse.A, lse.b
+function apply_dirichlet(ps::PoissonSolver, dofs, value)
+    A, b = ps.A, ps.b
     for dof=dofs
         ϕ = reshape(1:length(A), size(A))
         i, j = findfirst(x -> x == dof, ϕ).I
@@ -91,7 +85,7 @@ function calculate_advection_diffusion(n, D, v, Δh, Δt)
 end
 
 function calculate_electric_potential(ps::PoissonSolver, f)
-    x = solve(f[:])
+    x = solve(ps, f[:])
     ϕ = reshape(x, size(f))
     return ϕ
 end
