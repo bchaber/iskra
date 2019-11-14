@@ -65,6 +65,20 @@ function apply_dirichlet(ps::PoissonSolver, dofs, value)
     end
 end
 
+# Warning: it is applied at first node, 1D version only
+function apply_neumann(ps::PoissonSolver, σ)
+    A, b = ps.A, ps.b
+    εr = ps.εr
+    Δh = ps.Δh
+    ϕ = reshape(1:length(ps.A), size(ps.A))
+    # Coefficients are doubled so that the
+    # the whole space charge density contributes
+    # to the Boundary Condition (instead of ρ0/2)
+    A[ϕ[1,1],ϕ[1,1]] = -2εr[2,2]
+    A[ϕ[1,1],ϕ[2,1]] =  2εr[2,2]
+    b[ϕ[1,1]]        = -2σ*Δh
+end
+
 function calculate_advection_diffusion(n, D, v, Δh, Δt)
     nx, ny = size(n)
     vx = view(v,:,:,1)
