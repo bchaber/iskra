@@ -8,7 +8,7 @@ module RegularGrid
          x::AbstractArray
          y::AbstractArray
          z::AbstractArray
-       dof::AbstractArray
+      node::AbstractArray
     origin::AbstractArray
     end
 
@@ -25,9 +25,9 @@ module RegularGrid
         y = repeat(yy', nx,  1)
         z = zeros(nx, ny)
         n = nx*ny
-        dof = reshape(1:n, nx, ny)
+        node = reshape(1:n, nx, ny)
         data = Dict{String,AbstractArray}()
-        UniformGrid(data, nx, ny, Δh, x, y, z, dof, [xs,ys])
+        UniformGrid(data, nx, ny, Δh, x, y, z, node, [xs,ys])
     end
 
     function create_staggered_grid(g::UniformGrid)

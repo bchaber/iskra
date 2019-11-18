@@ -3,7 +3,11 @@ struct PoissonSolver
   b :: AbstractArray{Float64,1}
   εr:: AbstractArray{Float64,3}
   Δh :: Float64
+
+  dofs :: Dict{Symbol, AbstractArray}
 end
+PoissonSolver(A, b, εr, Δh) =
+    PoissonSolver(A, b, εr, Δh, Dict{Symbol, AbstractArray}())
 
 function create_poisson_solver(grid::UniformGrid)
     nx, ny = size(grid)
@@ -16,9 +20,10 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
     nx, ny = size(grid)
     nn = nx⋅ny
     Δh = grid.Δh
+    dofs = collect(1:nn)
     A = zeros(nn, nn)
     b = zeros(nn)
-    ϕ = reshape(1:nn, nx, ny)
+    ϕ = reshape(dofs, nx, ny)
     for j=1:ny
         for i=1:nx
             if i < nx
@@ -39,41 +44,45 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
             end
         end
     end
-    return PoissonSolver(A, b, εr, Δh)
+    ps = PoissonSolver(A, b, εr, Δh)
+    ps.dofs[:ϕ] = ϕ
+    return ps
 end
 
 function solve(ps::PoissonSolver, f)
   return ps.A\(ps.b .+ f)
 end
 
-function apply_dirichlet(ps::PoissonSolver, dofs, value)
+function apply_dirichlet(ps::PoissonSolver, nodes::BitArray{3}, ϕ0)
     A, b = ps.A, ps.b
-    for dof=dofs
-        ϕ = reshape(1:length(A), size(A))
-        i, j = findfirst(x -> x == dof, ϕ).I
+    ϕ = ps.dofs[:ϕ]
+    ids = CartesianIndices(size(nodes))
+
+    for ij in ids[nodes]
+        i, j = ij.I
         A[ϕ[i,j],:]     .= 0 # clear row
         A[ϕ[i,j],ϕ[i,j]] = 1 # ϕ(i,j)
-        b[ϕ[i,j]]        = value
+        b[ϕ[i,j]]        = ϕ0
     end
 end
 
 # Warning: it is applied at first node, 1D version only
-function apply_neumann(ps::PoissonSolver, σ)
+function apply_neumann(ps::PoissonSolver, σ0)
     A, b = ps.A, ps.b
     εr = ps.εr
     Δh = ps.Δh
-    ϕ = reshape(1:length(ps.A), size(ps.A))
+    ϕ = ps.dofs[:ϕ]
     # Coefficients are doubled so that the
     # the whole space charge density contributes
     # to the Boundary Condition (instead of ρ0/2)
     A[ϕ[1,1],ϕ[1,1]] = -2εr[2,2]
     A[ϕ[1,1],ϕ[2,1]] =  2εr[2,2]
-    b[ϕ[1,1]]        = -2σ*Δh
+    b[ϕ[1,1]]        = -2σ0*Δh
 end
 
 function calculate_electric_potential(ps::PoissonSolver, f)
     x = solve(ps, f[:])
-    ϕ = reshape(x, size(f))
+    ϕ = x[ps.dofs[:ϕ]]
     return ϕ
 end
 
