@@ -58,6 +58,7 @@ module ParticleInCell
     interactions = config.interactions
     sources = config.sources
     species = config.species
+    circuit = config.circuit
     solver = config.solver
     cells = config.cells
     grid  = config.grid
@@ -80,6 +81,12 @@ module ParticleInCell
       # Advance species
       for part in species
         advance!(part, E, Δt, config)
+      end
+      if circuit ≠ nothing
+        A = 1
+        V = ϕ[1,1] - ϕ[11, 11]
+        advance!(circuit, V, Δt)
+        σ = circuit.i/A
       end
       # Calculate charge density
       fill!(ρ, 0.0)

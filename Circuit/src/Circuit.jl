@@ -102,8 +102,14 @@ function parse_circuit_element(name::String, rest)
   throw("unknown element")
 end
 
-function advance!(cir::CircuitRLC)
-	
+function advance!(cir::CircuitRLC, V, Δt)
+	t, v = cir.t, cir.v
+	i, q = cir.i, cir.q
+	R, L, C = cir.R, cir.L, cir.C
+
+	cir.i  = (L/Δt - R/2)*i + V - v(t) - q/C
+	cir.i /= (L/Δt + R/2)
+	cir.q  = q + Δt*i
 end
 
 Base.show(io :: IO, e :: Resistor) = print(io, e.name, ": ", e.val, " Ω")

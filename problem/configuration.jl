@@ -7,6 +7,7 @@ mutable struct Config
   interactions
   species
   sources
+  circuit
   grid
   cells
 end
@@ -41,4 +42,4 @@ function create_fluid_species(name, μ, q, m, mx, my)
   return species
 end
 
-Config() = Config(nothing, nothing, [], [], [], nothing, nothing)
+Config() = Config(nothing, nothing, [], [], [], nothing, nothing, nothing)
