@@ -39,9 +39,7 @@ function assign!(cir::CircuitRLC, l::Inductor)  cir.L = l.val end
 function assign!(cir::CircuitRLC, c::Capacitor) cir.C = c.val end
 function assign!(cir::CircuitRLC, v::VoltageSource) cir.V = v.val end
 function rlc(elements)
-	i0 = 0
-	q0 = 0
-	t0 = 0
+	t0, i0, q0 = 0, 0, 0
 	cir = CircuitRLC(i0, q0, t0)
 	for element in elements
 		println(element)
@@ -60,9 +58,6 @@ function def_netlist(ex::Expr)
   push!(nodes, "GND")
   for arg in ex.args
     parse(arg, elements, nodes)
-  end
-  for node in nodes
-  	println(node)
   end
   return elements
 end
