@@ -3,6 +3,7 @@ using DataStructures
 
 export @netlist
 export rlc
+export advance!
 
 mutable struct CircuitRLC
   R :: Float64
@@ -98,17 +99,18 @@ function parse_circuit_element(name::String, rest)
 end
 
 function advance!(cir::CircuitRLC, V, Δt)
-	t, v = cir.t, cir.v
+	t, v = cir.t, cir.V
 	i, q = cir.i, cir.q
 	R, L, C = cir.R, cir.L, cir.C
 
 	cir.i  = (L/Δt - R/2)*i + V - v(t) - q/C
 	cir.i /= (L/Δt + R/2)
 	cir.q  = q + Δt*i
+  cir.t += Δt
 end
 
 Base.show(io :: IO, e :: Resistor) = print(io, e.name, ": ", e.val, " Ω")
-Base.show(io :: IO, e :: Inductor) = print(io, e.name, ": ", e.val*1e9, " μH")
+Base.show(io :: IO, e :: Inductor) = print(io, e.name, ": ", e.val*1e6, " μH")
 Base.show(io :: IO, e :: Capacitor)= print(io, e.name, ": ", e.val*1e12, " nF")
 Base.show(io :: IO, e :: VoltageSource) = print(io, e.name, ": ", e.val, " V") 
 end
