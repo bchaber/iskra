@@ -96,9 +96,15 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 	Δh = config.grid.Δh
 	for collision in mcc.collisions
 		source, target = collision.source, collision.target
-		for p=1:source.np
+		density = PIC.density(target, config.grid)
+		nmax = maximum(density)
+		σgmax = maximum(collision.rate) * argmax(collision.rate)
+		Pt = @. 1 - exp(-σgmax * Δt * nmax)
+		Nc = Pt * source.np
+		for ~=1:floor(Int64, Nc)
+			p = rand(1:source.np)
 			i, j, _, _ = PIC.particle_cell(source.x, p, config.grid.Δh)
-			n = PIC.density(target, config.grid)[i,j]
+			n = density[i,j]
 			if n < 0
 				println("Density is negative, skipping")
 				continue
@@ -108,12 +114,12 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 			tv = (target.q/target.m)*E*Δt
 
 			g  = norm(tv[i,j,:] .- sv[p,:])
-			σ  = collision.rate(g)
+			σg = collision.rate(g) * g
 
-			P  = @. 1 - exp(-σ * g * Δt * n);
+			P  = @. 1 - exp(-σg * Δt * n);
 			R  = rand()
 			
-			if P < R
+			if P/Pt < R
 				continue
 			end
 			perform!(collision, p, Δt, config.grid)
