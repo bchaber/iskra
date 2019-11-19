@@ -4,6 +4,7 @@ end
 
 function PIC.perform!(network::ChemicalReactionNetwork, E, Δt, config)
 	Δn = Dict()
+	Δx, Δy, ~ = config.grid.Δh
 	for reaction in network.reactions
 		rate = reaction.rate.(E[:,:,1])
 		for (species, coeff) in reaction.stoichiometry
@@ -21,7 +22,7 @@ function PIC.perform!(network::ChemicalReactionNetwork, E, Δt, config)
 
 	for species in keys(Δn)
 		species.n .+= Δn[species]
-		@diag "Δn"*species.name PIC.NodeData(Δn[species], config.grid.origin, [1,1]*config.grid.Δh)
+		@diag "Δn"*species.name PIC.NodeData(Δn[species], config.grid.origin, [Δx, Δy])
 	end
 end
 

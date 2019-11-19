@@ -36,12 +36,13 @@ function create!(species :: KineticSpecies, grid, n)
   np = species.np
   px, pv, pw = @views species.x[1+np:end,:], species.v[1+np:end,:], species.wg[1+np:end]
   nx, ny = size(n)
+  Δx, Δy, ~ = grid.Δh
   N = ceil.(max.(n/species.w0, 0))
   N = ceil(Int64, sum(N))
   pv[1:N,1]=rand(N,1).+rand(N,1).+rand(N,1).-1.5
   pv[1:N,2]=rand(N,1).+rand(N,1).+rand(N,1).-1.5
-  px[1:N,1]=rand(N,1)*grid.Δh.-grid.Δh/2 # relative x position in cell
-  px[1:N,2]=rand(N,1)*grid.Δh.-grid.Δh/2 # relative y position in cell
+  px[1:N,1]=rand(N,1)*Δx.-Δx/2 # relative x position in cell
+  px[1:N,2]=rand(N,1)*Δy.-Δy/2 # relative y position in cell
   s = 1
   for i=2:nx-1
     for j=2:ny-1

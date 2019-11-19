@@ -93,7 +93,7 @@ end
 
 function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 	ν = zeros(size(config.grid)) # collision count
-	Δh = config.grid.Δh
+	Δx, Δy, ~ = config.grid.Δh
 	for collision in mcc.collisions
 		source, target = collision.source, collision.target
 		density = PIC.density(target, config.grid)
@@ -126,7 +126,7 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 			ν[i,j] += 1
 		end
 	end
-	@diag "ν" PIC.NodeData(ν, config.grid.origin, [Δh,Δh])
+	@diag "ν" PIC.NodeData(ν, config.grid.origin, [Δx,Δy])
 end
 
 function mcc(reactions)

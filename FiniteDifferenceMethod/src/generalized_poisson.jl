@@ -2,7 +2,7 @@ struct PoissonSolver
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
   εr:: AbstractArray{Float64,3}
-  Δh :: Float64
+  Δh :: Tuple{Float64,Float64,Float64}
 
   dofs :: Dict{Symbol, AbstractArray}
 end
@@ -70,14 +70,14 @@ end
 function apply_neumann(ps::PoissonSolver, σ0)
     A, b = ps.A, ps.b
     εr = ps.εr
-    Δh = ps.Δh
+    Δx, ~, ~ = ps.Δh
     ϕ = ps.dofs[:ϕ]
     # Coefficients are doubled so that the
     # the whole space charge density contributes
     # to the Boundary Condition (instead of ρ0/2)
     A[ϕ[1,1],ϕ[1,1]] = -2εr[2,2]
     A[ϕ[1,1],ϕ[2,1]] =  2εr[2,2]
-    b[ϕ[1,1]]        = -2σ0*Δh
+    b[ϕ[1,1]]        = -2σ0*Δx
 end
 
 function calculate_electric_potential(ps::PoissonSolver, f)
@@ -93,16 +93,14 @@ end
 
 function calculate_electric_field!(ps::PoissonSolver, ϕ, E)
     nx, ny = size(ϕ)
-    Δh = ps.Δh
+    Δx, Δy, ~ = ps.Δh
 
-    E[2:nx-1,:,1] = ϕ[1:nx-2,:] - ϕ[3:nx,:]  # central difference on internal nodes
-    E[:,2:ny-1,2] = ϕ[:,1:ny-2] - ϕ[:,3:ny]  # central difference on internal nodes
-    E[1 ,:,1]  = 2*(ϕ[1,:]    - ϕ[ 2,:])     #  forward difference on x=0
-    E[nx,:,1]  = 2*(ϕ[nx-1,:] - ϕ[nx,:])     # backward difference on x=Lx
-    E[:, 1,2]  = 2*(ϕ[:,1]    - ϕ[:, 2])     #  forward difference on y=0
-    E[:,ny,2]  = 2*(ϕ[:,ny-1] - ϕ[:,ny])     # backward difference on y=Ly
-
-    E ./=  2Δh
+    E[2:nx-1,:,1] = ϕ[1:nx-2,:] - ϕ[3:nx,:]/2Δx # central difference on internal nodes
+    E[:,2:ny-1,2] = ϕ[:,1:ny-2] - ϕ[:,3:ny]/2Δy # central difference on internal nodes
+    E[1 ,:,1]  = (ϕ[1,:]    - ϕ[ 2,:])/Δx  #  forward difference on x=0
+    E[nx,:,1]  = (ϕ[nx-1,:] - ϕ[nx,:])/Δx  # backward difference on x=Lx
+    E[:, 1,2]  = (ϕ[:,1]    - ϕ[:, 2])/Δy  #  forward difference on y=0
+    E[:,ny,2]  = (ϕ[:,ny-1] - ϕ[:,ny])/Δy  # backward difference on y=Ly
 
     return E
 end

@@ -64,8 +64,8 @@ module ParticleInCell
     grid  = config.grid
     
     nx, ny = size(grid)
-    Δh = grid.Δh
-    spacing = [1,1]*grid.Δh
+    Δx, Δy, Δz = grid.Δh
+    spacing = [Δx, Δy]
     origin  = grid.origin
     enter_loop()
 
@@ -101,7 +101,7 @@ module ParticleInCell
         perform!(interaction, E, Δt, config)
       end
       # Calculate electric field
-      Q  = ρ .* Δh .^2
+      Q  = ρ .* (Δx*Δy)
       ϕ  = calculate_electric_potential(solver, -Q/ε0)
       E  = calculate_electric_field(solver, ϕ)
 

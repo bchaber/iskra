@@ -80,7 +80,7 @@ end
 
 function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 	nx, ny = size(config.grid)
-	Δh = config.grid.Δh
+	Δx, Δy, ~ = config.grid.Δh
 	ν = zeros(nx, ny) # collision count
 	if length(dsmc.collisions_remaining) == 0
 		dsmc.collisions_remaining = zeros(nx, ny)
@@ -89,8 +89,8 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 	dsmc.collision_target_candidates = [Vector{UInt32}() for i=1:nx, j=1:ny]
 	for collision in dsmc.collisions
 		source, target = collision.source, collision.target
-		cache!(dsmc.collision_source_candidates, source, nx, ny, Δh) # assign particles to cells
-		cache!(dsmc.collision_target_candidates, target, nx, ny, Δh) # assign particles to cells
+		cache!(dsmc.collision_source_candidates, source, nx, ny, config.grid.Δh) # assign particles to cells
+		cache!(dsmc.collision_target_candidates, target, nx, ny, config.grid.Δh) # assign particles to cells
 		Wa, Wb = source.w0, target.w0
 		if Wa > Wb
 			Pab, Pba = Wb/Wa, 1.
@@ -106,7 +106,7 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 				if Na < 2 || Nb < 2
 					continue
 				end
-				na  = Na * Wa / Δh^2
+				na  = Na * Wa / (Δx*Δy)
 				Nc  = na * Nb * Δt * σgmax
 				Nc /= Pab + (Wb/Wa) * Pba
 				if source ≠ target
@@ -138,7 +138,7 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 			end
 		end
 	end
-	@diag "ν" PIC.NodeData(ν, config.grid.origin, [Δh,Δh])
+	@diag "ν" PIC.NodeData(ν, config.grid.origin, [Δx,Δy])
 end
 
 function dsmc(reactions)
