@@ -38,9 +38,9 @@ mx, my = size(config.cells)
 xx, yy = config.grid.x, config.grid.y
 δ = ones(nx, ny)
 εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny)
-bcs[ nx,  1] = 1
-bcs[ nx, ny] = 2
+bcs = zeros(Int8, nx, ny, 1)
+bcs[ nx,  1, 1] = 1
+bcs[ nx, ny, 1] = 2
 set_permittivity(εr)
 add_electrode(bcs .== 1, +1e3V)
 add_electrode(bcs .== 2, -1e3V)

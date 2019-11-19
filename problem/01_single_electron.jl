@@ -29,9 +29,9 @@ config.species = [e]
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
 εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny)
-bcs[ nx,  1] = 1
-bcs[ nx, ny] = 2
+bcs = zeros(Int8, nx, ny, 1)
+bcs[ nx,  1, 1] = 1
+bcs[ nx, ny, 1] = 2
 set_permittivity(εr)
 add_electrode(bcs .== 1, +1V)
 add_electrode(bcs .== 2, -1V)
