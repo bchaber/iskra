@@ -18,8 +18,8 @@ function set_permittivity(εr)
 end
 
 function add_electrode(nodes, voltage)
-  solver, dof = config.solver, config.grid.dof
-  FiniteDifferenceMethod.apply_dirichlet(solver, dof[nodes], voltage)
+  solver = config.solver
+  FiniteDifferenceMethod.apply_dirichlet(solver, nodes, voltage)
 end
 
 function create_gamma_ionization_source(rate, x, v)
