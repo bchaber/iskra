@@ -8,7 +8,7 @@ g = RegularGrid.create_uniform_grid(0:h:15h, [0.0])
 e = RegularGrid.create_staggered_grid(g)
 nx, ny = size(g)
 e["eps"] = 10ones(nx+1, ny+1, 1)
-ρ = 100ones(size(g))
+ρ = zeros(size(g))
 ρ[nx] = 0; # because it has Dirichlet BC
 g["bcs"] = zeros(nx, ny, 1)
 g["bcs"][nx,:] .= 1
@@ -22,23 +22,23 @@ v(t) = sin(2π*100e6*t)
 cir = rlc(@netlist begin
 	V1, VCC, GND, v
 	L1, NOD, VCC, 1e-3
-	C1, NOD, VCC, 50e-12
-	R1, GND, NOD, 200
+	C1, NOD, VCC, 1e-12
+	R1, GND, NOD, 1
 end)
 # Field-Circuit integration
-data = zeros(1000, 3)
+data = zeros(1000, 4)
 Δt = 0.1e-9
 Δx, Δy, Δz = g.Δh
 using GR
 
 for i=1:size(data,1)
 	global ϕ
-	data[i,:] = [cir.t, cir.i, cir.q]
-	V = 0.0
+	data[i,:] = [cir.t, cir.i, cir.q, ϕ[1]]
+	V = ϕ[1] - ϕ[nx]
 	advance!(cir, V, Δt)
 	dσ = -Δt*cir.i/(Δy*Δz)
 	ps.b[ps.dofs[:σ][1]] += dσ
 	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ*h^2)
 end
-plot(data[:,1], data[:,3])
+plot(data[:,1], data[:,4])
 print("press any key..."), readline()
