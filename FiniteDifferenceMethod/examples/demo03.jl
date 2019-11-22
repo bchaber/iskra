@@ -15,7 +15,7 @@ g["bcs"][nx,:] .= 1
 # Field solver
 ps = FiniteDifferenceMethod.create_generalized_poisson_solver(g,e["eps"])
 FiniteDifferenceMethod.apply_dirichlet(ps, g["bcs"] .== 1, 0)
-FiniteDifferenceMethod.apply_neumann(ps, σ)
+FiniteDifferenceMethod.apply_neumann(ps, [1], σ,)
 ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ*h^2)
 # Circuit solver
 v(t) = sin(2π*100e6*t)
@@ -41,4 +41,5 @@ for i=1:size(data,1)
 	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ*h^2)
 end
 plot(data[:,1], data[:,4])
+println(extrema(data[:,4]))
 print("press any key..."), readline()

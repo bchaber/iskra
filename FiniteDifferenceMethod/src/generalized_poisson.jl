@@ -65,12 +65,14 @@ function apply_dirichlet(ps::PoissonSolver, nodes::BitArray{3}, ϕ0)
         b[ϕ[i,j]]        = ϕ0
     end
 end
+function segment(n::Array{Int64,1})
+    s, m, e = length(n) < 2 ? ([], n, []) : (n[1], n[2:end-1], n[end])
+end
 
-# Warning: it is applied at first node, 1D version only
-function apply_neumann(ps::PoissonSolver, σ0)
+function apply_neumann(ps::PoissonSolver, nodes, σ0)
     A, b = ps.A, ps.b
     εr = ps.εr
-    Δx, ~, ~ = ps.Δh
+    Δx, Δy, ~ = ps.Δh
     ps.dofs[:σ] = get(ps.dofs, :σ, [])
     ϕ = ps.dofs[:ϕ]
     σ = ps.dofs[:σ]
@@ -80,15 +82,37 @@ function apply_neumann(ps::PoissonSolver, σ0)
     A = vcat(A, zeros(1,N))
     A = hcat(A, zeros(N+1))
     b = vcat(b, [0])
+    i = 1 # left edge
     # Coefficients are doubled so that the
     # the whole space charge density contributes
     # to the Boundary Condition (instead of ρ0/2)
-    A[ϕ[1,1],ϕ[1,1]] = -2εr[2,2]
-    A[ϕ[1,1],ϕ[2,1]] =  2εr[2,2]
-    A[ϕ[1,1],σ[end]] =  2Δx
-    A[σ[end],σ[end]] =  1
-    b[ϕ[1,1]]        =  0
-    b[σ[end]]        =  σ0
+    start, middle, stop = segment(collect(nodes))
+    for j=middle
+        A[ϕ[i,j],ϕ[i,  j]] -= 2εr[i,  j]/Δx^2
+        A[ϕ[i,j],ϕ[i+1,j]] += 2εr[i+1,j]/Δx^2
+        A[ϕ[i,j],σ[end]]   += 2/Δx
+    end
+    
+    for j=start
+        if j == 1 break end
+        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δx^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δy^2
+        A[ϕ[i,j],ϕ[i+1,j]] += 4εr[i,j]/3Δx^2
+        A[ϕ[i,j],ϕ[i,j-1]] += 4εr[i,j]/3Δy^2
+        A[ϕ[i,j],σ[end]]   += (2/3)*(Δx+Δy)/(Δx*Δy)
+    end
+
+    for j=stop
+        if j == size(ϕ,2) break end
+        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δx^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δy^2
+        A[ϕ[i,j],ϕ[i+1,j]] += 4εr[i,j]/3Δx^2
+        A[ϕ[i,j],ϕ[i,j+1]] += 4εr[i,j]/3Δy^2
+        A[ϕ[i,j],σ[end]]   += (2/3)*(Δx+Δy)/(Δx*Δy)
+    end
+
+    A[σ[end],σ[end]] = 1
+    b[σ[end]]        = σ0
     ps.A, ps.b = A, b
 end
 
