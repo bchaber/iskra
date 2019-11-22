@@ -1,4 +1,4 @@
-struct PoissonSolver
+mutable struct PoissonSolver
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
   εr:: AbstractArray{Float64,3}
@@ -49,8 +49,8 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
     return ps
 end
 
-function solve(ps::PoissonSolver, f)
-  return ps.A\(ps.b .+ f)
+function solve(A::Array{Float64,2}, b::Array{Float64,1})
+  return A\b
 end
 
 function apply_dirichlet(ps::PoissonSolver, nodes::BitArray{3}, ϕ0)
@@ -71,17 +71,31 @@ function apply_neumann(ps::PoissonSolver, σ0)
     A, b = ps.A, ps.b
     εr = ps.εr
     Δx, ~, ~ = ps.Δh
+    ps.dofs[:σ] = get(ps.dofs, :σ, [])
     ϕ = ps.dofs[:ϕ]
+    σ = ps.dofs[:σ]
+    N = maximum(ϕ)
+    n = max(N, σ...) + 1
+    push!(σ, n)
+    A = vcat(A, zeros(1,N))
+    A = hcat(A, zeros(N+1))
+    b = vcat(b, [0])
     # Coefficients are doubled so that the
     # the whole space charge density contributes
     # to the Boundary Condition (instead of ρ0/2)
     A[ϕ[1,1],ϕ[1,1]] = -2εr[2,2]
     A[ϕ[1,1],ϕ[2,1]] =  2εr[2,2]
-    b[ϕ[1,1]]        = -2σ0*Δx
+    A[ϕ[1,1],σ[end]] =  2Δx
+    A[σ[end],σ[end]] =  1
+    b[ϕ[1,1]]        =  0
+    b[σ[end]]        =  σ0
+    ps.A, ps.b = A, b
 end
 
 function calculate_electric_potential(ps::PoissonSolver, f)
-    x = solve(ps, f[:])
+    A, b = ps.A, ps.b
+    b[ps.dofs[:ϕ]] = f
+    x = solve(A, b)
     ϕ = x[ps.dofs[:ϕ]]
     return ϕ
 end
