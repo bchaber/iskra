@@ -105,7 +105,7 @@ function advance!(cir::CircuitRLC, V, Δt)
 
 	cir.i  = (L/Δt - R/2)*i + V - v(t) - q/C
 	cir.i /= (L/Δt + R/2)
-	cir.q  = q + Δt*i
+  cir.q  = q + Δt*cir.i
   cir.t += Δt
 end
 
