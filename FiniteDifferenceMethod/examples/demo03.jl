@@ -21,9 +21,9 @@ FiniteDifferenceMethod.apply_neumann(ps, σ)
 v(t) = sin(2π*100e6*t)
 cir = rlc(@netlist begin
 	V1, VCC, GND, v
-	L1, NOD, VCC, 1e-3
-	C1, NOD, VCC, 1e-12
-	R1, GND, NOD, 1
+	L1, NOD, VCC, 0
+	C1, NOD, VCC, 50e-12
+	R1, GND, NOD, 200
 end)
 # Field-Circuit integration
 data = zeros(1000, 4)
