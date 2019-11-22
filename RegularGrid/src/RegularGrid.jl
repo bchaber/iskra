@@ -20,8 +20,8 @@ module RegularGrid
     function create_uniform_grid(xx, yy)
         nx, ny = length(xx), length(yy)
         xs, ys = xx[1], yy[1]
-        Δx = xx[2] - xx[1]
-        Δy = yy[2] - yy[1]
+        Δx = length(xx) > 1 ? xx[2] - xx[1] : 1.0
+        Δy = length(yy) > 1 ? yy[2] - yy[1] : 1.0
         Δz = 1.0
         x = repeat(xx,   1, ny)
         y = repeat(yy', nx,  1)
