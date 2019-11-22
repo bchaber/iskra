@@ -18,16 +18,16 @@ FiniteDifferenceMethod.apply_dirichlet(ps, g["bcs"] .== 1, 0)
 FiniteDifferenceMethod.apply_neumann(ps, σ)
 ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ*h^2)
 # Circuit solver
-v(t) = sin(2π*200*t)
+v(t) = sin(2π*100e6*t)
 cir = rlc(@netlist begin
-	V1, VCC, GND, t -> 1
+	V1, VCC, GND, v
 	L1, NOD, VCC, 1e-3
 	C1, NOD, VCC, 50e-12
 	R1, GND, NOD, 200
 end)
 # Field-Circuit integration
-data = zeros(10000, 3)
-Δt = 0.01e-9
+data = zeros(1000, 3)
+Δt = 0.1e-9
 Δx, Δy, Δz = g.Δh
 using GR
 
