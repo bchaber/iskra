@@ -111,6 +111,6 @@ end
 
 Base.show(io :: IO, e :: Resistor) = print(io, e.name, ": ", e.val, " Ω")
 Base.show(io :: IO, e :: Inductor) = print(io, e.name, ": ", e.val*1e6, " μH")
-Base.show(io :: IO, e :: Capacitor)= print(io, e.name, ": ", e.val*1e12, " nF")
+Base.show(io :: IO, e :: Capacitor)= print(io, e.name, ": ", e.val*1e9, " nF")
 Base.show(io :: IO, e :: VoltageSource) = print(io, e.name, ": ", e.val, " V") 
 end
