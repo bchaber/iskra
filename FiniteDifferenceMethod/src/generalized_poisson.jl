@@ -20,6 +20,7 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
     nx, ny = size(grid)
     nn = nx⋅ny
     Δh = grid.Δh
+    Δx, Δy, ~ = Δh
     dofs = collect(1:nn)
     A = zeros(nn, nn)
     b = zeros(nn)
@@ -44,6 +45,7 @@ function create_generalized_poisson_solver(grid::UniformGrid, εr::Array{Float64
             end
         end
     end
+    A ./= (Δx*Δx)
     ps = PoissonSolver(A, b, εr, Δh)
     ps.dofs[:ϕ] = ϕ
     return ps
