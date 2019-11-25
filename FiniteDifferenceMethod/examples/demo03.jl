@@ -2,8 +2,8 @@ import FiniteDifferenceMethod
 import Circuit: @netlist, advance!, rlc
 import RegularGrid
 
-σ0, ρ0 = 1.0, -15.0
-m = 31
+σ0, ρ0 = 0.0, -1e-9
+m = 81
 h = 0.5/(m-1)
 g = RegularGrid.create_uniform_grid(0:h:(m-1)*h, [0.0])
 e = RegularGrid.create_staggered_grid(g)
@@ -25,8 +25,8 @@ FiniteDifferenceMethod.apply_neumann(ps, [1], σ0)
 v(t) = sin(2π*100e6*t)
 cir = rlc(@netlist begin
 	V1, VCC, GND, v
-	L1, NOD, VCC, 0
-	C1, NOD, VCC, 50e-12
+	L1, NOD, VCC, 1e-6
+	C1, NOD, VCC, 50e-9
 	R1, GND, NOD, 200
 end)
 # Field-Circuit integration
@@ -44,5 +44,5 @@ for i=1:size(data,1)
 	ps.b[ps.dofs[:σ][1]] += dσ
 	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)
 end
-plot(g.x, ϕ)
+plot(data[:,1], data[:,4])
 print("press any key..."), readline()
