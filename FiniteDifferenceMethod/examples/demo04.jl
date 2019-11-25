@@ -40,7 +40,7 @@ for i=1:size(data,1)
 	data[i,:] = [cir.t, cir.i, cir.q, ϕ[1]]
 	V = ϕ[1] - ϕ[nx]
 	advance!(cir, V, Δt)
-	dσ = -Δt*cir.i/(Δy*Δz)
+	dσ = -Δt*cir.i/(ny*Δy*Δz)
 	ps.b[ps.dofs[:σ][1]] += dσ
 	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)
 	contourf(g.x, g.y, ϕ[:,:,1])
