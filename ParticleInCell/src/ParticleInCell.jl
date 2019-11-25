@@ -101,8 +101,7 @@ module ParticleInCell
         perform!(interaction, E, Δt, config)
       end
       # Calculate electric field
-      Q  = ρ .* (Δx*Δy)
-      ϕ  = calculate_electric_potential(solver, -Q/ε0)
+      ϕ  = calculate_electric_potential(solver, -ρ/ε0)
       E  = calculate_electric_field(solver, ϕ)
 
       @diag "ρ" NodeData(ρ, origin, spacing)
