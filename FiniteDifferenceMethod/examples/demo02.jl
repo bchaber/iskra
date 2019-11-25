@@ -13,7 +13,7 @@ g["bcs"] = zeros(nx, ny, 1)
 g["bcs"][nx,:] .= 1
 ps = FiniteDifferenceMethod.create_generalized_poisson_solver(g,e["eps"])
 FiniteDifferenceMethod.apply_dirichlet(ps, g["bcs"] .== 1, 0)
-FiniteDifferenceMethod.apply_neumann(ps, 1)
+FiniteDifferenceMethod.apply_neumann(ps, [1], 1)
 display(ps.A), println()
 display(ps.b'), println()
 phi = FiniteDifferenceMethod.calculate_electric_potential(ps, -f)
