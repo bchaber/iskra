@@ -2,21 +2,25 @@ import FiniteDifferenceMethod
 import Circuit: @netlist, advance!, rlc
 import RegularGrid
 
-σ = 0.0
-h = 0.5/15
-g = RegularGrid.create_uniform_grid(0:h:15h, [0.0])
+σ0, ρ0 = 1.0, -15.0
+m = 31
+h = 0.5/(m-1)
+g = RegularGrid.create_uniform_grid(0:h:(m-1)*h, [0.0])
 e = RegularGrid.create_staggered_grid(g)
 nx, ny = size(g)
+se = round(Int64, nx/3)+1
+ee = round(Int64,2nx/3)-1
 e["eps"] = 10ones(nx+1, ny+1, 1)
 ρ = zeros(size(g))
+ρ[se:ee] .= ρ0
 ρ[nx] = 0; # because it has Dirichlet BC
 g["bcs"] = zeros(nx, ny, 1)
 g["bcs"][nx,:] .= 1
 # Field solver
 ps = FiniteDifferenceMethod.create_generalized_poisson_solver(g,e["eps"])
 FiniteDifferenceMethod.apply_dirichlet(ps, g["bcs"] .== 1, 0)
-FiniteDifferenceMethod.apply_neumann(ps, [1], σ,)
-ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ*h^2)
+FiniteDifferenceMethod.apply_neumann(ps, [1], σ0)
+ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)
 # Circuit solver
 v(t) = sin(2π*100e6*t)
 cir = rlc(@netlist begin
@@ -38,8 +42,7 @@ for i=1:size(data,1)
 	advance!(cir, V, Δt)
 	dσ = -Δt*cir.i/(Δy*Δz)
 	ps.b[ps.dofs[:σ][1]] += dσ
-	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ*h^2)
+	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)
 end
-plot(data[:,1], data[:,4])
-println(extrema(data[:,4]))
+plot(g.x, ϕ)
 print("press any key..."), readline()
