@@ -90,6 +90,7 @@ function apply_neumann(ps::PoissonSolver, nodes, σ0)
     # to the Boundary Condition (instead of ρ0/2)
     start, middle, stop = segment(collect(nodes))
     for j=middle
+        A[ϕ[i,j],:] .= 0
         A[ϕ[i,j],ϕ[i,  j]] -= 2εr[i,  j]/Δx^2
         A[ϕ[i,j],ϕ[i+1,j]] += 2εr[i+1,j]/Δx^2
         A[ϕ[i,j],σ[end]]   += 2/Δx
@@ -97,6 +98,7 @@ function apply_neumann(ps::PoissonSolver, nodes, σ0)
     
     for j=start
         if j == 1 break end
+        A[ϕ[i,j],:] .= 0
         A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δx^2
         A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δy^2
         A[ϕ[i,j],ϕ[i+1,j]] += 4εr[i,j]/3Δx^2
@@ -106,6 +108,7 @@ function apply_neumann(ps::PoissonSolver, nodes, σ0)
 
     for j=stop
         if j == size(ϕ,2) break end
+        A[ϕ[i,j],:] .= 0
         A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δx^2
         A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δy^2
         A[ϕ[i,j],ϕ[i+1,j]] += 4εr[i,j]/3Δx^2
