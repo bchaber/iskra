@@ -22,13 +22,15 @@ FiniteDifferenceMethod.apply_dirichlet(ps, g["bcs"] .== 1, 0)
 FiniteDifferenceMethod.apply_neumann(ps, [1], σ0)
 ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)
 # Circuit solver
-v(t) = t < 25e-9 ? t/25e-9 : 0.
+v(t) = 5e-9 < t < 10e-9 ? 1. : 0.
 cir = rlc(@netlist begin
 	V1, VCC, GND, v
 	L1, NOD, VCC, 5e-9
 	C1, NOD, VCC, 1e-9
-	R1, GND, NOD, .5
+	R1, GND, NOD, 4.5
 end)
+ζ = (cir.R/2cir.L) * sqrt(cir.L*cir.C)
+println("damping factor ζ = ", ζ)
 # Field-Circuit integration
 data = zeros(1000, 4)
 Δt = 0.1e-9
@@ -44,5 +46,6 @@ for i=1:size(data,1)
 	ps.b[ps.dofs[:σ][1]] += dσ
 	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)
 end
-plot(data[:,1], data[:,4])
+t, ϕ0 = data[:,1], data[:,4]
+plot(t, ϕ0, t, maximum(ϕ0)*v.(t))
 print("press any key..."), readline()
