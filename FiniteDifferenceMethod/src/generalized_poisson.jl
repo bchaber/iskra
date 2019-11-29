@@ -141,8 +141,8 @@ function calculate_electric_field!(ps::PoissonSolver, ϕ, E)
     nx, ny = size(ϕ)
     Δx, Δy, ~ = ps.Δh
 
-    E[2:nx-1,:,1] = ϕ[1:nx-2,:] - ϕ[3:nx,:]/2Δx # central difference on internal nodes
-    E[:,2:ny-1,2] = ϕ[:,1:ny-2] - ϕ[:,3:ny]/2Δy # central difference on internal nodes
+    E[2:nx-1,:,1] = (ϕ[1:nx-2,:] - ϕ[3:nx,:])/2Δx # central difference on internal nodes
+    E[:,2:ny-1,2] = (ϕ[:,1:ny-2] - ϕ[:,3:ny])/2Δy # central difference on internal nodes
     E[1 ,:,1]  = (ϕ[1,:]    - ϕ[ 2,:])/Δx  #  forward difference on x=0
     E[nx,:,1]  = (ϕ[nx-1,:] - ϕ[nx,:])/Δx  # backward difference on x=Lx
     E[:, 1,2]  = (ϕ[:,1]    - ϕ[:, 2])/Δy  #  forward difference on y=0
