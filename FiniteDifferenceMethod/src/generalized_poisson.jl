@@ -126,7 +126,8 @@ end
 
 function calculate_electric_potential(ps::PoissonSolver, f)
     A, b = ps.A, ps.b
-    b[ps.dofs[:ϕ]] = f
+    dofs = ps.dofs[:ϕ]
+    b[dofs[2:end-1,2:end-1]] .= f[dofs[2:end-1,2:end-1]]
     x = solve(A, b)
     ϕ = x[ps.dofs[:ϕ]]
     return ϕ
