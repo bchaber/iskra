@@ -5,6 +5,18 @@ export CircuitRLC
 export @netlist
 export rlc
 export advance_circuit!
+export TimeData
+
+import Diagnostics: DiagnosticData, @diag, save_diagnostic
+import PlotVTK: pvd_add_timestep, field_as_vectors
+struct TimeData <: DiagnosticData
+   y :: Array{Float64,1}
+end
+TimeData(y::Float64) =
+TimeData([y])
+
+ save_diagnostic(dname::String, d::TimeData, cname::String, c::Any, it::Integer, t::Float64) =
+  pvd_add_timestep(c, field_as_vectors([0.], [0.], cname*dname, dname => (d.y), it=it, save=false), t)
 
 mutable struct CircuitRLC
   R :: Float64
@@ -113,6 +125,10 @@ function advance_circuit!(cir::CircuitRLC, V, Δt)
     cir.i /= (L/Δt + R/2)
   end
   cir.t += Δt
+  @diag "i" TimeData(cir.i)
+  @diag "q" TimeData(cir.q)
+  @diag "V" TimeData(v(t))
+  @diag "Vext" TimeData(V)
 end
 
 Base.show(io :: IO, e :: Resistor) = print(io, e.name, ": ", e.val, " Ω")
