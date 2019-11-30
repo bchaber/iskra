@@ -1,9 +1,10 @@
 module Circuit
 using DataStructures
 
+export CircuitRLC
 export @netlist
 export rlc
-export advance!
+export advance_circuit!
 
 mutable struct CircuitRLC
   R :: Float64
@@ -98,14 +99,19 @@ function parse_circuit_element(name::String, rest)
   throw("unknown element")
 end
 
-function advance!(cir::CircuitRLC, V, Δt)
-	t, v = cir.t, cir.V
-	i, q = cir.i, cir.q
-	R, L, C = cir.R, cir.L, cir.C
+function advance_circuit!(cir::CircuitRLC, V, Δt)
+  t, v = cir.t, cir.V
+  i, q = cir.i, cir.q
+  R, L, C = cir.R, cir.L, cir.C
 
-	cir.i  = (L/Δt - R/2)*i + V - v(t) - q/C
-	cir.i /= (L/Δt + R/2)
-	cir.q  = q + Δt*i
+  cir.i  = (L/Δt - R/2)*i + V - v(t)
+  if C > 0.0
+    cir.i -=  q/C
+    cir.i /= (L/Δt + R/2)
+    cir.q  = q + Δt*i
+  else
+    cir.i /= (L/Δt + R/2)
+  end
   cir.t += Δt
 end
 
