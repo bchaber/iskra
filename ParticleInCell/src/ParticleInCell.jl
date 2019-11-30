@@ -1,5 +1,6 @@
 module ParticleInCell
   using LinearAlgebra
+  using Circuit
   using FiniteDifferenceMethod
 
   include("pic/kinetic.jl")
@@ -31,6 +32,17 @@ module ParticleInCell
     sample!(src, species, Δt)
   end
 
+  function advance!(circuit :: CircuitRLC, ϕ, Δt, config)
+    nx, ny = size(config.grid)
+    Δx, Δy, Δz = config.grid.Δh
+    A = ny * Δy*Δz
+    V = ϕ[1,1] - ϕ[nx,ny]
+    advance_circuit!(circuit, V, Δt)
+    dσ = -Δt*circuit.i/A
+    @diag "dσ" TimeData(dσ)
+    config.solver.b[config.solver.dofs[:σ][1]] += dσ
+  end
+
   function advance!(part :: KineticSpecies, E, Δt, config)
     pusher = config.pusher
     grid = config.grid
@@ -44,6 +56,7 @@ module ParticleInCell
     @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
   end
   
+  function advance!(circuit :: Nothing, ϕ, Δt, config) println("No circuit!") end
   function advance!(fluid :: FluidSpecies, E, Δt, config)
     q, m = fluid.q, fluid.m
     v = E*Δt*(q/m)
@@ -69,6 +82,7 @@ module ParticleInCell
     origin  = grid.origin
     enter_loop()
 
+    ϕ = zeros(nx, ny)
     ρ = zeros(nx, ny)
     E = zeros(nx, ny, 3)
 
@@ -82,12 +96,7 @@ module ParticleInCell
       for part in species
         advance!(part, E, Δt, config)
       end
-      if circuit ≠ nothing
-        A = 1
-        V = ϕ[1,1] - ϕ[11, 11]
-        advance!(circuit, V, Δt)
-        σ = circuit.i/A
-      end
+      advance!(circuit, ϕ, Δt, config)
       # Calculate charge density
       fill!(ρ, 0.0)
       for part in species
