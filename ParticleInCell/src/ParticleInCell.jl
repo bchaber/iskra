@@ -56,7 +56,7 @@ module ParticleInCell
     @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
   end
   
-  function advance!(circuit :: Nothing, ϕ, Δt, config) println("No circuit!") end
+  function advance!(circuit :: Nothing, ϕ, Δt, config) end
   function advance!(fluid :: FluidSpecies, E, Δt, config)
     q, m = fluid.q, fluid.m
     v = E*Δt*(q/m)
