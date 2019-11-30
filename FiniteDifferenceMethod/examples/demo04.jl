@@ -1,5 +1,5 @@
 import FiniteDifferenceMethod
-import Circuit: @netlist, advance!, rlc
+import Circuit: @netlist, advance_circuit!, rlc
 import RegularGrid
 
 σ0, ρ0 = 0.0, -1e-9
@@ -39,7 +39,7 @@ for i=1:size(data,1)
 	global ϕ
 	data[i,:] = [cir.t, cir.i, cir.q, ϕ[1]]
 	V = ϕ[1] - ϕ[nx]
-	advance!(cir, V, Δt)
+	advance_circuit!(cir, V, Δt)
 	dσ = -Δt*cir.i/(ny*Δy*Δz)
 	ps.b[ps.dofs[:σ][1]] += dσ
 	ϕ = FiniteDifferenceMethod.calculate_electric_potential(ps, -ρ)

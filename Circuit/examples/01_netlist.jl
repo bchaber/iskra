@@ -11,7 +11,7 @@ data = zeros(500, 3)
 Δt = 0.0001
 for i=1:500
 	data[i,:] = [cir.t, cir.i, cir.q]
-	advance!(cir, 0, Δt)
+	advance_circuit!(cir, 0.0, Δt)
 end
 
 using GR
