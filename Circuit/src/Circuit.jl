@@ -6,6 +6,7 @@ export @netlist
 export rlc
 export advance_circuit!
 export TimeData
+export resonant_frequency, damping_factor
 
 import Diagnostics: DiagnosticData, @diag, save_diagnostic
 import PlotVTK: pvd_add_timestep, field_as_vectors
@@ -61,7 +62,10 @@ function rlc(elements)
 	end
 	cir
 end
-
+damping_factor(R::Float64,L::Float64,C::Float64) = (R/2L) * sqrt(L*C)
+damping_factor(cir::CircuitRLC) = damping_factor(cir.R, cir.L, cir.C)
+resonant_frequency(L::Float64,C::Float64) = 1/sqrt(L*C)/2π
+resonant_frequency(cir::CircuitRLC) = resonant_frequency(cir.L, cir.C)
 macro netlist(ex::Expr)
   def_netlist(ex)
 end
