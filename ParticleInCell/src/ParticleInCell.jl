@@ -41,7 +41,7 @@ module ParticleInCell
     advance_circuit!(circuit, V, Δt)
     dσ = -Δt*circuit.i/A
     @diag "dσ" TimeData(dσ)
-    config.solver.b[config.solver.dofs[:σ][1]] += dσ
+    config.solver.b[config.solver.dofs[:σ][1]] += dσ/ε0
   end
 
   function advance!(part :: KineticSpecies, E, Δt, config)
@@ -96,7 +96,7 @@ module ParticleInCell
       for part in species
         advance!(part, E, Δt, config)
       end
-      advance!(circuit, ϕ, Δt, config)
+      advance!(circuit, ϕ, Δt, config, ε0)
       # Calculate charge density
       fill!(ρ, 0.0)
       for part in species
