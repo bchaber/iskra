@@ -32,7 +32,8 @@ module ParticleInCell
     sample!(src, species, Δt)
   end
 
-  function advance!(circuit :: CircuitRLC, ϕ, Δt, config)
+  function advance!(circuit :: Nothing, ϕ, Δt, config, ε0) end
+  function advance!(circuit :: CircuitRLC, ϕ, Δt, config, ε0)
     nx, ny = size(config.grid)
     Δx, Δy, Δz = config.grid.Δh
     A = ny * Δy*Δz
@@ -56,7 +57,6 @@ module ParticleInCell
     @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
   end
   
-  function advance!(circuit :: Nothing, ϕ, Δt, config) end
   function advance!(fluid :: FluidSpecies, E, Δt, config)
     q, m = fluid.q, fluid.m
     v = E*Δt*(q/m)
