@@ -9,7 +9,8 @@ module ParticleInCell
   include("pic/diagnostics.jl")
   include("pic/pushers.jl")
   include("pic/sources.jl")
-
+  include("pic/surface.jl")
+  
   function particle_cell(px, p, Δh)
     fij = @views 1 .+ px[p, :] ./ Δh
     ij = floor.(Int64, fij)
@@ -45,13 +46,15 @@ module ParticleInCell
   end
 
   function advance!(part :: KineticSpecies, E, Δt, config)
+    tracker = config.tracker
     pusher = config.pusher
     grid = config.grid
     nx, ny = size(grid)
 
+    track!(tracker, part)
     partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
     push_particles!(pusher, part, partE, Δt)
-    remove_particles!(part, grid.Δh, (i,j) -> i < 1 || i >= nx || j < 1 || j >= ny)
+    check!(tracker, part, Δt)
 
     @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.wg, part.np)
     @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
