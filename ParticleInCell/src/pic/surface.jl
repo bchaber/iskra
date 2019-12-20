@@ -16,16 +16,17 @@ mutable struct AbsorbingSurface <: Surface
 end
 struct SurfaceTracker
   cells :: Array{Int64,2}
-  boundaries :: Array{Int64,1}
   tracked :: Array{Tuple{Int64,Int64,Int64},1}
+  surfaces :: Array{Surface,1}
+  boundaries :: Array{Int64,1}
   Δh :: Float64
 end
 
-function create_surface_tracker(bcs::Array{Int8, 3}, Δh)
+function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1}, Δh)
   nx, ny = size(bcs)
   cells = Array{Int64,1}[]
-  boundaries  = Int64[]
   tracked = Tuple{Int64,Int64,Int64}[]
+  boundaries  = Int64[]
   
   for i=1:nx-1
     for j=1:ny-1
@@ -58,7 +59,8 @@ function create_surface_tracker(bcs::Array{Int8, 3}, Δh)
   for k=1:length(boundaries)
     println(cells[k], " ", boundaries[k])
   end
-  SurfaceTracker(hcat(cells...), boundaries, tracked, Δh)
+  
+  SurfaceTracker(hcat(cells...), tracked, surfaces, boundaries, Δh)
 end
 
 function track!(::Nothing, part::KineticSpecies) end
