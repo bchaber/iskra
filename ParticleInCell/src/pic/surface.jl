@@ -7,6 +7,13 @@ Base.findfirst(x::Array{Int64,1}, A::Array{Int64,2}) =
 Base.in(x::Array{Int64,1}, A::Array{Int64,2}) =
   findfirst(x, A) ≠ nothing
 
+abstract type Surface end
+mutable struct MetalSurface <: Surface
+  hits :: Int64
+end
+mutable struct AbsorbingSurface <: Surface
+  hits :: Int64
+end
 struct SurfaceTracker
   cells :: Array{Int64,2}
   boundaries :: Array{Int64,1}
