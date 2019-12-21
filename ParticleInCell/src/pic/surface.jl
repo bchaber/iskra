@@ -14,6 +14,20 @@ end
 mutable struct AbsorbingSurface <: Surface
   hits :: Int64
 end
+
+create_metal_surface() = MetalSurface(0)
+create_absorbing_surface() = AbsorbingSurface(0)
+function hit!(s::Surface, part::KineticSpecies, p::Int64) end
+function hit!(s::MetalSurface, part::KineticSpecies, p::Int64)
+  s.hits += 1
+  remove!(part, p)
+end
+
+function hit!(s::AbsorbingSurface, part::KineticSpecies, p::Int64)
+  s.hits += 1
+  remove!(part, p)
+end
+
 struct SurfaceTracker
   cells :: Array{Int64,2}
   tracked :: Array{Tuple{Int64,Int64,Int64},1}
@@ -111,7 +125,9 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
     r = findfirst(cells, st.cells)
     if r ≠ nothing
       println("Surface ", st.boundaries[r], " hit!")
-      remove!(part, p)
+      boundary = st.boundaries[r] + 1
+      surface = st.surfaces[boundary]
+      hit!(surface, part, p)
     end
   end
 end
