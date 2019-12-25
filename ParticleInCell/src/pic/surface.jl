@@ -98,28 +98,19 @@ function check_particle(i, j, hx, hy, Δt, Δh, vx, vy)
   dx = (vx > 0) ? Δh*(1-hx) : Δh*hx
   dy = (vy > 0) ? Δh*(1-hy) : Δh*hy
 
-  ΔTx, ΔTy = Δh/abs(vx), Δh/abs(vy)
-  if ΔTx < Δt || ΔTx < Δt
-    println("ERROR: Particle is too fast!")
-  end
-
   Δtx, Δty = dx/abs(vx), dy/abs(vy)
   if Δt < Δtx && Δt < Δty # particle stayed in the same cell
     return i, j, hx, hy, Δt
   end
 
   if Δtx < Δty
-    if vx > 0
-      return i+1, j, .0, hy + vy*Δtx/Δh, Δt-Δtx
-    else
-      return i-1, j, Δh, hy + vy*Δtx/Δh, Δt-Δtx
-    end
+    return (vx > 0) ?
+      (i+1, j, .0, hy + vy*Δtx/Δh, Δt-Δtx) :
+      (i-1, j, Δh, hy + vy*Δtx/Δh, Δt-Δtx)
   else
-    if vy > 0
-      return i, j+1, hx + vx*Δty/Δh, .0, Δt-Δty
-    else
-      return i, j-1, hx + vx*Δty/Δh, Δh, Δt-Δty
-    end
+    return (vy > 0) ?
+      (i, j+1, hx + vx*Δty/Δh, .0, Δt-Δty) :
+      (i, j-1, hx + vx*Δty/Δh, Δh, Δt-Δty)
   end
 end
     
@@ -132,31 +123,31 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
 
   while length(st.tracked) > 0
     p, i , j , hx , hy , Δt  = popfirst!(st.tracked)
-       i′, j′, hx′, hy′, Δt′ = check_particle(i, j, hx, hy, Δt, Δh,
-                                              pv[p,1], pv[p,2])
+    vx, vy = pv[p,1], pv[p,2]
+
+    ΔTx, ΔTy = Δh/abs(vx), Δh/abs(vy)
+    if ΔTx < Δt || ΔTx < Δt
+      println("ERROR: Particle is too fast!")
+    end
+    
+    i′, j′, hx′, hy′, Δt′ = check_particle(i, j, hx, hy, Δt, Δh, vx, vy)
     if i == i′ && j == j′
       continue
     end
     
     r = findfirst([i, j, i′,j′], st.cells)
-    s = findfirst([i′,j′,i, j],  st.cells)
+    r = (r ≠ nothing) ? r :
+        findfirst([i′,j′,i, j],  st.cells)
 
-    if r == nothing && s == nothing
-      push!(st.tracked, (p, i′, j′, hx′, hy′, Δt′))
-    elseif r ≠ nothing
+    if r ≠ nothing
       boundary = st.boundaries[r] + 1
       surface = st.surfaces[boundary]
       hit!(surface, part, p)
       if absorbs(surface)
         push!(absorbed, p)
       end
-    elseif s ≠ nothing
-      boundary = st.boundaries[s] + 1
-      surface = st.surfaces[boundary]
-      hit!(surface, part, p)
-      if absorbs(surface)
-        push!(absorbed, p)
-      end
+    else
+      push!(st.tracked, (p, i′, j′, hx′, hy′, Δt′))
     end
   end
 
