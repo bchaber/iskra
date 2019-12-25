@@ -15,9 +15,9 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 0; 0 +.4Δh/Δt]
+sx, sv = [0 Lx; 0 Ly], [0Δh/Δt .1Δh/Δt; 0Δh/Δt .1Δh/Δt]
 e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
-γ = create_gamma_ionization_source(1/Δt, sx, sv)
+γ = create_gamma_ionization_source(500/Δt, sx, sv)
 
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
@@ -35,7 +35,7 @@ bcs[2:nx-1,  1, 1] .= 1
 bcs[2:nx-1, ny, 1] .= 1
 bcs[ 1, 2:ny-1, 1] .= 1
 bcs[nx, 2:ny-1, 1] .= 1
-config.tracker = ParticleInCell.create_surface_tracker(bcs, sfs, Δh)
+config.tracker = ParticleInCell.create_surface_tracker(bcs, sfs, Δh, Δt)
 ############################################
 import ParticleInCell
 import Diagnostics

@@ -1,3 +1,5 @@
+using DataStructures
+
 Base.findfirst(x::Array{Int64,1}, A::Array{Int64,2}) =
   for i=1:size(A,2)
     if x == A[:,i]
@@ -17,29 +19,31 @@ end
 
 create_metal_surface() = MetalSurface(0)
 create_absorbing_surface() = AbsorbingSurface(0)
+function absorbs(s::Surface) false end
+function absorbs(s::MetalSurface) true end
+function absorbs(s::AbsorbingSurface) true end
 function hit!(s::Surface, part::KineticSpecies, p::Int64) end
 function hit!(s::MetalSurface, part::KineticSpecies, p::Int64)
   s.hits += 1
-  remove!(part, p)
 end
 
 function hit!(s::AbsorbingSurface, part::KineticSpecies, p::Int64)
   s.hits += 1
-  remove!(part, p)
 end
 
 struct SurfaceTracker
   cells :: Array{Int64,2}
-  tracked :: Array{Tuple{Int64,Int64,Int64},1}
+  tracked :: Array{Tuple{Int64,Int64,Int64,Float64,Float64,Float64},1}
   surfaces :: Array{Surface,1}
   boundaries :: Array{Int64,1}
   Δh :: Float64
+  Δt :: Float64
 end
 
-function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1}, Δh)
+function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1}, Δh, Δt)
   nx, ny = size(bcs)
   cells = Array{Int64,1}[]
-  tracked = Tuple{Int64,Int64,Int64}[]
+  tracked = Tuple{Int64,Int64,Int64,Float64,Float64,Float64}[]
   boundaries  = Int64[]
   
   for i=1:nx-1
@@ -69,17 +73,13 @@ function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1},
       end
     end
   end
-  println("Created tracker for boundaries")
-  for k=1:length(boundaries)
-    println(cells[k], " ", boundaries[k])
-  end
-  
-  SurfaceTracker(hcat(cells...), tracked, surfaces, boundaries, Δh)
+  SurfaceTracker(hcat(cells...), tracked, surfaces, boundaries, Δh, Δt)
 end
 
 function track!(::Nothing, part::KineticSpecies) end
 function track!(st::SurfaceTracker, part::KineticSpecies)
   Δh = st.Δh
+  Δt = st.Δt
   np = part.np
   px = view(part.x, 1:np, :)
   pv = view(part.v, 1:np, :)
@@ -89,45 +89,78 @@ function track!(st::SurfaceTracker, part::KineticSpecies)
     i, j, hx, hy = particle_cell(px, p, Δh)
     if [i,j] ∈ st.cells[1:2,:] ||
        [i,j] ∈ st.cells[3:4,:]
-      push!(st.tracked, (p,i,j))
-      println("Started tracking (", p ,"|", i, ",", j, ") ", hx, " ", hy)
+      push!(st.tracked, (p,i,j,hx,hy,Δt))
     end
   end
 end
 
+function check_particle(i, j, hx, hy, Δt, Δh, vx, vy)
+  dx = (vx > 0) ? Δh*(1-hx) : Δh*hx
+  dy = (vy > 0) ? Δh*(1-hy) : Δh*hy
+
+  ΔTx, ΔTy = Δh/abs(vx), Δh/abs(vy)
+  if ΔTx < Δt || ΔTx < Δt
+    println("ERROR: Particle is too fast!")
+  end
+
+  Δtx, Δty = dx/abs(vx), dy/abs(vy)
+  if Δt < Δtx && Δt < Δty # particle stayed in the same cell
+    return i, j, hx, hy, Δt
+  end
+
+  if Δtx < Δty
+    if vx > 0
+      return i+1, j, .0, hy + vy*Δtx/Δh, Δt-Δtx
+    else
+      return i-1, j, Δh, hy + vy*Δtx/Δh, Δt-Δtx
+    end
+  else
+    if vy > 0
+      return i, j+1, hx + vx*Δty/Δh, .0, Δt-Δty
+    else
+      return i, j-1, hx + vx*Δty/Δh, Δh, Δt-Δty
+    end
+  end
+end
+    
 function check!(::Nothing, part::KineticSpecies, Δt) end
 function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
   Δh = st.Δh
   px = view(part.x, 1:part.np, :)
   pv = view(part.v, 1:part.np, :)
-  
-  for (p,i,j) in st.tracked
-    ~, ~, hx, hy = particle_cell(px, p, Δh)
-    vx, vy = pv[p,1], pv[p,2]
-    dx = (vx > 0) ? Δh*(1-hx) : Δh*hx
-    dy = (vy > 0) ? Δh*(1-hy) : Δh*hy
+  absorbed = SortedSet{Int64}(Base.Order.Reverse)
 
-    ΔTx, ΔTy = Δh/abs(vx), Δh/abs(vy)
-    if ΔTx < Δt || ΔTx < Δt
-      println("ERROR: Particle ", p, " is too fast!")
-    end
-
-    Δtx, Δty = dx/abs(vx), dy/abs(vy)
-    println("Δtx ", Δtx/Δt, " Δty ", Δty/Δt)
-    if Δt < Δtx && Δt < Δty # particle stayed in the same cell
+  while length(st.tracked) > 0
+    p, i , j , hx , hy , Δt  = popfirst!(st.tracked)
+       i′, j′, hx′, hy′, Δt′ = check_particle(i, j, hx, hy, Δt, Δh,
+                                              pv[p,1], pv[p,2])
+    if i == i′ && j == j′
       continue
     end
+    
+    r = findfirst([i, j, i′,j′], st.cells)
+    s = findfirst([i′,j′,i, j],  st.cells)
 
-    cells = (Δtx < Δty) ?
-      (vx < 0 ? [i-1,j,i,j] : [i,j,i+1,j]) :
-      (vy < 0 ? [i,j-1,i,j] : [i,j,i,j+1])
-    println("Looking for ", cells)
-    r = findfirst(cells, st.cells)
-    if r ≠ nothing
-      println("Surface ", st.boundaries[r], " hit!")
+    if r == nothing && s == nothing
+      push!(st.tracked, (p, i′, j′, hx′, hy′, Δt′))
+    elseif r ≠ nothing
       boundary = st.boundaries[r] + 1
       surface = st.surfaces[boundary]
       hit!(surface, part, p)
+      if absorbs(surface)
+        push!(absorbed, p)
+      end
+    elseif s ≠ nothing
+      boundary = st.boundaries[s] + 1
+      surface = st.surfaces[boundary]
+      hit!(surface, part, p)
+      if absorbs(surface)
+        push!(absorbed, p)
+      end
     end
+  end
+
+  for p in absorbed
+    remove!(part, p)
   end
 end
