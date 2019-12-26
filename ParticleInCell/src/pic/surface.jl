@@ -71,6 +71,46 @@ function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1},
         push!(cells, [i-1,j, i,j])
         push!(boundaries,  (d == a) ? d : 0)
       end
+
+      if a != 0
+        if a == b
+          push!(cells, [i,j, i,  j-1])
+          push!(boundaries,  a)
+        else
+          push!(cells, [i,j, i-1,j-1])
+          push!(boundaries,  a)
+        end
+      end
+
+      if b != 0
+        if b == c
+          push!(cells, [i,j, i+1,j])
+          push!(boundaries,  b)
+        else
+          push!(cells, [i,j, i+1,j-1])
+          push!(boundaries,  b)
+        end
+      end
+
+      if c != 0
+        if c == d
+          push!(cells, [i,j, i,  j+1])
+          push!(boundaries,  c)
+        else
+          push!(cells, [i,j, i+1,j+1])
+          push!(boundaries,  c)
+        end
+      end
+
+      if d != 0
+        if d == a
+          push!(cells, [i,j, i-1,j])
+          push!(boundaries,  d)
+        else
+          push!(cells, [i,j, i-1,j+1])
+          push!(boundaries,  d)
+        end
+      end
     end
   end
   SurfaceTracker(hcat(cells...), tracked, surfaces, boundaries, Δh, Δt)

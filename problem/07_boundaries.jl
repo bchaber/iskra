@@ -15,7 +15,7 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0Δh/Δt .1Δh/Δt; 0Δh/Δt .1Δh/Δt]
+sx, sv = [0 Lx/3; 0 Ly], [.1Δh/Δt 0Δh/Δt; 0Δh/Δt .1Δh/Δt]
 e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
 γ = create_gamma_ionization_source(500/Δt, sx, sv)
 
@@ -28,13 +28,14 @@ config.species = [e]
 ############################################
 absorbing = ParticleInCell.create_absorbing_surface()
 metal = ParticleInCell.create_metal_surface()
-sfs = [absorbing, metal]
+sfs = [absorbing, metal, metal]
 nx, ny = size(config.grid)
 bcs = zeros(Int8, nx, ny, 1)
 bcs[2:nx-1,  1, 1] .= 1
 bcs[2:nx-1, ny, 1] .= 1
 bcs[ 1, 2:ny-1, 1] .= 1
 bcs[nx, 2:ny-1, 1] .= 1
+bcs[6:8, 4:6,  1] .= 2
 config.tracker = ParticleInCell.create_surface_tracker(bcs, sfs, Δh, Δt)
 ############################################
 import ParticleInCell
