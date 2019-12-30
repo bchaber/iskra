@@ -145,12 +145,12 @@ function check_particle(i, j, hx, hy, Δt, Δh, vx, vy)
 
   if Δtx < Δty
     return (vx > 0) ?
-      (i+1, j, .0, hy + vy*Δtx/Δh, Δt-Δtx) :
-      (i-1, j, Δh, hy + vy*Δtx/Δh, Δt-Δtx)
+      (i+1, j, 0., hy + vy*Δtx/Δh, Δt-Δtx) :
+      (i-1, j, 1., hy + vy*Δtx/Δh, Δt-Δtx)
   else
     return (vy > 0) ?
-      (i, j+1, hx + vx*Δty/Δh, .0, Δt-Δty) :
-      (i, j-1, hx + vx*Δty/Δh, Δh, Δt-Δty)
+      (i, j+1, hx + vx*Δty/Δh, 0., Δt-Δty) :
+      (i, j-1, hx + vx*Δty/Δh, 1., Δt-Δty)
   end
 end
     
