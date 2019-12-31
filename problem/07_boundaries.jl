@@ -10,7 +10,7 @@ nx = 10         # number of nodes in x direction
 ny = 10         # number of nodes in y direction
 ts = 200        # number of time steps
 Δh = 10cm       # cell size
-Δt = 20ns       # time step
+Δt = 10ns       # time step
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
