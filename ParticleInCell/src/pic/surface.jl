@@ -10,25 +10,29 @@ Base.in(x::Array{Int64,1}, A::Array{Int64,2}) =
   findfirst(x, A) ≠ nothing
 
 abstract type Surface end
-mutable struct MetalSurface <: Surface
-  hits :: Int64
-end
-mutable struct AbsorbingSurface <: Surface
-  hits :: Int64
-end
+mutable struct ReflectiveSurface <: Surface end
+mutable struct AbsorbingSurface <: Surface end
 
-create_metal_surface() = MetalSurface(0)
-create_absorbing_surface() = AbsorbingSurface(0)
-function absorbs(s::Surface) false end
-function absorbs(s::MetalSurface) true end
-function absorbs(s::AbsorbingSurface) true end
-function hit!(s::Surface, part::KineticSpecies, p::Int64) end
-function hit!(s::MetalSurface, part::KineticSpecies, p::Int64)
-  s.hits += 1
+create_absorbing_surface()  = AbsorbingSurface()
+create_reflective_surface() = ReflectiveSurface()
+function absorbs(s::Surface)           false end
+function absorbs(s::ReflectiveSurface) false end
+function absorbs(s::AbsorbingSurface)  true  end
+function hit!(s::Surface, part::KineticSpecies, p::Int64,
+              Δt::Float64, n̂::Array{Float64,1})
 end
-
-function hit!(s::AbsorbingSurface, part::KineticSpecies, p::Int64)
-  s.hits += 1
+function hit!(s::ReflectiveSurface, part::KineticSpecies, p::Int64,
+              Δt::Float64, n̂::Array{Float64,1})
+  part.x[p,:] .-= part.v[p,:]*Δt
+  for i=[1,2,3]
+    if n̂[i] ≠ 0
+      part.v[p,i] *= -1
+    end
+  end
+  part.x[p,:] .+= part.v[p,:]*Δt
+end
+function hit!(s::AbsorbingSurface, part::KineticSpecies, p::Int64,
+              Δt::Float64, n̂::Array{Float64,1})
 end
 
 struct SurfaceTracker
@@ -174,7 +178,7 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
     if i == i′ && j == j′
       continue
     end
-    
+    n̂ = [i′-i, j′-j, 0.]
     r = findfirst([i, j, i′,j′], st.cells)
     r = (r ≠ nothing) ? r :
         findfirst([i′,j′,i, j],  st.cells)
@@ -182,7 +186,7 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
     if r ≠ nothing
       boundary = st.boundaries[r] + 1
       surface = st.surfaces[boundary]
-      hit!(surface, part, p)
+      hit!(surface, part, p, Δt′, n̂)
       if absorbs(surface)
         push!(absorbed, p)
       end

@@ -27,8 +27,8 @@ config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e]
 ############################################
 absorbing = ParticleInCell.create_absorbing_surface()
-metal = ParticleInCell.create_metal_surface()
-sfs = [absorbing, metal, metal]
+metal = ParticleInCell.create_reflective_surface()
+sfs = [absorbing, metal, absorbing]
 nx, ny = size(config.grid)
 bcs = zeros(Int8, nx, ny, 1)
 bcs[2:nx-1,  1, 1] .= 1
