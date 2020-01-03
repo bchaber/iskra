@@ -1,24 +1,45 @@
 using DataStructures
 
-Base.findfirst(x::Array{Int64,1}, A::Array{Int64,2}) =
-  for i=1:size(A,2)
-    if x == A[:,i]
-    return i  
-    end
+const BoundaryCell = Tuple{Int64,Int64}
+const BoundaryCells = Tuple{Int64,Int64,Int64,Int64}
+const TrackedParticle = Tuple{Int64,Int64,Int64,Float64,Float64,Float64}
+
+struct SurfaceTracker
+  cells :: Vector{BoundaryCells}
+  tracked :: Vector{TrackedParticle}
+  surfaces :: Vector{Surface}
+  Δh :: Float64
+  Δt :: Float64
+end
+
+Base.findfirst(x::BoundaryCells, A::Vector{BoundaryCells}) =
+  function predicate(y)
+    i,j,k,l = y
+    (i,j,k,l) == x || (k,l,i,j) == x
   end
-Base.in(x::Array{Int64,1}, A::Array{Int64,2}) =
-  findfirst(x, A) ≠ nothing
+  findfirst(predicate, A)
+
+Base.in(x::BoundaryCell, A::Vector{BoundaryCells}) =
+  function predicate(y)
+    i,j,k,l = y
+    (i,j) == x || (k,l) == x
+  end
+  findfirst(predicate, A)
 
 abstract type Surface end
-mutable struct ReflectiveSurface <: Surface end
-mutable struct AbsorbingSurface <: Surface end
+struct AbsorbingSurface <: Surface end
+struct ReflectiveSurface <: Surface end
 
 create_absorbing_surface()  = AbsorbingSurface()
 create_reflective_surface() = ReflectiveSurface()
+
 function absorbs(s::Surface)           false end
-function absorbs(s::ReflectiveSurface) false end
 function absorbs(s::AbsorbingSurface)  true  end
+function absorbs(s::ReflectiveSurface) false end
 function hit!(s::Surface, part::KineticSpecies, p::Int64,
+              Δt::Float64, n̂::Array{Float64,1})
+end
+function hit!(s::AbsorbingSurface, part::KineticSpecies, p::Int64,
               Δt::Float64, n̂::Array{Float64,1})
 end
 function hit!(s::ReflectiveSurface, part::KineticSpecies, p::Int64,
@@ -31,25 +52,13 @@ function hit!(s::ReflectiveSurface, part::KineticSpecies, p::Int64,
   end
   part.x[p,:] .+= part.v[p,:]*Δt
 end
-function hit!(s::AbsorbingSurface, part::KineticSpecies, p::Int64,
-              Δt::Float64, n̂::Array{Float64,1})
-end
 
-struct SurfaceTracker
-  cells :: Array{Int64,2}
-  tracked :: Array{Tuple{Int64,Int64,Int64,Float64,Float64,Float64},1}
-  surfaces :: Array{Surface,1}
-  boundaries :: Array{Int64,1}
-  Δh :: Float64
-  Δt :: Float64
-end
+function build_surface_lookup(bcs::Array{Int8, 3}, ss::Array{Surface,1})
+  cells = BoundaryCells[]
+  surfaces = Surface[]
+  ds = AbsorbingSurface()
 
-function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1}, Δh, Δt)
   nx, ny = size(bcs)
-  cells = Array{Int64,1}[]
-  tracked = Tuple{Int64,Int64,Int64,Float64,Float64,Float64}[]
-  boundaries  = Int64[]
-  
   for i=1:nx-1
     for j=1:ny-1
       a = bcs[i,  j  ,1]
@@ -57,67 +66,55 @@ function create_surface_tracker(bcs::Array{Int8, 3}, surfaces::Array{Surface,1},
       c = bcs[i+1,j+1,1]
       d = bcs[i  ,j+1,1]
       if j == 1
-        push!(cells, [i,j-1, i,j])
-        push!(boundaries,  (a == b) ? a : 0)
+        push!(cells, (i,j-1, i,j))
+        push!(surfaces,  (a == b) ? ss[a] : ds)
       end
 
       if i == nx-1
-        push!(cells, [i,j, i+1,j])
-        push!(boundaries,  (b == c) ? b : 0)
+        push!(cells, (i,j, i+1,j))
+        push!(surfaces,  (b == c) ? ss[b] : ds)
       end
 
       if j == ny-1
-        push!(cells, [i,j, i,j+1])
-        push!(boundaries,  (c == d) ? c : 0)
+        push!(cells, (i,j, i,j+1))
+        push!(surfaces,  (c == d) ? ss[c] : ds)
       end
 
       if i == 1
-        push!(cells, [i-1,j, i,j])
-        push!(boundaries,  (d == a) ? d : 0)
+        push!(cells, (i-1,j, i,j))
+        push!(surfaces,  (d == a) ? ss[d] : ds)
       end
 
-      if a != 0
-        if a == b
-          push!(cells, [i,j, i,  j-1])
-          push!(boundaries,  a)
-        else
-          push!(cells, [i,j, i-1,j-1])
-          push!(boundaries,  a)
-        end
+      if a > 0
+        push!(cells, (i,j, (a == b) ? i : i-1, j-1))
+        push!(surfaces,  ss[a])
       end
 
-      if b != 0
-        if b == c
-          push!(cells, [i,j, i+1,j])
-          push!(boundaries,  b)
-        else
-          push!(cells, [i,j, i+1,j-1])
-          push!(boundaries,  b)
-        end
+      if b > 0
+        push!(cells, (i,j, i+1, (b == c) ? j : j-1))
+        push!(surfaces,  ss[b])
       end
 
-      if c != 0
-        if c == d
-          push!(cells, [i,j, i,  j+1])
-          push!(boundaries,  c)
-        else
-          push!(cells, [i,j, i+1,j+1])
-          push!(boundaries,  c)
-        end
+      if c > 0
+        push!(cells, (i,j, (c == d) ? i : i+1, j+1))
+        push!(surfaces, ss[c])
       end
 
-      if d != 0
-        if d == a
-          push!(cells, [i,j, i-1,j])
-          push!(boundaries,  d)
-        else
-          push!(cells, [i,j, i-1,j+1])
-          push!(boundaries,  d)
-        end
+      if d > 0
+        push!(cells, (i,j, i-1, (d == a) ? j : j+1))
+        push!(surfaces, ss[d])
       end
     end
   end
-  SurfaceTracker(hcat(cells...), tracked, surfaces, boundaries, Δh, Δt)
+
+  return cells, surfaces
+end
+
+function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{Surface,1}, Δh, Δt)
+  tracked = TrackedParticle[]
+  
+  cells, surfaces = build_surface_lookup(bcs, ss)
+  SurfaceTracker(cells, tracked, surfaces, Δh, Δt)
 end
 
 function track!(::Nothing, part::KineticSpecies) end
@@ -131,8 +128,7 @@ function track!(st::SurfaceTracker, part::KineticSpecies)
   deleteat!(st.tracked, 1:length(st.tracked))
   for p=1:part.np
     i, j, hx, hy = particle_cell(px, p, Δh)
-    if [i,j] ∈ st.cells[1:2,:] ||
-       [i,j] ∈ st.cells[3:4,:]
+    if (i,j) ∈ st.cells
       push!(st.tracked, (p,i,j,hx,hy,Δt))
     end
   end
@@ -179,13 +175,10 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
       continue
     end
     n̂ = [i′-i, j′-j, 0.]
-    r = findfirst([i, j, i′,j′], st.cells)
-    r = (r ≠ nothing) ? r :
-        findfirst([i′,j′,i, j],  st.cells)
+    r = findfirst((i, j, i′,j′), st.cells)
 
     if r ≠ nothing
-      boundary = st.boundaries[r] + 1
-      surface = st.surfaces[boundary]
+      surface = st.surfaces[r]
       hit!(surface, part, p, Δt′, n̂)
       if absorbs(surface)
         push!(absorbed, p)
