@@ -124,6 +124,9 @@ function apply_neumann(ps::PoissonSolver, nodes, σ0)
     ps.A, ps.b = A, b
 end
 
+function get_rhs(ps::PoissonSolver, s::Symbol, dof::Int64) =
+    view(ps.b, ps.dofs[s][dof])
+
 function calculate_electric_potential(ps::PoissonSolver, f)
     A, b = ps.A, ps.b
     dofs = ps.dofs[:ϕ]
