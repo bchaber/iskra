@@ -1,6 +1,9 @@
 module RegularGrid
-    export create, UniformGrid
-    struct UniformGrid
+    export create, UniformGrid, CoordinateSystem, XY2D, RZ2D
+    abstract type CoordinateSystem end
+    abstract type XY2D <: CoordinateSystem end
+    abstract type RZ2D <: CoordinateSystem end
+    struct UniformGrid{cs <: CoordinateSystem}
       data::Dict{String,AbstractArray}
         nx::Integer
         ny::Integer
@@ -12,10 +15,11 @@ module RegularGrid
     origin::AbstractArray
     end
 
-    Base.size(g::UniformGrid) = (g.nx, g.ny)
-    Base.length(g::UniformGrid) = g.nx*g.ny
-    Base.getindex(g::UniformGrid, k) = g.data[k]
-    Base.setindex!(g::UniformGrid, v, k) = if length(v) ≠ length(g) error("Size mismatch!") else setindex!(g.data, v, k) end
+    Base.size(g::UniformGrid{<:CoordinateSystem}) = (g.nx, g.ny)
+    Base.length(g::UniformGrid{<:CoordinateSystem}) = g.nx*g.ny
+    Base.getindex(g::UniformGrid{<:CoordinateSystem}, k) = g.data[k]
+    Base.setindex!(g::UniformGrid{<:CoordinateSystem}, v, k) =
+        length(v) ≠ length(g) ? error("Size mismatch!") : setindex!(g.data, v, k)
 
     function create_uniform_grid(xx, yy)
         nx, ny = length(xx), length(yy)
@@ -29,10 +33,10 @@ module RegularGrid
         n = nx*ny
         node = reshape(1:n, nx, ny)
         data = Dict{String,AbstractArray}()
-        UniformGrid(data, nx, ny, (Δx, Δy, Δz), x, y, z, node, [xs,ys])
+        UniformGrid{XY2D}(data, nx, ny, (Δx, Δy, Δz), x, y, z, node, [xs,ys])
     end
 
-    function create_staggered_grid(g::UniformGrid)
+    function create_staggered_grid(g::UniformGrid{XY2D})
         x0, xn = extrema(g.x)
         y0, yn = extrema(g.y)
         Δx, Δy, ~ = g.Δh
