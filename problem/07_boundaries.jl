@@ -15,8 +15,8 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx/3; 0 Ly], [.1Δh/Δt 0Δh/Δt; 0Δh/Δt .1Δh/Δt]
-e = create_kinetic_species("e-", 50_000,-1qe, 1me, 1e6)
+sx, sv = [Lx/4 Lx/4; Ly/4 Ly/2], [0Δh/Δt 0Δh/Δt; 0Δh/Δt 0Δh/Δt]
+e = create_kinetic_species("e-", 50_000,-1qe, 1me, 50e3)
 γ = create_gamma_ionization_source(20_000/Δt, sx, sv)
 
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
@@ -26,17 +26,19 @@ config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e]
 ############################################
-absorbing = ParticleInCell.create_absorbing_surface()
-metal = ParticleInCell.create_reflective_surface()
-sfs = [absorbing, metal, absorbing]
 nx, ny = size(config.grid)
 bcs = zeros(Int8, nx, ny, 1)
-bcs[2:nx-1,  1, 1] .= 1
-bcs[2:nx-1, ny, 1] .= 1
 bcs[ 1, 2:ny-1, 1] .= 1
-bcs[nx, 2:ny-1, 1] .= 1
-bcs[6:8, 4:6,  1] .= 2
-config.tracker = ParticleInCell.create_surface_tracker(bcs, sfs, Δh, Δt)
+bcs[nx, 5:7,    1] .= 2
+bcs[nx-1,  1,   1]  = 3
+bcs[nx-1, ny,   1]  = 3
+bcs[6:8,  5:7,  1] .= 4
+driven   = create_electrode(bcs .== 1, config.solver, config.grid; σ=1)
+floating = create_electrode(bcs .== 2, config.solver, config.grid)
+grounded = create_electrode(bcs .== 3, config.solver, config.grid; fixed=true)
+reflecting = ParticleInCell.create_reflective_surface()
+config.tracker = ParticleInCell.create_surface_tracker(bcs,
+	[driven, grounded, floating, reflecting], Δh, Δt)
 ############################################
 import ParticleInCell
 import Diagnostics

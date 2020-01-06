@@ -18,9 +18,37 @@ function set_permittivity(εr)
   FiniteDifferenceMethod.create_generalized_poisson_solver(grid, εr)
 end
 
-function add_electrode(nodes, voltage)
-  solver = config.solver
-  FiniteDifferenceMethod.apply_dirichlet(solver, nodes, voltage)
+function create_electrode(nodes, ps, grid; fixed=false, σ=0.0, V=0.0)
+  Δx, Δy, Δz = grid.Δh
+  function calculate_area(nodes)
+    area = 0.
+    for c in findall(nodes)
+      i, j  = c.I
+      if i < nx
+        area += nodes[i+1,j] ? Δx*Δz : 0
+      end
+      if j < ny
+        area += nodes[i,j+1] ? Δy*Δz : 0
+      end
+    end
+    return area
+  end
+  function find_reference_node(nodes)
+    c = findfirst(isequal(true), nodes)
+    c ≠ nothing ? c.I : nothing
+  end
+  area = calculate_area(nodes)
+  i,j,k = find_reference_node(nodes)
+
+  if fixed
+    FiniteDifferenceMethod.apply_dirichlet(ps, nodes, V)
+    return ParticleInCell.FixedPotentialElectrode((i,j))
+  else
+    dof = FiniteDifferenceMethod.add_new_dof(ps, :σ)
+    FiniteDifferenceMethod.apply_neumann(ps, nodes, dof)
+    FiniteDifferenceMethod.get_rhs(ps, :σ, dof) .= σ
+    return ParticleInCell.FloatingPotentialElectrode((i,j), 0.0, area, dof)
+  end
 end
 
 function create_gamma_ionization_source(rate, x, v)

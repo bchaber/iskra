@@ -10,7 +10,7 @@ nx = 20         # number of nodes in x direction
 ny = 20         # number of nodes in y direction
 ts = 200        # number of time steps
 Δh = 5cm        # cell size
-Δt = .5ns        # time step
+Δt = .03ns      # time step
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
@@ -27,7 +27,7 @@ config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O, iO]
 
-σ = CrossSection(1.5e7:7.5e7:9e7, [0.1, 1.0])
+σ = CrossSection(5e7:25e7:80e7, [0.01, 0.1, 2.0, 0.01])
 collisions = mcc(@reactions begin
     σ, e + O --> O + e
 end)
@@ -42,8 +42,8 @@ bcs = zeros(Int8, nx, ny, 1)
 bcs[ nx,  1, 1] = 1
 bcs[ nx, ny, 1] = 2
 set_permittivity(εr)
-add_electrode(bcs .== 1, +1e3V)
-add_electrode(bcs .== 2, -1e3V)
+create_electrode(bcs .== 1, config.solver, config.grid; fixed=true, V=+1kV)
+create_electrode(bcs .== 2, config.solver, config.grid; fixed=true, V=-1kV)
 ############################################
 import ParticleInCell
 import Diagnostics
