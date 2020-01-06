@@ -2,7 +2,7 @@ using RegularGrid
 
 mutable struct DensitySource
   δ :: Array{Float64,2}
-  grid :: UniformGrid
+  grid :: UniformGrid{XY2D}
 end
 
 mutable struct MaxwellianSource
