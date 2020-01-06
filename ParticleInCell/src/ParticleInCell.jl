@@ -95,6 +95,10 @@ module ParticleInCell
         sample!(src, src.species, Δt)
       end
 
+      # Solve reactions
+      for interaction in interactions
+        perform!(interaction, E, Δt, config)
+      end
       # Advance species
       for part in species
         advance!(part, E, Δt, config)
@@ -107,10 +111,6 @@ module ParticleInCell
         ρ .+= part.n .* part.q
 
         @diag "n"*part.name NodeData(part.n, origin, spacing)
-      end
-      # Solve reactions
-      for interaction in interactions
-        perform!(interaction, E, Δt, config)
       end
       # Calculate electric field
       ϕ  = calculate_electric_potential(solver, -ρ/ε0)
