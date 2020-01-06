@@ -10,6 +10,7 @@ module ParticleInCell
   include("pic/pushers.jl")
   include("pic/sources.jl")
   include("pic/surface.jl")
+  include("pic/circuit_coupling.jl")
   
   function particle_cell(px, p, Δh)
     fij = @views 1 .+ px[p, :] ./ Δh
@@ -31,18 +32,6 @@ module ParticleInCell
 
   function init(src, species, Δt)
     sample!(src, species, Δt)
-  end
-
-  function advance!(circuit :: Nothing, ϕ, Δt, config, ε0) end
-  function advance!(circuit :: CircuitRLC, ϕ, Δt, config, ε0)
-    nx, ny = size(config.grid)
-    Δx, Δy, Δz = config.grid.Δh
-    A = ny * Δy*Δz
-    V = ϕ[1,1] - ϕ[nx,ny]
-    advance_circuit!(circuit, V, Δt)
-    dσ = -Δt*circuit.i/A
-    @diag "dσ" TimeData(dσ)
-    config.solver.b[config.solver.dofs[:σ][1]] += dσ/ε0
   end
 
   function advance!(part :: KineticSpecies, E, Δt, config)
@@ -69,7 +58,17 @@ module ParticleInCell
     @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
+  function init_default(config, Δt)
+    if config.tracker == nothing
+      config.tracker = create_surface_tracker(config.grid, Δt)
+    end
+    if config.circuit == nothing
+      config.circuit = create_plasma_circuit(config.tracker)
+    end
+  end
+
   function solve(config, Δt=1e-5, timesteps=200, ε0=1.0)
+    init_default(config, Δt)
     pusher = config.pusher
     interactions = config.interactions
     sources = config.sources
