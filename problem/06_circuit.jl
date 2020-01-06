@@ -10,7 +10,7 @@ nx = 20         # number of nodes in x direction
 ny = 20         # number of nodes in y direction
 ts = 250        # number of time steps
 Δh = 5cm        # cell size
-Δt = 50ns       # time step
+Δt = 0.001ns    # time step
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
@@ -38,10 +38,13 @@ xx, yy = config.grid.x, config.grid.y
 δ = ones(nx, ny)
 εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny, 1)
-bcs[nx, 1:ny, 1] .= 1
+bcs[ 1, 1:ny, 1] .= 1
+bcs[nx, 1:ny, 1] .= 2
 set_permittivity(εr)
-FiniteDifferenceMethod.apply_dirichlet(config.solver, bcs .== 1, 0)
-FiniteDifferenceMethod.apply_neumann(config.solver, 1:ny, 0)
+FiniteDifferenceMethod.add_new_dof(config.solver, :σ)
+FiniteDifferenceMethod.get_rhs(config.solver, :σ, 1) .= 1.
+FiniteDifferenceMethod.apply_neumann(config.solver, bcs .== 1, 1)
+FiniteDifferenceMethod.apply_dirichlet(config.solver, bcs .== 2, 0)
 ############################################
 import ParticleInCell
 import Diagnostics
