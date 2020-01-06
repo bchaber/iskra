@@ -72,60 +72,62 @@ function segment(n::Array{Int64,1})
     s, m, e = length(n) < 2 ? ([], n, []) : (n[1], n[2:end-1], n[end])
 end
 
-function apply_neumann(ps::PoissonSolver, nodes, σ0)
-    A, b = ps.A, ps.b
-    εr = ps.εr
-    Δx, Δy, ~ = ps.Δh
-    ps.dofs[:σ] = get(ps.dofs, :σ, [])
-    ϕ = ps.dofs[:ϕ]
-    σ = ps.dofs[:σ]
-    N = maximum(ϕ)
-    n = max(N, σ...) + 1
-    push!(σ, n)
-    A = vcat(A, zeros(1,N))
-    A = hcat(A, zeros(N+1))
-    b = vcat(b, [0])
-    i = 1 # left edge
-    nx, ny = size(ϕ)
-    # Coefficients are doubled so that the
-    # the whole space charge density contributes
-    # to the Boundary Condition (instead of ρ0/2)
-    start, middle, stop = segment(collect(nodes))
-    if start == 1 push!(middle, 1); start = [] end
-    if stop == nx push!(middle,nx); stop  = [] end
-
-    for j=middle
-        A[ϕ[i,j],:] .= 0
-        A[ϕ[i,j],ϕ[i,  j]] -= 2εr[i,  j]/Δx^2
-        A[ϕ[i,j],ϕ[i+1,j]] += 2εr[i+1,j]/Δx^2
-        A[ϕ[i,j],σ[end]]   += 2/Δx
-    end
+function add_new_dof(ps::PoissonSolver, symbol::Symbol)
+    N = length(ps.b)
+    ps.dofs[symbol] = s = get(ps.dofs, symbol, [])
+    push!(s,  N+1)
     
-    for j=start
-        A[ϕ[i,j],:] .= 0
-        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δx^2
-        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δy^2
-        A[ϕ[i,j],ϕ[i+1,j]] += 4εr[i,j]/3Δx^2
-        A[ϕ[i,j],ϕ[i,j-1]] += 4εr[i,j]/3Δy^2
-        A[ϕ[i,j],σ[end]]   += (2/3)*(Δx+Δy)/(Δx*Δy)
-    end
-
-    for j=stop
-        A[ϕ[i,j],:] .= 0
-        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δx^2
-        A[ϕ[i,j],ϕ[i,j]]   -= 4εr[i,j]/3Δy^2
-        A[ϕ[i,j],ϕ[i+1,j]] += 4εr[i,j]/3Δx^2
-        A[ϕ[i,j],ϕ[i,j+1]] += 4εr[i,j]/3Δy^2
-        A[ϕ[i,j],σ[end]]   += (2/3)*(Δx+Δy)/(Δx*Δy)
-    end
-
-    A[σ[end],σ[end]] = 1
-    b[σ[end]]        = σ0
-    ps.A, ps.b = A, b
+    ps.A = vcat(ps.A, zeros(1,N))
+    ps.A = hcat(ps.A, zeros(N+1))
+    ps.b = vcat(ps.b, [0.])
+    
+    ps.A[s[end],s[end]] = 1
+    ps.b[s[end]]        = 0
+    return length(s)
 end
 
-function get_rhs(ps::PoissonSolver, s::Symbol, dof::Int64) =
+# Coefficients are doubled so that the
+# the whole space charge density contributes
+# to the Boundary Condition (instead of ρ0/2)
+function apply_neumann(ps::PoissonSolver, nodes, dof)
+    εr = ps.εr
+    Δx, Δy, ~ = ps.Δh
+    ϕ = ps.dofs[:ϕ]
+    σ = ps.dofs[:σ]
+    nx, ny = size(ϕ)
+    A, b = ps.A, ps.b
+
+    for c in findall(nodes)
+        i, j = c.I
+        a = (i >  1) ? nodes[i-1,j] : false
+        b = (i < nx) ? nodes[i+1,j] : false
+        c = (j >  1) ? nodes[i,j-1] : true
+        d = (j < ny) ? nodes[i,j+1] : true
+
+        if c == d == true &&
+           a == b == false
+            i′ = (i == 1) ?   i+1 : i-1
+            A[ϕ[i,j],:] .= 0
+            A[ϕ[i,j],ϕ[i, j]] -= 2εr[i, j]/Δx^2
+            A[ϕ[i,j],ϕ[i′,j]] += 2εr[i′,j]/Δx^2
+            A[ϕ[i,j],σ[dof]]  += 2/Δx
+        end
+        if c != d
+            i′ = (i == 1) ? i+1 : i-1
+            j′ = (c) ?      j+1 : j-1
+            A[ϕ[i,j],:] .= 0
+            A[ϕ[i,j],ϕ[i, j]]  -= 4εr[i,j]/3Δx^2
+            A[ϕ[i,j],ϕ[i, j]]  -= 4εr[i,j]/3Δy^2
+            A[ϕ[i,j],ϕ[i′,j]]  += 4εr[i,j]/3Δx^2
+            A[ϕ[i,j],ϕ[i,j′]]  += 4εr[i,j]/3Δy^2
+            A[ϕ[i,j],σ[dof]]   += (2/3)*(Δx+Δy)/(Δx*Δy)
+        end
+    end
+end
+
+function get_rhs(ps::PoissonSolver, s::Symbol, dof::Int64)
     view(ps.b, ps.dofs[s][dof])
+end
 
 function calculate_electric_potential(ps::PoissonSolver, f)
     A, b = ps.A, ps.b
