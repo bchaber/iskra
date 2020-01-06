@@ -38,7 +38,7 @@ function perform!(collision::MCC.ElasticCollision, p, Δt, grid)
 	source, target = collision.source, collision.target
 	mr1 = source.m/(source.m + target.m)
 	mr2 = target.m/(source.m + target.m)
-	print("*")
+	#print("*")
 	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
 	g = source.v[p,:] .- tv
 	vc_cm = mr1 * source.v[p,:] + mr2 * tv

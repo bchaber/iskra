@@ -38,7 +38,7 @@ function perform!(collision::DSMC.ElasticCollision, s, t)
 	g = source.v[s,:] .- target.v[t,:]
 	vc_cm = mr1 * source.v[s,:] .+ mr2 * target.v[t,:]
 	vss_inv= 1.
-	print("*")
+	#print("*")
 	if abs(vss_inv - 1.0) < 1e-4
 		B = 2rand() - 1.0
 		A = sqrt(1 - B^2)
