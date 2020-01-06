@@ -168,14 +168,15 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
   pv = view(part.v, 1:part.np, :)
   absorbed = SortedSet{Int64}(Base.Order.Reverse)
 
+  vmax = Δh./Δt
+  pvmax = part.np > 0 ? maximum(abs.(pv); dims=1) : 0.0
+  if any(pvmax .> vmax)
+    println("ERROR: $part particle is too fast: $pvmax > $vmax")
+  end
+
   while length(st.tracked) > 0
     p, i , j , hx , hy , Δt  = popfirst!(st.tracked)
     vx, vy = pv[p,1], pv[p,2]
-
-    ΔTx, ΔTy = Δh/abs(vx), Δh/abs(vy)
-    if ΔTx < Δt || ΔTx < Δt
-      println("ERROR: Particle is too fast!")
-    end
     
     i′, j′, hx′, hy′, Δt′ = check_particle(i, j, hx, hy, Δt, Δh, vx, vy)
     if i == i′ && j == j′
