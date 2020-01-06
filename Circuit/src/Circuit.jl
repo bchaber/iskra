@@ -27,9 +27,10 @@ mutable struct CircuitRLC
   q :: Float64
   t :: Float64
   V :: Any # in fact it is a function (Float64) ↦ (Float64)
+  ext :: Any # should be some abstract type
 end
 CircuitRLC(i0::Number, q0::Number, t0::Number) =
-	CircuitRLC(0.0, 0.0, 0.0, i0, q0, t0, nothing)
+	CircuitRLC(0.0, 0.0, 0.0, i0, q0, t0, nothing, nothing)
 
 abstract type CircuitElement end
 struct Resistor <: CircuitElement
@@ -48,11 +49,16 @@ struct VoltageSource <: CircuitElement
 	name :: String
 	val  :: Any
 end
+struct ExternalDevice <: CircuitElement
+  name :: String
+  val  :: Any
+end
 
 function assign!(cir::CircuitRLC, r::Resistor)  cir.R = r.val end
 function assign!(cir::CircuitRLC, l::Inductor)  cir.L = l.val end
 function assign!(cir::CircuitRLC, c::Capacitor) cir.C = c.val end
 function assign!(cir::CircuitRLC, v::VoltageSource) cir.V = v.val end
+function assign!(cir::CircuitRLC, ext::ExternalDevice) cir.ext = ext.val end
 function rlc(elements)
 	t0, i0, q0 = 0, 0, 0
 	cir = CircuitRLC(i0, q0, t0)
@@ -111,6 +117,8 @@ function parse_circuit_element(name::String, rest)
   	return :(Inductor($(esc(name)), $(esc(value)) ))
   elseif startswith(name, "C")
   	return :(Capacitor($(esc(name)), $(esc(value)) ))
+  elseif startswith(name, "EXT")
+    return :(ExternalDevice($(esc(name)), $(esc(value)) ))
   end
   throw("unknown element")
 end
