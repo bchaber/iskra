@@ -54,7 +54,7 @@ function hit!(s::ReflectiveSurface, part::KineticSpecies, p::Int64,
   part.x[p,:] .+= part.v[p,:]*Δt
 end
 
-function build_surface_lookup(bcs::Array{Int8, 3}, ss::Array{Surface,1})
+function build_surface_lookup(bcs::Array{Int8, 3}, ss::Array{<:Surface,1})
   cells = BoundaryCells[]
   surfaces = Surface[]
   ds = AbsorbingSurface()
@@ -117,7 +117,7 @@ function create_surface_tracker(grid::UniformGrid{XY2D}, Δt)
   create_surface_tracker(zeros(Int8, nx, ny, 1), Surface[], Δx, Δt)
 end
 
-function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{Surface,1}, Δh, Δt)
+function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{<:Surface,1}, Δh, Δt)
   tracked = TrackedParticle[]
   
   cells, surfaces = build_surface_lookup(bcs, ss)
