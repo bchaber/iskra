@@ -7,6 +7,7 @@ module RegularGrid
       data::Dict{String,AbstractArray}
         nx::Integer
         ny::Integer
+        nz::Integer
         Δh::Tuple{Float64,Float64,Float64}
          x::AbstractArray
          y::AbstractArray
@@ -26,14 +27,13 @@ module RegularGrid
         xs, ys = xx[1], yy[1]
         Δx = length(xx) > 1 ? xx[2] - xx[1] : 1.0
         Δy = length(yy) > 1 ? yy[2] - yy[1] : 1.0
-        Δz = 1.0
         x = repeat(xx,   1, ny)
         y = repeat(yy', nx,  1)
         z = zeros(nx, ny)
         n = nx*ny
         node = reshape(1:n, nx, ny)
         data = Dict{String,AbstractArray}()
-        UniformGrid{XY2D}(data, nx, ny, (Δx, Δy, Δz), x, y, z, node, [xs,ys])
+        UniformGrid{XY2D}(data, nx, ny, 0, (Δx, Δy, 1.), x, y, z, node, [xs,ys,0.])
     end
 
     function create_staggered_grid(g::UniformGrid{XY2D})

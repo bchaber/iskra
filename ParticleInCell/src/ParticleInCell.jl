@@ -45,6 +45,7 @@ module ParticleInCell
     push_particles!(pusher, part, partE, Δt)
     check!(tracker, part, Δt)
 
+    wrap!(part, grid)
     @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.wg, part.np)
     @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
   end

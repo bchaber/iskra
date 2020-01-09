@@ -5,6 +5,7 @@ const BoundaryCells = Tuple{Int64,Int64,Int64,Int64}
 const TrackedParticle = Tuple{Int64,Int64,Int64,Float64,Float64,Float64}
 
 abstract type Surface end
+struct PeriodicSurface <: Surface end
 struct AbsorbingSurface <: Surface end
 struct ReflectiveSurface <: Surface end
 
@@ -32,10 +33,14 @@ function Base.in(x::BoundaryCell, A::Vector{BoundaryCells})
   findfirst(predicate, A) ≠ nothing
 end
 
+create_periodic_surface()   = PeriodicSurface()
 create_absorbing_surface()  = AbsorbingSurface()
 create_reflective_surface() = ReflectiveSurface()
 
+function reflects(s::Surface)           false end
+function reflects(s::ReflectiveSurface) true  end
 function absorbs(s::Surface)           true  end
+function absorbs(s::PeriodicSurface)   false end
 function absorbs(s::ReflectiveSurface) false end
 function hit!(s::Surface, part::KineticSpecies, p::Int64,
               Δt::Float64, n̂::Array{Float64,1})
@@ -57,7 +62,7 @@ end
 function build_surface_lookup(bcs::Array{Int8, 3}, ss::Array{<:Surface,1})
   cells = BoundaryCells[]
   surfaces = Surface[]
-  ds = AbsorbingSurface()
+  ds = PeriodicSurface()
 
   nx, ny = size(bcs)
   for i=1:nx-1
@@ -189,10 +194,13 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
       surface = st.surfaces[r]
       if absorbs(surface)
         push!(absorbed, p)
-      else
+      end
+
+      if reflects(surface)
         γ = (Δt-Δt′)/Δh
         push!(st.tracked, (p, i, j, hx+γ*vx, hy+γ*vy, Δt′))
       end
+
       hit!(surface, part, p, Δt′, n̂)
     else
       push!(st.tracked, (p, i′, j′, hx′, hy′, Δt′))
@@ -201,5 +209,20 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
 
   for p in absorbed
     remove!(part, p)
+  end
+end
+
+function wrap!(part::KineticSpecies, grid::UniformGrid{XY2D})
+  nx, ny, nz = grid.nx-1, grid.ny-1, grid.nz-1
+  Δx, Δy, Δz = grid.Δh
+  Lx, Ly, Lz = [nx, ny, nz] .* [Δx, Δy, Δz]
+  origin = grid.origin
+  bb = [origin origin] .+ [0. Lx; 0. Ly; 0 Lz]
+  px = view(part.x, 1:part.np, :)
+  for p=1:part.np
+    if px[p,1] < bb[1,1] px[p,1] += Lx end
+    if px[p,1] > bb[1,2] px[p,1] -= Lx end
+    if px[p,2] < bb[2,1] px[p,2] += Ly end
+    if px[p,2] > bb[2,2] px[p,2] -= Ly end
   end
 end
