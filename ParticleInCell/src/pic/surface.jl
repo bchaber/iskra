@@ -187,10 +187,13 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
 
     if r ≠ nothing
       surface = st.surfaces[r]
-      hit!(surface, part, p, Δt′, n̂)
       if absorbs(surface)
         push!(absorbed, p)
+      else
+        γ = (Δt-Δt′)/Δh
+        push!(st.tracked, (p, i, j, hx+γ*vx, hy+γ*vy, Δt′))
       end
+      hit!(surface, part, p, Δt′, n̂)
     else
       push!(st.tracked, (p, i′, j′, hx′, hy′, Δt′))
     end
