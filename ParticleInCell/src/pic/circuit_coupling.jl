@@ -1,15 +1,18 @@
 using Circuit
 using FiniteDifferenceMethod
 
+const DegreeOfFreedom = SubArray{Float64,0,Array{Float64,1},Tuple{Int64},true}
 struct FixedPotentialElectrode <: Surface
-  ij :: Tuple{Int64,Int64}
+  ϕ :: DegreeOfFreedom
+  dq :: Float64
+  area :: Float64
 end
 
 mutable struct FloatingPotentialElectrode <: Surface
-  ij :: Tuple{Int64,Int64}
+  σ :: DegreeOfFreedom
+  ϕ :: DegreeOfFreedom
   dq :: Float64
   area :: Float64
-  dof :: Number
 end
 
 struct PlasmaDevice
@@ -47,8 +50,7 @@ end
 function advance!(circuit :: Nothing, ϕ, Δt, config, ε0) end
 function advance!(circuit :: PlasmaCircuit, ϕ, Δt, config, ε0)
   for electrode in circuit.pd.floating
-  	σ   = FiniteDifferenceMethod.get_rhs(config.solver, :σ, electrode.dof)
-  	σ .+= electrode.dq/ε0 # TODO
+  	electrode.σ .+= electrode.dq/ε0 # TODO
   	electrode.dq = 0.0
   end
 end

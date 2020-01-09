@@ -42,8 +42,8 @@ bcs = zeros(Int8, nx, ny, 1)
 bcs[ nx,  1, 1] = 1
 bcs[ nx, ny, 1] = 2
 set_permittivity(εr)
-create_electrode(bcs .== 1, config.solver, config.grid; fixed=true, V=+1kV)
-create_electrode(bcs .== 2, config.solver, config.grid; fixed=true, V=-1kV)
+create_electrode(bcs .== 1, config.solver, config.grid; fixed=true, ϕ=+1kV)
+create_electrode(bcs .== 2, config.solver, config.grid; fixed=true, ϕ=-1kV)
 ############################################
 import ParticleInCell
 import Diagnostics

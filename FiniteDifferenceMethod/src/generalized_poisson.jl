@@ -1,13 +1,14 @@
 mutable struct PoissonSolver
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
+  x :: AbstractArray{Float64,1}
   εr:: AbstractArray{Float64,3}
   Δh :: Tuple{Float64,Float64,Float64}
 
   dofs :: Dict{Symbol, AbstractArray}
 end
-PoissonSolver(A, b, εr, Δh) =
-    PoissonSolver(A, b, εr, Δh, Dict{Symbol, AbstractArray}())
+PoissonSolver(A, b, x, εr, Δh) =
+    PoissonSolver(A, b, x, εr, Δh, Dict{Symbol, AbstractArray}())
 
 function create_poisson_solver(grid::UniformGrid{XY2D})
     nx, ny = size(grid)
@@ -24,6 +25,7 @@ function create_generalized_poisson_solver(grid::UniformGrid{XY2D}, εr::Array{F
     dofs = collect(1:nn)
     A = zeros(nn, nn)
     b = zeros(nn)
+    x = zeros(nn)
     ϕ = reshape(dofs, nx, ny)
     for j=1:ny
         for i=1:nx
@@ -46,7 +48,7 @@ function create_generalized_poisson_solver(grid::UniformGrid{XY2D}, εr::Array{F
         end
     end
     A ./= (Δx*Δx)
-    ps = PoissonSolver(A, b, εr, Δh)
+    ps = PoissonSolver(A, b, x, εr, Δh)
     ps.dofs[:ϕ] = ϕ
     return ps
 end
@@ -81,6 +83,7 @@ function add_new_dof(ps::PoissonSolver, symbol::Symbol)
     ps.A = hcat(ps.A, zeros(N+1))
     ps.b = vcat(ps.b, [0.])
     
+    ps.x = vcat(ps.x, [0.])
     ps.A[s[end],s[end]] = 1
     ps.b[s[end]]        = 0
     return length(s)
@@ -125,16 +128,22 @@ function apply_neumann(ps::PoissonSolver, nodes, dof)
     end
 end
 
-function get_rhs(ps::PoissonSolver, s::Symbol, dof::Int64)
-    view(ps.b, ps.dofs[s][dof])
-end
+get_solution(ps::PoissonSolver, s::Symbol, i::Int64, j::Int64) =
+    view(ps.x, ps.dofs[s][i,j])
+get_solution(ps::PoissonSolver, s::Symbol, i::Int64) =
+    view(ps.x, ps.dofs[s][i])
+get_rhs(ps::PoissonSolver, s::Symbol, i::Int64, j::Int64) =
+    view(ps.b, ps.dofs[s][i,j])
+get_rhs(ps::PoissonSolver, s::Symbol, i::Int64) =
+    view(ps.b, ps.dofs[s][i])
 
 function calculate_electric_potential(ps::PoissonSolver, f)
-    A, b = ps.A, ps.b
+    A, b, x = ps.A, ps.b, ps.x
     dofs = ps.dofs[:ϕ]
-    b[dofs[2:end-1,2:end-1]] .= f[dofs[2:end-1,2:end-1]]
-    x = solve(A, b)
-    ϕ = x[ps.dofs[:ϕ]]
+    internal = dofs[2:end-1,2:end-1]
+    b[internal] .= f[internal]
+    x.= solve(A, b)
+    ϕ = x[dofs]
     return ϕ
 end
 
