@@ -70,10 +70,6 @@ function apply_dirichlet(ps::PoissonSolver, nodes::BitArray{3}, ϕ0)
     end
 end
 
-function segment(n::Array{Int64,1})
-    s, m, e = length(n) < 2 ? ([], n, []) : (n[1], n[2:end-1], n[end])
-end
-
 function add_new_dof(ps::PoissonSolver, symbol::Symbol)
     N = length(ps.b)
     ps.dofs[symbol] = s = get(ps.dofs, symbol, [])
