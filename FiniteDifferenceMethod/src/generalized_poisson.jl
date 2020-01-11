@@ -3,21 +3,20 @@ mutable struct PoissonSolver
   b :: AbstractArray{Float64,1}
   x :: AbstractArray{Float64,1}
   εr:: AbstractArray{Float64,3}
+  ε0:: Float64
   Δh :: Tuple{Float64,Float64,Float64}
 
   dofs :: Dict{Symbol, AbstractArray}
 end
-PoissonSolver(A, b, x, εr, Δh) =
-    PoissonSolver(A, b, x, εr, Δh, Dict{Symbol, AbstractArray}())
 
-function create_poisson_solver(grid::UniformGrid{XY2D})
+function create_poisson_solver(grid::UniformGrid{XY2D}, ε0::Float64)
     nx, ny = size(grid)
-    create_generalized_poisson_solver(grid, ones(nx+1, ny+1, 1))
+    create_generalized_poisson_solver(grid, ones(nx+1, ny+1, 1), ε0)
 end
 
 # Implement generalized Poisson solver from (eq. 37-40):
 # https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel 2012 - Solving the Generalized Poisson Equation using FDM.pdf
-function create_generalized_poisson_solver(grid::UniformGrid{XY2D}, εr::Array{Float64,3})
+function create_generalized_poisson_solver(grid::UniformGrid{XY2D}, εr::Array{Float64,3}, ε0::Float64)
     nx, ny = size(grid)
     nn = nx⋅ny
     Δh = grid.Δh
@@ -47,9 +46,9 @@ function create_generalized_poisson_solver(grid::UniformGrid{XY2D}, εr::Array{F
             end
         end
     end
-    A ./= (Δx*Δx)
-    ps = PoissonSolver(A, b, x, εr, Δh)
-    ps.dofs[:ϕ] = ϕ
+    A ./= (Δx*Δx) # TODO: it will break when Δx ≠ Δy
+    dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ)
+    ps = PoissonSolver(A, b, x, εr, ε0, Δh, dofs)
     return ps
 end
 
@@ -134,11 +133,11 @@ get_rhs(ps::PoissonSolver, s::Symbol, i::Int64) =
     view(ps.b, ps.dofs[s][i])
 
 function calculate_electric_potential(ps::PoissonSolver, f)
-    A, b, x = ps.A, ps.b, ps.x
+    A, b, x, ε0 = ps.A, ps.b, ps.x, ps.ε0
     dofs = ps.dofs[:ϕ]
     internal = dofs[2:end-1,2:end-1]
     b[internal] .= f[internal]
-    x.= solve(A, b)
+    x.= solve(A, b/ε0)
     ϕ = x[dofs]
     return ϕ
 end
