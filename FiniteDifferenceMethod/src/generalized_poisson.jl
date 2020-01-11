@@ -60,7 +60,9 @@ function apply_dirichlet(ps::PoissonSolver, nodes::BitArray{3}, ϕ0)
     A, b = ps.A, ps.b
     ϕ = ps.dofs[:ϕ]
     ids = CartesianIndices(size(nodes))
-
+    if ϕ0 ≠ 0
+        println("ERROR: non-zero Dirichlet Boundary Condition")
+    end
     for ij in ids[nodes]
         i, j = ij.I
         A[ϕ[i,j],:]     .= 0 # clear row
