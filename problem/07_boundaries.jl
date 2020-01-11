@@ -61,4 +61,4 @@ function ParticleInCell.exit_loop()
 end
 
 ParticleInCell.init(γ, e, Δt)
-@time ParticleInCell.solve(config, Δt, ts, ε0)
+@time ParticleInCell.solve(config, Δt, ts)
