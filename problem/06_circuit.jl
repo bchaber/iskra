@@ -17,15 +17,14 @@ Ly = ny*Δh      # domain length in y direction
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
 O  = create_fluid_species("O", 1.0, 0qe, 8mp, nx+1, ny+1)
-e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
-iO = create_kinetic_species("O+", 20_000,+1qe, 8mp/2000, 1)
+e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 50e3)
 using Chemistry, Circuit
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.cells   = RegularGrid.create_staggered_grid(config.grid)
 config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.pusher  = ParticleInCell.create_boris_pusher()
-config.species = [e, O, iO]
+config.species = [e, O]
 config.circuit = rlc(@netlist begin
   V1, 3, GND, t -> sin(2π*.1e6*t)
   L1, NOD, VCC, 1e-12
@@ -61,9 +60,7 @@ function ParticleInCell.after_loop(it)
   Diagnostics.save_diagnostic("ϕ",   "06-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("nO",  "06-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("ne-", "06-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO+", "06-field",   it, Δt*it-Δt)
   Diagnostics.save_diagnostic("pve-","06-particle",it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("pvO+","06-particle",it, Δt*it-Δt)
   Diagnostics.save_diagnostic("i",   "06-circuit", it, Δt*it-Δt)
   Diagnostics.save_diagnostic("q",   "06-circuit", it, Δt*it-Δt)
   Diagnostics.save_diagnostic("V",   "06-circuit", it, Δt*it-Δt)
@@ -76,6 +73,6 @@ function ParticleInCell.exit_loop()
   Diagnostics.close_container("06-particle")
   Diagnostics.close_container("06-circuit")
 end
-ParticleInCell.init(ParticleInCell.MaxwellianSource(1e3/Δt, [0 Lx; 0 Ly], [0 0; 0 0]), iO, Δt)
+ParticleInCell.init(ParticleInCell.MaxwellianSource(1e3/Δt, [0 Lx; 0 Ly], [0 0; 0 0]), e, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(0δ, config.grid), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts)
