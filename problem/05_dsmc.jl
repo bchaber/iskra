@@ -36,7 +36,6 @@ config.interactions = [collisions]
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
 xx, yy = config.grid.x, config.grid.y
-δ = @. exp(-(xx-0.5Lx)^2/0.02Lx -(yy-0.5Ly)^2/0.02Ly)
 εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny, 1)
 bcs[ nx,  1, 1] = 1
