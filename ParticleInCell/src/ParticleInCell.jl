@@ -68,7 +68,7 @@ module ParticleInCell
     end
   end
 
-  function solve(config, Δt=1e-5, timesteps=200, ε0=1.0)
+  function solve(config, Δt=1e-5, timesteps=200)
     init_default(config, Δt)
     pusher = config.pusher
     interactions = config.interactions
@@ -103,7 +103,7 @@ module ParticleInCell
       for part in species
         advance!(part, E, Δt, config)
       end
-      advance!(circuit, ϕ, Δt, config, ε0)
+      advance!(circuit, ϕ, Δt, config)
       # Calculate charge density
       fill!(ρ, 0.0)
       for part in species
@@ -113,7 +113,7 @@ module ParticleInCell
         @diag "n"*part.name NodeData(part.n, origin, spacing)
       end
       # Calculate electric field
-      ϕ  = calculate_electric_potential(solver, -ρ/ε0)
+      ϕ  = calculate_electric_potential(solver, -ρ)
       E  = calculate_electric_field(solver, ϕ)
 
       @diag "ρ" NodeData(ρ, origin, spacing)

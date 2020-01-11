@@ -22,7 +22,7 @@ e = create_kinetic_species("e-", 50_000,-1qe, 1me, 50e3)
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
+config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e]
 ############################################
@@ -33,7 +33,7 @@ bcs[nx, 5:7,    1] .= 2
 bcs[nx-1,  1,   1]  = 3
 bcs[nx-1, ny,   1]  = 3
 bcs[6:8,  5:7,  1] .= 4
-driven   = create_electrode(bcs .== 1, config.solver, config.grid; σ=1)
+driven   = create_electrode(bcs .== 1, config.solver, config.grid; σ=1ε0)
 floating = create_electrode(bcs .== 2, config.solver, config.grid)
 grounded = create_electrode(bcs .== 3, config.solver, config.grid; fixed=true)
 reflecting = ParticleInCell.create_reflective_surface()

@@ -23,7 +23,7 @@ using Chemistry, Circuit
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
+config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O, iO]
 config.circuit = rlc(@netlist begin
@@ -41,10 +41,11 @@ bcs = zeros(Int8, nx, ny, 1)
 bcs[ 1, 1:ny, 1] .= 1
 bcs[nx, 1:ny, 1] .= 2
 set_permittivity(εr)
-FiniteDifferenceMethod.add_new_dof(config.solver, :σ)
-FiniteDifferenceMethod.get_rhs(config.solver, :σ, 1) .= 1.
-FiniteDifferenceMethod.apply_neumann(config.solver, bcs .== 1, 1)
-FiniteDifferenceMethod.apply_dirichlet(config.solver, bcs .== 2, 0)
+driven   = create_electrode(bcs .== 1, config.solver, config.grid; σ=1ε0)
+grounded = create_electrode(bcs .== 2, config.solver, config.grid; fixed=true)
+config.circuit.ext = ParticleInCell.PlasmaDevice([grounded], [driven])
+config.tracker = ParticleInCell.create_surface_tracker(bcs,
+  [driven, grounded], Δh, Δt)
 ############################################
 import ParticleInCell
 import Diagnostics
@@ -77,4 +78,4 @@ function ParticleInCell.exit_loop()
 end
 ParticleInCell.init(ParticleInCell.MaxwellianSource(1e3/Δt, [0 Lx; 0 Ly], [0 0; 0 0]), iO, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(0δ, config.grid), O, Δt)
-@time ParticleInCell.solve(config, Δt, ts, ε0)
+@time ParticleInCell.solve(config, Δt, ts)

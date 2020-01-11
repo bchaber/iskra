@@ -23,7 +23,7 @@ using Chemistry
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
+config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O, iO]
 
@@ -42,8 +42,8 @@ bcs = zeros(Int8, nx, ny, 1)
 bcs[ nx,  1, 1] = 1
 bcs[ nx, ny, 1] = 2
 set_permittivity(εr)
-create_electrode(bcs .== 1, config.solver, config.grid; fixed=true, ϕ=+1kV)
-create_electrode(bcs .== 2, config.solver, config.grid; fixed=true, ϕ=-1kV)
+create_electrode(bcs .== 1, config.solver, config.grid; σ=1e3ε0)
+create_electrode(bcs .== 2, config.solver, config.grid; fixed=true)
 ############################################
 import ParticleInCell
 import Diagnostics
@@ -77,4 +77,4 @@ end
 νth = thermal_speed(300, O.m)
 ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
 ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [0.     νth; 0.   νth]), O, Δt)
-@time ParticleInCell.solve(config, Δt, ts, ε0)
+@time ParticleInCell.solve(config, Δt, ts)

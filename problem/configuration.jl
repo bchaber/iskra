@@ -15,7 +15,7 @@ end
 
 function set_permittivity(εr)
   grid = config.grid
-  FiniteDifferenceMethod.create_generalized_poisson_solver(grid, εr)
+  FiniteDifferenceMethod.create_generalized_poisson_solver(grid, εr, ε0)
 end
 
 function create_electrode(nodes, ps, grid; fixed=false, σ=0.0, ϕ=0.0)

@@ -20,7 +20,7 @@ iO  = create_fluid_species("O+", 1.0, +1qe, 8mp, nx+1, ny+1)
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
 config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid)
+config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.species = [iO]
 ############################################
 nx, ny = size(config.grid)
@@ -32,8 +32,8 @@ bcs = zeros(Int8, nx, ny, 1)
 bcs[ nx,  1, 1] = 1
 bcs[ nx, ny, 1] = 2
 set_permittivity(εr)
-create_electrode(bcs .== 1, config.solver, config.grid; fixed=true, ϕ=+1V)
-create_electrode(bcs .== 2, config.solver, config.grid; fixed=true, ϕ=-1V)
+create_electrode(bcs .== 1, config.solver, config.grid; σ=30ε0)
+create_electrode(bcs .== 2, config.solver, config.grid; fixed=true)
 ############################################
 import ParticleInCell
 import Diagnostics
@@ -54,4 +54,4 @@ function ParticleInCell.exit_loop()
 end
 
 ParticleInCell.init(ParticleInCell.DensitySource(1e5δ, config.grid), iO, Δt)
-@time ParticleInCell.solve(config, Δt, ts, ε0)
+@time ParticleInCell.solve(config, Δt, ts)
