@@ -24,12 +24,8 @@ function create_electrode(nodes, ps, grid; fixed=false, σ=0.0, ϕ=0.0)
     area = 0.
     for c in findall(nodes)
       i, j  = c.I
-      if i < nx
-        area += nodes[i+1,j] ? Δx*Δz : 0
-      end
-      if j < ny
-        area += nodes[i,j+1] ? Δy*Δz : 0
-      end
+      area += (i < nx && nodes[i+1,j]) ? Δx*Δz : 0
+      area += (j < ny && nodes[i,j+1]) ? Δy*Δz : 0
     end
     return area
   end
