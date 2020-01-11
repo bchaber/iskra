@@ -122,7 +122,7 @@ module ParticleInCell
 
       after_loop(iteration)
 
-      println("Time Step #", iteration)#, ", Particles #", [part.np for part in config.species])
+      println("Time Step #", iteration)
     end
 
     exit_loop()
