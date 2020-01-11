@@ -1,3 +1,4 @@
+# TODO: PoissonSolver should be parametrized with CoordinateSystem
 mutable struct PoissonSolver
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
