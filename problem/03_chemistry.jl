@@ -28,7 +28,7 @@ config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [O, iO, e]
 
 #σ = CrossSection(0:0.3:1.5, [0, 0.1e-4, 0.4e-4, 0.5e-4, 0.7e-4, 0.9e-4])
-σ(E) = .1
+σ(E) = 2
 chemistry = chemical(@reactions begin
     σ, e + O --> 2e + iO
 end)

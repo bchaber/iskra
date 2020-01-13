@@ -10,7 +10,7 @@ nx = 20         # number of nodes in x direction
 ny = 20         # number of nodes in y direction
 ts = 200        # number of time steps
 Δh = 5cm        # cell size
-Δt = .03ns      # time step
+Δt = 1ns        # time step
 Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
@@ -27,7 +27,7 @@ config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O, iO]
 
-σ = CrossSection(5e7:25e7:80e7, [0.01, 0.1, 2.0, 0.01])
+σ = CrossSection(3e6:1e6:6e6, [0.01, 0.1, 2.0, 0.01])
 collisions = dsmc(@reactions begin
     σ, e + O --> O + e
 end)
