@@ -38,7 +38,7 @@ floating = create_electrode(bcs .== 2, config.solver, config.grid)
 grounded = create_electrode(bcs .== 3, config.solver, config.grid; fixed=true)
 reflecting = ParticleInCell.create_reflective_surface()
 config.tracker = ParticleInCell.create_surface_tracker(bcs,
-	[driven, grounded, floating, reflecting], Δh, Δt)
+	[driven, grounded, floating, reflecting], Δh)
 ############################################
 import ParticleInCell
 import Diagnostics

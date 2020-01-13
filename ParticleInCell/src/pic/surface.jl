@@ -10,27 +10,45 @@ struct AbsorbingSurface <: Surface end
 struct ReflectiveSurface <: Surface end
 
 struct SurfaceTracker
-  cells :: Vector{BoundaryCells}
+  surface :: Dict{BoundaryCells,Surface}
   tracked :: Vector{TrackedParticle}
-  surfaces :: Vector{Surface}
   Δh :: Float64
-  Δt :: Float64
 end
 
-function Base.findfirst(x::BoundaryCells, A::Vector{BoundaryCells})
-  function predicate(y)
-    i,j,k,l = y
-    (i,j,k,l) == x || (k,l,i,j) == x
-  end
-  findfirst(predicate, A)
+function Base.get(st::SurfaceTracker,
+                  bc::BoundaryCells,
+                  dv::Union{Surface,Nothing})
+  get(st.surface, bc, dv)
 end
 
-function Base.in(x::BoundaryCell, A::Vector{BoundaryCells})
-  function predicate(y)
-    i,j,k,l = y
-    (i,j) == x || (k,l) == x
+function Base.get!(st::SurfaceTracker,
+                   bc::BoundaryCells,
+                   dv::Union{Surface,Nothing})
+  get!(st.surface, bc, dv)
+end
+
+function Base.setindex!(st::SurfaceTracker,
+                        v0::Surface,
+                        bc::BoundaryCells)
+  setindex!(st.surface, v0, bc)
+end
+
+function Base.in(x::BoundaryCell,  st::SurfaceTracker)
+  for (i,j,k,l) in keys(st.surface)
+    if (i,j) == x || (k,l) == x
+      return true
+    end
   end
-  findfirst(predicate, A) ≠ nothing
+  return false
+end
+
+function Base.in(x::BoundaryCells, st::SurfaceTracker)
+  for (i,j,k,l) in keys(st.surface)
+    if (i,j,k,l) == x || (k,l,i,j) == x
+      return true
+    end
+  end
+  return false
 end
 
 create_periodic_surface()   = PeriodicSurface()
@@ -59,11 +77,20 @@ function hit!(s::ReflectiveSurface, part::KineticSpecies, p::Int64,
   part.x[p,:] .+= part.v[p,:]*Δt
 end
 
-function build_surface_lookup(bcs::Array{Int8, 3}, ss::Array{<:Surface,1})
-  cells = BoundaryCells[]
-  surfaces = Surface[]
-  ds = PeriodicSurface()
+function build_default_surface!(st::SurfaceTracker, bcs::BitArray{3}, ds::Surface)
+  nx, ny = size(bcs)
+  for i=1:nx-1
+    get!(st, (i,1,i,0),     ds)
+    get!(st, (i,ny-1,i,ny), ds)
+  end
 
+  for j=1:ny-1
+    get!(st, (1,j,0,j),     ds)
+    get!(st, (nx-1,j,nx,j), ds)
+  end
+end
+
+function build_surface_lookup!(st::SurfaceTracker, bcs::BitArray{3}, ss::Surface)
   nx, ny = size(bcs)
   for i=1:nx-1
     for j=1:ny-1
@@ -71,68 +98,59 @@ function build_surface_lookup(bcs::Array{Int8, 3}, ss::Array{<:Surface,1})
       b = bcs[i+1,j  ,1]
       c = bcs[i+1,j+1,1]
       d = bcs[i  ,j+1,1]
-      if j == 1
-        push!(cells, (i,j-1, i,j))
-        push!(surfaces,  (a == b > 0) ? ss[a] : ds)
+      if a
+        st[(i,j, (a == b) ? i : i-1, j-1)] = ss
       end
 
-      if i == nx-1
-        push!(cells, (i,j, i+1,j))
-        push!(surfaces,  (b == c > 0) ? ss[b] : ds)
+      if b
+        st[(i,j, i+1, (b == c) ? j : j-1)] = ss
       end
 
-      if j == ny-1
-        push!(cells, (i,j, i,j+1))
-        push!(surfaces,  (c == d > 0) ? ss[c] : ds)
+      if c
+        st[(i,j, (c == d) ? i : i+1, j+1)] = ss
       end
 
-      if i == 1
-        push!(cells, (i-1,j, i,j))
-        push!(surfaces,  (d == a > 0) ? ss[d] : ds)
-      end
-
-      if a > 0
-        push!(cells, (i,j, (a == b) ? i : i-1, j-1))
-        push!(surfaces,  ss[a])
-      end
-
-      if b > 0
-        push!(cells, (i,j, i+1, (b == c) ? j : j-1))
-        push!(surfaces,  ss[b])
-      end
-
-      if c > 0
-        push!(cells, (i,j, (c == d) ? i : i+1, j+1))
-        push!(surfaces, ss[c])
-      end
-
-      if d > 0
-        push!(cells, (i,j, i-1, (d == a) ? j : j+1))
-        push!(surfaces, ss[d])
+      if d
+        st[(i,j, i-1, (d == a) ? j : j+1)] = ss
       end
     end
   end
-
-  return cells, surfaces
 end
 
-function create_surface_tracker(grid::UniformGrid{XY2D}, Δt)
+function create_surface_tracker(grid::UniformGrid{XY2D})
   Δx, _, _ = grid.Δh
   nx, ny = size(grid)
-  create_surface_tracker(zeros(Int8, nx, ny, 1), Surface[], Δx, Δt)
+  bcs = zeros(Int64, nx, ny, 1)
+
+  tracked = TrackedParticle[]
+  surface = Dict{BoundaryCells, Surface}()
+  ds = AbsorbingSurface()
+  st = SurfaceTracker(surface, tracked, Δx)
+
+  build_default_surface!(st, bcs .== 0, ds)
+  return st
 end
 
-function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{<:Surface,1}, Δh, Δt)
+function track_surface!(st::SurfaceTracker, bcs::BitArray{3}, ss::Surface)
+  build_surface_lookup!(st, bcs, ss)
+end
+
+function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{<:Surface,1}, Δh)
   tracked = TrackedParticle[]
-  
-  cells, surfaces = build_surface_lookup(bcs, ss)
-  SurfaceTracker(cells, tracked, surfaces, Δh, Δt)
+  surface = Dict{BoundaryCells, Surface}()
+  st = SurfaceTracker(surface, tracked, Δh)
+  ds = AbsorbingSurface()
+
+  build_default_surface!(st, bcs .== 0, ds)
+  for i=1:length(ss)
+    build_surface_lookup!(st, bcs .== i, ss[i])
+  end
+  return st
 end
 
 function track!(::Nothing, part::KineticSpecies, Δt) end
 function track!(st::SurfaceTracker, part::KineticSpecies, Δt)
   Δh = st.Δh
-  Δt = st.Δt
   np = part.np
   px = view(part.x, 1:np, :)
   pv = view(part.v, 1:np, :)
@@ -140,7 +158,7 @@ function track!(st::SurfaceTracker, part::KineticSpecies, Δt)
   deleteat!(st.tracked, 1:length(st.tracked))
   for p=1:part.np
     i, j, hx, hy = particle_cell(px, p, Δh)
-    if (i,j) ∈ st.cells
+    if (i,j) ∈ st
       push!(st.tracked, (p,i,j,hx,hy,Δt))
     end
   end
@@ -188,10 +206,8 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
       continue
     end
     n̂ = [i′-i, j′-j, 0.]
-    r = findfirst((i, j, i′,j′), st.cells)
-
-    if r ≠ nothing
-      surface = st.surfaces[r]
+    surface = get(st, (i, j, i′,j′), nothing)
+    if surface ≠ nothing
       if absorbs(surface)
         push!(absorbed, p)
       end

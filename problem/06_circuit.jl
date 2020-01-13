@@ -25,11 +25,6 @@ config.cells   = RegularGrid.create_staggered_grid(config.grid)
 config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
 config.pusher  = ParticleInCell.create_boris_pusher()
 config.species = [e, O]
-config.circuit = rlc(@netlist begin
-  V1, 3, GND, t -> sin(2π*.1e6*t)
-  L1, NOD, VCC, 1e-12
-  R1, GND, NOD, 1e-6
-end)
 ############################################
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
@@ -40,11 +35,14 @@ bcs = zeros(Int8, nx, ny, 1)
 bcs[ 1, 1:ny, 1] .= 1
 bcs[nx, 1:ny, 1] .= 2
 set_permittivity(εr)
-driven   = create_electrode(bcs .== 1, config.solver, config.grid; σ=1ε0)
-grounded = create_electrode(bcs .== 2, config.solver, config.grid; fixed=true)
-config.circuit.ext = ParticleInCell.PlasmaDevice([grounded], [driven])
-config.tracker = ParticleInCell.create_surface_tracker(bcs,
-  [driven, grounded], Δh, Δt)
+driven   = create_electrode(bcs .== 1, config; σ=1ε0)
+grounded = create_electrode(bcs .== 2, config; fixed=true)
+
+config.circuit = rlc(@netlist begin
+  V1, 3, GND, t -> sin(2π*.1e3*t)
+  L1, NOD, VCC, 1nH
+  R1, GND, NOD, 1
+end)
 ############################################
 import ParticleInCell
 import Diagnostics
