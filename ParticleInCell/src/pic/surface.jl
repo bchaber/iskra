@@ -98,21 +98,10 @@ function build_surface_lookup!(st::SurfaceTracker, bcs::BitArray{3}, ss::Surface
       b = bcs[i+1,j  ,1]
       c = bcs[i+1,j+1,1]
       d = bcs[i  ,j+1,1]
-      if a
-        st[(i,j, (a == b) ? i : i-1, j-1)] = ss
-      end
-
-      if b
-        st[(i,j, i+1, (b == c) ? j : j-1)] = ss
-      end
-
-      if c
-        st[(i,j, (c == d) ? i : i+1, j+1)] = ss
-      end
-
-      if d
-        st[(i,j, i-1, (d == a) ? j : j+1)] = ss
-      end
+      if a st[(i,j, (a == b) ? i : i-1, j-1)] = ss end
+      if b st[(i,j, i+1, (b == c) ? j : j-1)] = ss end
+      if c st[(i,j, (c == d) ? i : i+1, j+1)] = ss end
+      if d st[(i,j, i-1, (d == a) ? j : j+1)] = ss end
     end
   end
 end
