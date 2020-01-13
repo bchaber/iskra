@@ -33,12 +33,11 @@ bcs[nx, 5:7,    1] .= 2
 bcs[nx-1,  1,   1]  = 3
 bcs[nx-1, ny,   1]  = 3
 bcs[6:8,  5:7,  1] .= 4
-driven   = create_electrode(bcs .== 1, config.solver, config.grid; σ=1ε0)
-floating = create_electrode(bcs .== 2, config.solver, config.grid)
-grounded = create_electrode(bcs .== 3, config.solver, config.grid; fixed=true)
 reflecting = ParticleInCell.create_reflective_surface()
-config.tracker = ParticleInCell.create_surface_tracker(bcs,
-	[driven, grounded, floating, reflecting], Δh)
+driven   = create_electrode(bcs .== 1, config; σ=1ε0)
+floating = create_electrode(bcs .== 2, config)
+grounded = create_electrode(bcs .== 3, config; fixed=true)
+ParticleInCell.track_surface!(config.tracker, bcs .== 4, reflecting)
 ############################################
 import ParticleInCell
 import Diagnostics
