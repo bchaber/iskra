@@ -59,17 +59,7 @@ module ParticleInCell
     @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
   end
 
-  function init_default(config, Δt)
-    if config.tracker == nothing
-      config.tracker = create_surface_tracker(config.grid, Δt)
-    end
-    if config.circuit == nothing
-      config.circuit = create_plasma_circuit(config.tracker)
-    end
-  end
-
   function solve(config, Δt=1e-5, timesteps=200)
-    init_default(config, Δt)
     pusher = config.pusher
     interactions = config.interactions
     sources = config.sources

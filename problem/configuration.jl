@@ -18,6 +18,24 @@ function set_permittivity(εr)
   FiniteDifferenceMethod.create_generalized_poisson_solver(grid, εr, ε0)
 end
 
+function create_electrode(nodes, config;   fixed=false, σ=0.0, ϕ=0.0)
+  if config.grid == nothing
+    println("No grid defined. EXIT")
+  end
+
+  if config.solver == nothing
+    println("No field solver defined. EXIT")
+  end
+
+  if config.tracker == nothing
+    config.tracker = ParticleInCell.create_surface_tracker(config.grid)
+  end
+
+  electrode = create_electrode(nodes, config.solver, config.grid;
+    fixed=fixed, σ=σ, ϕ=ϕ)
+  ParticleInCell.track_surface!(config.tracker, nodes, electrode)
+end
+
 function create_electrode(nodes, ps, grid; fixed=false, σ=0.0, ϕ=0.0)
   Δx, Δy, Δz = grid.Δh
   function calculate_area(nodes)
