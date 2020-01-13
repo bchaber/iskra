@@ -40,7 +40,7 @@ module ParticleInCell
     grid = config.grid
     nx, ny = size(grid)
 
-    track!(tracker, part)
+    track!(tracker, part, Δt)
     partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
     push_particles!(pusher, part, partE, Δt)
     check!(tracker, part, Δt)

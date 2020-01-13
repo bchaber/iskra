@@ -129,8 +129,8 @@ function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{<:Surface,1}, Δh
   SurfaceTracker(cells, tracked, surfaces, Δh, Δt)
 end
 
-function track!(::Nothing, part::KineticSpecies) end
-function track!(st::SurfaceTracker, part::KineticSpecies)
+function track!(::Nothing, part::KineticSpecies, Δt) end
+function track!(st::SurfaceTracker, part::KineticSpecies, Δt)
   Δh = st.Δh
   Δt = st.Δt
   np = part.np
