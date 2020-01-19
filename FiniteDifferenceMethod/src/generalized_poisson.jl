@@ -109,9 +109,9 @@ function apply_neumann(ps::PoissonSolver, nodes, dof)
            a == b == false
             i′ = (i == 1) ?   i+1 : i-1
             A[ϕ[i,j],:] .= 0
-            A[ϕ[i,j],ϕ[i, j]] -= 2εr[i, j]/Δx^2
-            A[ϕ[i,j],ϕ[i′,j]] += 2εr[i′,j]/Δx^2
-            A[ϕ[i,j],σ[dof]]  += 2/Δx
+            A[ϕ[i,j],ϕ[i, j]] -= 2εr[i, j]/Δx
+            A[ϕ[i,j],ϕ[i′,j]] += 2εr[i′,j]/Δx
+            A[ϕ[i,j],σ[dof]]  += 2
         end
         if c != d
             i′ = (i == 1) ? i+1 : i-1
