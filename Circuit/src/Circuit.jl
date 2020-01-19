@@ -19,6 +19,8 @@ TimeData([y])
  save_diagnostic(dname::String, d::TimeData, cname::String, c::Any, it::Integer, t::Float64) =
   pvd_add_timestep(c, field_as_vectors([0.], [0.], cname*dname, dname => (d.y), it=it, save=false), t)
 
+abstract type  CircuitDevice end
+abstract type  CircuitElement end
 mutable struct CircuitRLC
   R :: Float64
   L :: Float64
@@ -26,13 +28,15 @@ mutable struct CircuitRLC
   i :: Float64
   q :: Float64
   t :: Float64
-  V :: Any # in fact it is a function (Float64) ↦ (Float64)
-  ext :: Any # should be some abstract type
+  V :: Function
+  ext :: CircuitDevice
 end
-CircuitRLC(i0::Number, q0::Number, t0::Number) =
-	CircuitRLC(0.0, 0.0, 0.0, i0, q0, t0, nothing, nothing)
 
-abstract type CircuitElement end
+struct ShortedConnection <: CircuitDevice end
+
+CircuitRLC(i0::Number, q0::Number, t0::Number) =
+	CircuitRLC(0.0, 0.0, 0.0, i0, q0, t0, t -> 0., ShortedConnection())
+
 struct Resistor <: CircuitElement
 	name :: String
 	val  :: Float64
@@ -47,13 +51,14 @@ struct Capacitor <: CircuitElement
 end
 struct VoltageSource <: CircuitElement
 	name :: String
-	val  :: Any
+	val  :: Function
 end
 struct ExternalDevice <: CircuitElement
   name :: String
-  val  :: Any
+  val  :: CircuitDevice
 end
 
+function voltage(ext::ShortedConnection) 0.0 end
 function assign!(cir::CircuitRLC, r::Resistor)  cir.R = r.val end
 function assign!(cir::CircuitRLC, l::Inductor)  cir.L = l.val end
 function assign!(cir::CircuitRLC, c::Capacitor) cir.C = c.val end
@@ -93,25 +98,22 @@ function parse(ex::Expr, elements, nodes)
       name  = ex.args[1]
       node₊ = ex.args[2]
       node₋ = ex.args[3]
-      rest  = ex.args[4]
+      arg0  = ex.args[4]
 
       push!(nodes, string(node₊))
       push!(nodes, string(node₋))
 
-      element = parse_circuit_element(string(name), rest)
+      element = parse_circuit_element(string(name), arg0)
 
       push!(elements.args, element)
     end
 end
 
-function parse_circuit_element(name::String, rest)
+function parse_circuit_element(name::String, arg0)
+  value = arg0
   if startswith(name, "V")
-  	v = rest
-  	return :(VoltageSource($(esc(name)), $(esc(v)) ))
-  end
-
-  value = rest
-  if startswith(name, "R")
+    return :(VoltageSource($(esc(name)), $(esc(value)) ))
+  elseif startswith(name, "R")
   	return :(Resistor($(esc(name)), $(esc(value)) ))
   elseif startswith(name, "L")
   	return :(Inductor($(esc(name)), $(esc(value)) ))
@@ -127,8 +129,9 @@ function advance_circuit!(cir::CircuitRLC, V, Δt)
   t, v = cir.t, cir.V
   i, q = cir.i, cir.q
   R, L, C = cir.R, cir.L, cir.C
+  vext = voltage(cir.ext)
 
-  cir.i  = (L/Δt - R/2)*i + V - v(t)
+  cir.i  = (L/Δt - R/2)*i + vext - v(t)
   if C > 0.0
     cir.i -=  q/C
     cir.i /= (L/Δt + R/2)
@@ -140,11 +143,12 @@ function advance_circuit!(cir::CircuitRLC, V, Δt)
   @diag "i" TimeData(cir.i)
   @diag "q" TimeData(cir.q)
   @diag "V" TimeData(v(t))
-  @diag "Vext" TimeData(V)
+  @diag "Vext" TimeData(vext)
 end
 
 Base.show(io :: IO, e :: Resistor) = print(io, e.name, ": ", e.val, " Ω")
 Base.show(io :: IO, e :: Inductor) = print(io, e.name, ": ", e.val*1e6, " μH")
 Base.show(io :: IO, e :: Capacitor)= print(io, e.name, ": ", e.val*1e9, " nF")
 Base.show(io :: IO, e :: VoltageSource) = print(io, e.name, ": ", e.val, " V") 
+Base.show(io :: IO, e :: ExternalDevice) = print(io, e.name, ": ", e.val, " EXT") 
 end

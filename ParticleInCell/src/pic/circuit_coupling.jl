@@ -15,56 +15,25 @@ mutable struct FloatingPotentialElectrode <: Surface
   area :: Float64
 end
 
-struct PlasmaDevice
-  fixed :: Vector{FixedPotentialElectrode}
-  floating :: Vector{FloatingPotentialElectrode}
+struct PlasmaDevice <: Circuit.CircuitDevice
+  positive :: FloatingPotentialElectrode
+  negative :: FixedPotentialElectrode
 end
 
-struct PlasmaCircuit
-  pd :: PlasmaDevice
+function Circuit.voltage(pd :: PlasmaDevice)
+  pd.positive.ϕ - pd.negative.ϕ
 end
-
-PlasmaDevice() =
-  PlasmaDevice(FixedPotentialElectrode[], FloatingPotentialElectrode[])
-function assign!(pd :: PlasmaDevice, s :: Surface) end
-function assign!(pd :: PlasmaDevice, s :: FixedPotentialElectrode)
-  push!(pd.fixed, s)
-end
-function assign!(pd :: PlasmaDevice, s :: FloatingPotentialElectrode)
-  push!(pd.floating, s)
-end
-
-function create_plasma_circuit(tracker :: SurfaceTracker)
-  pd = PlasmaDevice()
-  for surface in tracker.surfaces
-  	assign!(pd, surface)
-  end
-
-  if length(pd.floating) > 0 && length(pd.fixed) < 1
-  	println("At least one electrode should have fixed potential!")
-  end
-
-  PlasmaCircuit(pd)
-end
-
-function advance!(circuit :: Nothing, ϕ, Δt, config, ε0) end
-function advance!(circuit :: PlasmaCircuit, ϕ, Δt, config, ε0)
-  for electrode in circuit.pd.floating
-  	electrode.σ .+= electrode.dq/ε0 # TODO
-  	electrode.dq = 0.0
-  end
-end
-
-function advance!(circuit :: CircuitRLC, ϕ, Δt, config, ε0)
-  nx, ny = size(config.grid)
-  Δx, Δy, Δz = config.grid.Δh
-  A = ny * Δy*Δz
-  V = ϕ[1,1] - ϕ[nx,ny]
-  advance_circuit!(circuit, V, Δt)
-  dσ = -Δt*circuit.i/A
+function foo!(pd :: Circuit.CircuitDevice, ::Number, Δt) end
+function foo!(pd :: PlasmaDevice, i::Number, Δt)
+  positive, negative = pd.positive, pd.negative
+  dσ = -Δt*circuit.i/positive.area
+  positive.dq = .0
   @diag "dσ" TimeData(dσ)
-  σ = FiniteDifferenceMethod.get_rhs(config.solver, :σ, 1)
-  σ .+= dσ/ε0
+end
+function advance!(circuit :: Nothing, ϕ, Δt, config) end
+function advance!(circuit :: CircuitRLC, ϕ, Δt, config)
+  advance_circuit!(circuit, 0, Δt)
+  foo!(circuit.ext, circuit.i, Δt)
 end
 
 function hit!(s::FloatingPotentialElectrode,
