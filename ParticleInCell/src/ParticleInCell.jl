@@ -9,9 +9,18 @@ module ParticleInCell
   include("pic/diagnostics.jl")
   include("pic/pushers.jl")
   include("pic/sources.jl")
-  include("pic/surface.jl")
+  include("pic/surfaces/build.jl")
+  include("pic/surfaces/track.jl")
+  include("pic/surfaces/hit.jl")
+  include("pic/surfaces/check.jl")
+  include("pic/surfaces/wrap.jl")
   include("pic/circuit_coupling.jl")
   
+  function particle_velocity(pv, p)
+    vx, vy = view(pv, p, :)
+    return vx, vy 
+  end
+
   function particle_cell(px, p, Δh)
     fij = @views 1 .+ px[p, :] ./ Δh
     ij = floor.(Int64, fij)

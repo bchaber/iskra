@@ -67,7 +67,22 @@ function advance!(circuit :: CircuitRLC, ϕ, Δt, config, ε0)
   σ .+= dσ/ε0
 end
 
-function hit!(s::FloatingPotentialElectrode, part::KineticSpecies, p::Int64,
-              Δt::Float64, n̂::Array{Float64,1})
-  s.dq += part.q*part.wg[p]
+function hit!(s::FloatingPotentialElectrode,
+              part::KineticSpecies,
+              st ::SurfaceTracker,
+              pt ::TrackedParticle,
+              pt′::TrackedParticle)
+  _, p  = pt
+  dq    = part.q*part.wg[p]
+  s.dq += dq
+  s.σ .+= dq/s.area
+  absorbed!(st, pt)
+end
+
+function hit!(s::FixedPotentialElectrode,
+              part::KineticSpecies,
+              st ::SurfaceTracker,
+              pt ::TrackedParticle,
+              pt′::TrackedParticle)
+  absorbed!(st, pt)
 end
