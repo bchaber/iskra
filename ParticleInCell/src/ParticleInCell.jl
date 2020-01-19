@@ -77,7 +77,7 @@ module ParticleInCell
     solver = config.solver
     cells = config.cells
     grid  = config.grid
-    
+    Δt = float(Δt)
     nx, ny = size(grid)
     Δx, Δy, Δz = grid.Δh
     spacing = [Δx, Δy]
