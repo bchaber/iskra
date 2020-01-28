@@ -1,5 +1,6 @@
 module RegularGrid
-    export create, UniformGrid, CoordinateSystem, XY2D, RZ2D
+    export create_uniform_grid, create_staggered_grid
+    export UniformGrid, CoordinateSystem, XY2D, RZ2D
     abstract type CoordinateSystem end
     abstract type XY2D <: CoordinateSystem end
     abstract type RZ2D <: CoordinateSystem end

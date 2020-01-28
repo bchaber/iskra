@@ -1,5 +1,6 @@
-struct BorisPusher end
+export create_boris_pusher
 
+struct BorisPusher end
 function create_boris_pusher()
   return BorisPusher()
 end

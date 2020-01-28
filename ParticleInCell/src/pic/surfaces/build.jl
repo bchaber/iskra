@@ -17,6 +17,10 @@ struct SurfaceTracker
   Δh :: Float64
 end
 
+export create_periodic_surface
+export create_absorbing_surface
+export create_reflective_surface
+export track_surface!
 create_periodic_surface()   = PeriodicSurface()
 create_absorbing_surface()  = AbsorbingSurface()
 create_reflective_surface() = ReflectiveSurface()

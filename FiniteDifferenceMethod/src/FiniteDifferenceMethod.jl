@@ -1,4 +1,5 @@
 module FiniteDifferenceMethod
+	export create_poisson_solver
     export calculate_electric_field
     export calculate_electric_field!
     export calculate_electric_potential
