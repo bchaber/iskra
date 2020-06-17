@@ -22,7 +22,7 @@ function PIC.perform!(network::ChemicalReactionNetwork, E, Δt, config)
 
 	for species in keys(Δn)
 		species.n .+= Δn[species]
-		@diag "Δn"*species.name PIC.NodeData(Δn[species], config.grid.origin, [Δx, Δy])
+		@field species.name*"/density_change" Δn[species] config.grid
 	end
 end
 

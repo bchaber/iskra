@@ -9,7 +9,7 @@ export chemical, mcc, dsmc
 is_fluid(x) = error("Implement is_fluid for ", typeof(x))
 
 import LinearAlgebra: norm, dot
-import Diagnostics: @diag
+import Diagnostics: @field
 import ParticleInCell
 PIC = ParticleInCell
 

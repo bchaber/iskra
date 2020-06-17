@@ -138,7 +138,7 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 			end
 		end
 	end
-	@diag "ν" PIC.NodeData(ν, config.grid.origin, [Δx,Δy])
+	@field "dsmc/nu" "1/m^2" ν config.grid
 end
 
 function dsmc(reactions)

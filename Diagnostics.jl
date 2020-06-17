@@ -1,47 +1,131 @@
 module Diagnostics
 
-import PlotVTK:pvd_create,pvd_save
+using Printf
+using HDF5
+using Unitful
+using RegularGrid
 
-abstract type DiagnosticData end
+import Dates
 
-diagnostics = Dict{String, DiagnosticData}()
-containers  = Dict{String, Any}()
-directory = "/tmp/"
+export @particle
+export @field
 
-function open_container(cname::String)
-  containers[cname] = pvd_create(directory*cname)
-end
+abstract type Record end
 
-function register_diagnostic(dname::String, data::DiagnosticData)
-  if !haskey(diagnostics, dname)
-    println("New diagnostics registered: ", dname)
+include("openpmd.jl")
+
+records = Dict{String, Record}()
+root = RootMetadata()
+fields = FieldMetadata()
+particles = ParticleMetadata()
+
+function register_diagnostic(key::String, units::String, data::Array, record; kwargs...)
+  if haskey(records, key)
+    records[key].data .= data
+  else
+    println("New diagnostics registered: ", key)
+    records[key] = record(copy(data), units; kwargs...)
   end
-  diagnostics[dname] = data
+  nothing
 end
 
-function save_diagnostic(dname::String, d::DiagnosticData, cname::String, container, iteration::Integer, t::Float64)
+macro field(key, units, data, grid, optional...)
+  kwargs = [esc(arg) for arg in optional]
+  quote
+    Diagnostics.register_diagnostic($(esc(key)), $(esc(units)), $(esc(data)),
+      FieldRecord, grid=$(esc(grid)); $(kwargs...))
+  end
+end
+
+macro particle(key, units, data, part, optional...)
+  kwargs = [esc(arg) for arg in optional]
+  quote
+    Diagnostics.register_diagnostic($(esc(key)), $(esc(units)), $(esc(data)),
+      ParticleRecord, species=$(esc(part)); $(kwargs...))
+  end
+end
+
+function addattributes(metadata, node; except=(), fields=nothing)
+  attr = attrs(node)
+
+  if isnothing(fields)
+    fields = metadata |> typeof |> fieldnames
+  end
+
+  for sym in fields
+    if sym ∈ except
+      continue
+    end
+    field = getfield(metadata, sym)
+    attr[string(sym)] = typeof(field) <: NTuple ? [field...] : field
+  end
+end
+
+function new_iteration(prefix, i, t, dt, directory="/tmp")
+  it = @sprintf "%s/%s-%d.h5" directory prefix i
+  bp = @sprintf "data/%d" i
+  
+  iteration = Iteration(t, dt, 1.0)
+
+  rootnode = h5open(it, "w")
+  basepath = g_create(rootnode, bp)
+  meshesnode = g_create(basepath, root.meshesPath)
+  particlesnode = g_create(basepath, root.particlesPath)
+  
+  addattributes(root, rootnode)
+  addattributes(fields, meshesnode)
+  addattributes(iteration, basepath)
+  addattributes(particles, particlesnode)
+  return basepath
+end
+
+function save_record(it, key, record)
   println("Cannot save abstract diagnostic data")
 end
 
-function save_diagnostic(dname::String, cname::String, it::Integer, t=nothing)
-  if haskey(diagnostics, dname)
-    data = diagnostics[dname]
-    container = containers[cname]
-    if isnothing(t) t = it end
-    save_diagnostic(dname, data, directory*cname*"_", container, it, float(t))
-  else
-    println("Couldn't find diagnostic "*dname)
+function save_record(it, key, record::ParticleRecord)
+  f = @sprintf "%s/%s" root.particlesPath key
+  for (i, component) in enumerate(record.components)
+    g = @sprintf "%s/%s" f component
+    it[g] = record.data[1:record.npar,i]
+    addattributes(record.metadata, it[g]; fields=(:unitSI,))
   end
+
+  if record.components == ()
+    if isnan(record.metadata.value)
+      it[f] = record.data[1:record.npar]
+      addattributes(record.metadata, it[f]; fields=(:unitSI,))
+    else
+      g_create(it, f)
+      addattributes(record.metadata, it[f]; fields=(:unitSI,:value,:shape))
+    end
+  end
+
+  addattributes(record.metadata, it[f]; except=(:unitSI,:value,:shape))
 end
 
-function close_container(cname::String)
-  pvd_save(containers[cname])
-  delete!(containers, cname)
+function save_record(it, key, record::FieldRecord)
+  f = @sprintf "%s/%s" root.meshesPath key
+
+  for (i, component) in enumerate(record.components)
+    g = @sprintf "%s/%s" f component
+    it[g] = record.data[:,:,i]
+    addattributes(record.metadata, it[g]; fields=(:position, :unitSI))
+  end
+
+  if record.components == ()
+    it[f] = record.data[:,:]
+    addattributes(record.metadata, it[f]; fields=(:position, :unitSI))
+  end
+
+  addattributes(record.metadata, it[f]; except=(:position, :unitSI))
 end
 
-macro diag(dname, data)
-  quote
-   Diagnostics.register_diagnostic($(esc(dname)), $(esc(data)))
+function save_diagnostic(it, key::String)
+  if haskey(records, key)
+    save_record(it, key, records[key])
+  else
+    println("Couldn't find diagnostic ", key)
   end
 end
 

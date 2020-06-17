@@ -1,4 +1,6 @@
 module ParticleInCell
+  export init, solve
+  using Diagnostics
   using LinearAlgebra
   using Circuit
   using FiniteDifferenceMethod
@@ -6,7 +8,7 @@ module ParticleInCell
   include("pic/kinetic.jl")
   include("pic/fluid.jl")
   include("pic/cloud_in_cell.jl")
-  include("pic/diagnostics.jl")
+  #include("pic/diagnostics.jl")
   include("pic/pushers.jl")
   include("pic/sources.jl")
   include("pic/surfaces/build.jl")
@@ -32,7 +34,7 @@ module ParticleInCell
 
   # hooks
   function enter_loop() end
-  function after_loop(it) end
+  function after_loop(it, t, Δt) end
   function exit_loop() end
 
   # extension points
@@ -55,8 +57,10 @@ module ParticleInCell
     check!(tracker, part, Δt)
 
     wrap!(part, grid)
-    @diag "pv"*part.name ParticleVectorData(part.x,part.v,part.id, part.wg, part.np)
-    @diag "pE"*part.name ParticleVectorData(part.x,partE, part.id, part.wg, part.np)
+    @particle part.name*"/id" "1"  part.id part
+    @particle part.name*"/charge" "C" [part.q] part
+    @particle part.name*"/position" "m"   part.x part components=("x","y","z")
+    @particle part.name*"/velocity" "m/s" part.v part components=("x","y","z")
   end
   
   function advance!(fluid :: FluidSpecies, E, Δt, config)
@@ -65,7 +69,7 @@ module ParticleInCell
     Δn = calculate_advection_diffusion(fluid.n, fluid.μ, v, config.grid.Δh, Δt)
     fluid.n .+= Δn
     
-    @diag  "v"*fluid.name GridData( v, config.grid.x, config.grid.y)
+    @field fluid.name*"/velocity" v config.grid components=("x", "y")
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
@@ -109,17 +113,16 @@ module ParticleInCell
         part.n = density(part, grid)
         ρ .+= part.n .* part.q
 
-        @diag "n"*part.name NodeData(part.n, origin, spacing)
+        @field part.name*"/density" "1/m^2" part.n grid
       end
       # Calculate electric field
       ϕ  = calculate_electric_potential(solver, -ρ)
       E  = calculate_electric_field(solver, ϕ)
 
-      @diag "ρ" NodeData(ρ, origin, spacing)
-      @diag "ϕ" NodeData(ϕ, origin, spacing)
-      @diag "E" GridData(E, grid.x,  grid.y)
-
-      after_loop(iteration)
+      @field "rho" "C/m^2" ρ grid
+      @field "phi" "V"     ϕ grid
+      @field "E" "V/m" E grid components=("x","y","z")
+      after_loop(iteration, iteration*Δt-Δt, Δt)
 
       println("Time Step #", iteration)
     end

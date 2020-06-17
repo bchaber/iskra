@@ -19,42 +19,36 @@ sx, sv = [0 Lx; 0 Ly], [0 -.1Δh/Δt; 0 0]
 e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
 γ = create_gamma_ionization_source(1/Δt, sx, sv)
 
-import RegularGrid, FiniteDifferenceMethod, ParticleInCell
-config.grid    = RegularGrid.create_uniform_grid(xs, ys)
-config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
-config.pusher  = ParticleInCell.create_boris_pusher()
+using RegularGrid, FiniteDifferenceMethod, ParticleInCell
+config.grid    = create_uniform_grid(xs, ys)
+config.cells   = create_staggered_grid(config.grid)
+config.solver  = create_poisson_solver(config.grid, ε0)
+config.pusher  = create_boris_pusher()
 config.species = [e]
 ############################################
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
 εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny, 1)
-bcs[ nx,  1, 1] = 1
-bcs[ nx, ny, 1] = 2
+bcs[ nx, ny, 1] = 1
+bcs[ nx,  1, 1] = 2
 set_permittivity(εr)
-create_electrode(bcs .== 1, config; σ=1ε0)
+create_electrode(bcs .== 1, config; σ=-1ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
 import ParticleInCell
 import Diagnostics
 
-function ParticleInCell.enter_loop()
-  Diagnostics.open_container("01-field")
-  Diagnostics.open_container("01-particle")
+function ParticleInCell.after_loop(i, t, dt)
+  it = Diagnostics.new_iteration("01_single_particle", i, t, dt)
+  Diagnostics.save_diagnostic(it, "e-/position")
+  Diagnostics.save_diagnostic(it, "e-/velocity")
+  Diagnostics.save_diagnostic(it, "e-/charge")
+  Diagnostics.save_diagnostic(it, "e-/id")
+  Diagnostics.save_diagnostic(it, "rho")
+  Diagnostics.save_diagnostic(it, "phi")
+  Diagnostics.save_diagnostic(it, "E")
 end
 
-function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "01-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ϕ",   "01-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ne-", "01-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("pve-","01-particle",it, Δt*it-Δt)
-end
-
-function ParticleInCell.exit_loop()
-  Diagnostics.close_container("01-field")
-  Diagnostics.close_container("01-particle")
-end
-
-ParticleInCell.init(γ, e, Δt)
-@time ParticleInCell.solve(config, Δt, ts)
+init(γ, e, Δt)
+@time solve(config, Δt, ts)
