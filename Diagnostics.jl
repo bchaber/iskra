@@ -63,7 +63,7 @@ end
 
 function new_iteration(prefix, i, t, dt, directory="/tmp")
   dp = @sprintf "%s/%s" directory prefix
-  it = @sprintf "%s/data%d.h5" dd i
+  it = @sprintf "%s/data%d.h5" dp i
   bp = @sprintf "data/%d" i
   
   iteration = Iteration(dt, t, 1.0)
