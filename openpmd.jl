@@ -6,8 +6,8 @@ ind(d::Unitful.Dimension{:Temperature}) = 5
 ind(d::Unitful.Dimension{:Amount})      = 6
 ind(d::Unitful.Dimension{:Luminosity})  = 7
 
-geo(grid::UniformGrid{XY2D}) = ("x", "y"), "carthesian", 2
-geo(grid::UniformGrid{RZ2D}) = ("r", "z"), "carthesian", 2
+geo(grid::UniformGrid{XY2D}) = ("x", "y"), "cartesian", 2
+geo(grid::UniformGrid{RZ2D}) = ("r", "z"), "cartesian", 2
 current_version() = "git+?"
 current_date() = Dates.format(Dates.now(), "Y/m/d HH:MM")
 
@@ -35,14 +35,14 @@ function usi(units::String)
 end
 
 struct Iteration
-  t  :: Float64 
   dt :: Float64
+  time :: Float64
   timeUnitSI :: Float64
 end
 
 struct RootMetadata
   openPMD :: String
-  openPMDextensions :: UInt32
+  openPMDextension :: UInt32
   iterationEncoding :: String
   iterationFormat :: String
   basePath :: String
@@ -54,7 +54,7 @@ struct RootMetadata
   date :: String
 end
 
-RootMetadata() = RootMetadata("1.1.0", 1, "groupBased", "/data/%T/", "/data/%T",
+RootMetadata() = RootMetadata("1.1.0", 1, "fileBased", "data%T.h5", "/data/%T",
   "fields/", "particles/", "Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>",
   "iskra", current_version(), current_date())
 
@@ -140,7 +140,7 @@ end
 end
 
 function ParticleRecord(data, units;
-  species, offset=0.0, macroWeighted=true, components=())
+  species, offset=0.0, weighted=false, components=())
   checkparticlecomponents(data, components)
   unitDimension, unitSI = usi(units)
 
@@ -152,7 +152,7 @@ function ParticleRecord(data, units;
   shape = species.np
   
   metadata = ParticleRecordMetadata(unitDimension, offset,
-    macroWeighted, weightingPower, unitSI, value, shape)
+    weighted, weightingPower, unitSI, value, shape)
   ParticleRecord(data, components, name, npar, metadata)
 end
 
@@ -176,4 +176,3 @@ function FieldRecord(data, units;
     pos, unitSI)
   FieldRecord(data, components, metadata)
 end
-#..... OpenPMD .....#
