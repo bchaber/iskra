@@ -62,10 +62,13 @@ function addattributes(metadata, node; except=(), fields=nothing)
 end
 
 function new_iteration(prefix, i, t, dt, directory="/tmp")
-  it = @sprintf "%s/%s-%d.h5" directory prefix i
+  dp = @sprintf "%s/%s" directory prefix
+  it = @sprintf "%s/data%d.h5" dd i
   bp = @sprintf "data/%d" i
   
-  iteration = Iteration(t, dt, 1.0)
+  iteration = Iteration(dt, t, 1.0)
+
+  mkpath(dp)
 
   rootnode = h5open(it, "w")
   basepath = g_create(rootnode, bp)
@@ -76,7 +79,7 @@ function new_iteration(prefix, i, t, dt, directory="/tmp")
   addattributes(fields, meshesnode)
   addattributes(iteration, basepath)
   addattributes(particles, particlesnode)
-  return basepath
+  return rootnode, basepath
 end
 
 function save_record(it, key, record)
