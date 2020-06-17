@@ -58,9 +58,14 @@ module ParticleInCell
 
     wrap!(part, grid)
     @particle part.name*"/id" "1"  part.id part
+    @particle part.name*"/mass" "kg" [part.m] part
     @particle part.name*"/charge" "C" [part.q] part
-    @particle part.name*"/position" "m"   part.x part components=("x","y","z")
-    @particle part.name*"/velocity" "m/s" part.v part components=("x","y","z")
+    @particle part.name*"/weighting" "1"  part.wg part weighted=true
+    @particle part.name*"/momentum" "m/s" part.v  part components=("x","y","z")
+    @particle part.name*"/position" "m"   part.x  part components=("x","y","z")
+    @particle part.name*"/positionOffset/x" "m" [0.] part
+    @particle part.name*"/positionOffset/y" "m" [0.] part
+    @particle part.name*"/positionOffset/z" "m" [0.] part
   end
   
   function advance!(fluid :: FluidSpecies, E, Δt, config)
@@ -69,7 +74,7 @@ module ParticleInCell
     Δn = calculate_advection_diffusion(fluid.n, fluid.μ, v, config.grid.Δh, Δt)
     fluid.n .+= Δn
     
-    @field fluid.name*"/velocity" v config.grid components=("x", "y")
+    @field fluid.name*"/momentum" v config.grid components=("x", "y")
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
