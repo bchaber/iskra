@@ -74,7 +74,8 @@ module ParticleInCell
     Δn = calculate_advection_diffusion(fluid.n, fluid.μ, v, config.grid.Δh, Δt)
     fluid.n .+= Δn
     
-    @field fluid.name*"/momentum" v config.grid components=("x", "y")
+    @field fluid.name*"/change" "1/m^2" Δn config.grid
+    @field fluid.name*"/momentum" "m/s"  v config.grid components=("x", "y", "z")
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
