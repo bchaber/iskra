@@ -62,15 +62,15 @@ function addattributes(metadata, node; except=(), fields=nothing)
 end
 
 function new_iteration(prefix, i, t, dt, directory="/tmp")
-  dp = @sprintf "%s/%s" directory prefix
-  it = @sprintf "%s/data%d.h5" dp i
+  dp = @sprintf "%s/%s/hdf5" directory prefix
+  fn = @sprintf "%s/data%d.h5" dp i
   bp = @sprintf "data/%d" i
   
   iteration = Iteration(dt, t, 1.0)
 
   mkpath(dp)
 
-  rootnode = h5open(it, "w")
+  rootnode = h5open(fn, "w")
   basepath = g_create(rootnode, bp)
   meshesnode = g_create(basepath, root.meshesPath)
   particlesnode = g_create(basepath, root.particlesPath)
