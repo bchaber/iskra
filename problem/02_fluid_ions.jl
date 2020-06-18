@@ -38,19 +38,14 @@ create_electrode(bcs .== 2, config; fixed=true)
 import ParticleInCell
 import Diagnostics
 
-function ParticleInCell.enter_loop()
-  Diagnostics.open_container("02-field")
-end
-
-function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "02-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ϕ",   "02-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO+", "02-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("vO+", "02-field",   it, Δt*it-Δt)
-end
-
-function ParticleInCell.exit_loop()
-  Diagnostics.close_container("02-field")
+function ParticleInCell.after_loop(i, t, dt)
+  Diagnostics.new_iteration("02_fluid_ions", i, t, dt) do it
+    Diagnostics.save_diagnostic(it, "nO+")
+    Diagnostics.save_diagnostic(it, "dO+")
+    Diagnostics.save_diagnostic(it, "vO+")
+    Diagnostics.save_diagnostic(it, "phi")
+    Diagnostics.save_diagnostic(it, "E")
+  end
 end
 
 ParticleInCell.init(ParticleInCell.DensitySource(1e5δ, config.grid), iO, Δt)
