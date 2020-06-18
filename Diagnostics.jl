@@ -61,17 +61,12 @@ function addattributes(metadata, node; except=(), fields=nothing)
   end
 end
 
-function new_iteration(prefix, i, t, dt, directory="/tmp")
-  dp = @sprintf "%s/%s/hdf5" directory prefix
-  fn = @sprintf "%s/data%d.h5" dp i
-  bp = @sprintf "data/%d" i
-  
+function new_iteration(f::Function, prefix, i, t, dt, directory="/tmp")
   iteration = Iteration(dt, t, 1.0)
 
-  mkpath(dp)
-
-  rootnode = h5open(fn, "w")
-  basepath = g_create(rootnode, bp)
+  mkpath(@sprintf "%s/%s/hdf5" directory prefix)
+  rootnode = h5open((@sprintf "%s/%s/data%d.h5" directory prefix i), "w")
+  basepath = g_create(rootnode, (@sprintf "data/%d" i))
   meshesnode = g_create(basepath, root.meshesPath)
   particlesnode = g_create(basepath, root.particlesPath)
   
@@ -79,14 +74,19 @@ function new_iteration(prefix, i, t, dt, directory="/tmp")
   addattributes(fields, meshesnode)
   addattributes(iteration, basepath)
   addattributes(particles, particlesnode)
-  return rootnode, basepath
+
+  try
+    f(basepath)
+  finally
+    close(rootnode)
+  end
 end
 
 function save_record(it, key, record)
   println("Cannot save abstract diagnostic data")
 end
 
-function save_record(it, key, record::ParticleRecord)
+function save_record(it::HDF5Group, key::String, record::ParticleRecord)
   f = @sprintf "%s/%s" root.particlesPath key
   for (i, component) in enumerate(record.components)
     g = @sprintf "%s/%s" f component
@@ -107,7 +107,7 @@ function save_record(it, key, record::ParticleRecord)
   addattributes(record.metadata, it[f]; except=(:unitSI,:value,:shape))
 end
 
-function save_record(it, key, record::FieldRecord)
+function save_record(it::HDF5Group, key::String, record::FieldRecord)
   f = @sprintf "%s/%s" root.meshesPath key
 
   for (i, component) in enumerate(record.components)
@@ -124,7 +124,7 @@ function save_record(it, key, record::FieldRecord)
   addattributes(record.metadata, it[f]; except=(:position, :unitSI))
 end
 
-function save_diagnostic(it, key::String)
+function save_diagnostic(it, key)
   if haskey(records, key)
     save_record(it, key, records[key])
   else
