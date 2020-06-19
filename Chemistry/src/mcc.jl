@@ -126,7 +126,7 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 			ν[i,j] += 1
 		end
 	end
-	@field "mcc/nu" "1/m^2" ν config.grid
+	@field "nuMCC" "1/m^2" ν config.grid
 end
 
 function mcc(reactions)

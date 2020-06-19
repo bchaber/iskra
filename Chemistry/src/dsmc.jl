@@ -138,7 +138,7 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 			end
 		end
 	end
-	@field "dsmc/nu" "1/m^2" ν config.grid
+	@field "nuDSMC" "1/m^2" ν config.grid
 end
 
 function dsmc(reactions)

@@ -74,7 +74,6 @@ module ParticleInCell
     Δn = calculate_advection_diffusion(fluid.n, fluid.μ, v, config.grid.Δh, Δt)
     fluid.n .+= Δn
     
-    @field "n"*fluid.name "1/m^2" fluid.n config.grid
     @field "d"*fluid.name "1/m^2" Δn config.grid
     @field "v"*fluid.name "m/s"  v config.grid components=("x", "y", "z")
   end
@@ -120,7 +119,7 @@ module ParticleInCell
         part.n = density(part, grid)
         ρ .+= part.n .* part.q
 
-        @field part.name*"/density" "1/m^2" part.n grid
+        @field "n"*part.name "1/m^2" part.n grid
       end
       # Calculate electric field
       ϕ  = calculate_electric_potential(solver, -ρ)
