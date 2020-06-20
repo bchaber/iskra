@@ -22,7 +22,7 @@ const particles = ParticleMetadata()
 
 function register_diagnostic(key::String, units::String, data::Array, record; kwargs...)
   if haskey(records, key) == false
-    records[key] = record(similar(data), units; kwargs...)
+    records[key] = record(zero(data), units; kwargs...)
   end
   update!(records[key], units, data; kwargs...)
   nothing
