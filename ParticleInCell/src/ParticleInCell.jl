@@ -8,7 +8,6 @@ module ParticleInCell
   include("pic/kinetic.jl")
   include("pic/fluid.jl")
   include("pic/cloud_in_cell.jl")
-  #include("pic/diagnostics.jl")
   include("pic/pushers.jl")
   include("pic/sources.jl")
   include("pic/surfaces/build.jl")
