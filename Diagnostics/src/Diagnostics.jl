@@ -14,18 +14,16 @@ abstract type Record end
 
 include("openpmd.jl")
 
-records = Dict{String, Record}()
-root = RootMetadata()
-fields = FieldMetadata()
-particles = ParticleMetadata()
+const records = Dict{String, Record}()
+const root = RootMetadata()
+const fields = FieldMetadata()
+const particles = ParticleMetadata()
 
 function register_diagnostic(key::String, units::String, data::Array, record; kwargs...)
-  if haskey(records, key)
-    records[key].data .= data
-  else
-    println("New diagnostics registered: ", key)
-    records[key] = record(copy(data), units; kwargs...)
+  if haskey(records, key) == false
+    records[key] = record(similar(data), units; kwargs...)
   end
+  update!(records[key], units, data; kwargs...)
   nothing
 end
 
@@ -90,13 +88,13 @@ function save_record(it::HDF5Group, key::String, record::ParticleRecord)
   f = @sprintf "%s/%s" root.particlesPath key
   for (i, component) in enumerate(record.components)
     g = @sprintf "%s/%s" f component
-    it[g] = record.data[1:record.npar,i]
+    it[g] = record.data[1:record.np,i]
     addattributes(record.metadata, it[g]; fields=(:unitSI,))
   end
 
   if record.components == ()
     if isnan(record.metadata.value)
-      it[f] = record.data[1:record.npar]
+      it[f] = record.data[1:record.np]
       addattributes(record.metadata, it[f]; fields=(:unitSI,))
     else
       g_create(it, f)

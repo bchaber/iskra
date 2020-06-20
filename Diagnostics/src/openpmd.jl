@@ -93,12 +93,16 @@ struct ParticleRecordMetadata
   shape :: Int64
 end
 
-struct ParticleRecord{T, N, M} <: Record
+mutable struct ParticleRecord{T, N, M} <: Record
   data :: Array{T, N}
   components :: NTuple{M, String}
   name :: String
-  npar :: Int64
+  np :: Int64
   metadata :: ParticleRecordMetadata
+end
+function update!(record::ParticleRecord, units, data; species, optional...)
+  record.np    = species.np
+  record.data .= data
 end
 
 struct FieldRecordMetadata{N}
@@ -123,6 +127,9 @@ struct FieldRecord{T, N, M, D} <: Record
   data  :: Array{T, D}
   components :: NTuple{M, String}
   metadata :: FieldRecordMetadata{N}
+end
+function update!(record::FieldRecord, units, data; grid, optional...)
+  record.data .= data
 end
 
 @inline function checkfieldcomponents(data, components)
