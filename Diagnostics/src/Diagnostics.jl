@@ -20,7 +20,7 @@ const root = RootMetadata()
 const fields = FieldMetadata()
 const particles = ParticleMetadata()
 
-function register_diagnostic(key::String, units::String, data::Array, record; kwargs...)
+function register_diagnostic(key::String, units::String, data, record; kwargs...)
   if haskey(records, key) == false
     records[key] = record(zero(data), units; kwargs...)
   end
