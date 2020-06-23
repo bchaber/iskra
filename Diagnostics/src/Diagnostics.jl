@@ -44,6 +44,10 @@ macro particle(key, units, data, part, optional...)
   end
 end
 
+function forhdf5(v) v end
+function forhdf5(v::NTuple{N,T}) where {N,T}
+  N > 0 ? [v...] : Float64[]
+end
 function addattributes(metadata, node; except=(), fields=nothing)
   attr = attrs(node)
 
@@ -56,7 +60,7 @@ function addattributes(metadata, node; except=(), fields=nothing)
       continue
     end
     field = getfield(metadata, sym)
-    attr[string(sym)] = typeof(field) <: NTuple ? [field...] : field
+    attr[string(sym)] = forhdf5(field)
   end
 end
 
