@@ -42,21 +42,21 @@ ParticleInCell.track_surface!(config.tracker, bcs .== 4, reflecting)
 import ParticleInCell
 import Diagnostics
 
-function ParticleInCell.enter_loop()
-  Diagnostics.open_container("07-field")
-  Diagnostics.open_container("07-particle")
-end
-
-function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "07-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ϕ",   "07-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ne-", "07-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("pve-","07-particle",it, Δt*it-Δt)
-end
-
-function ParticleInCell.exit_loop()
-  Diagnostics.close_container("07-field")
-  Diagnostics.close_container("07-particle")
+function ParticleInCell.after_loop(i, t, dt)
+  Diagnostics.new_iteration("07_boundaries", i, t, dt) do it
+    Diagnostics.save_diagnostic(it, "ne-")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/x")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/y")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/z")
+    Diagnostics.save_diagnostic(it, "e-/position")
+    Diagnostics.save_diagnostic(it, "e-/momentum")
+    Diagnostics.save_diagnostic(it, "e-/weighting")
+    Diagnostics.save_diagnostic(it, "e-/charge")
+    Diagnostics.save_diagnostic(it, "e-/mass")
+    Diagnostics.save_diagnostic(it, "e-/id")
+    Diagnostics.save_diagnostic(it, "phi")
+    Diagnostics.save_diagnostic(it, "E")
+  end
 end
 
 ParticleInCell.init(γ, e, Δt)

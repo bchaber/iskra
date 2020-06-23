@@ -47,30 +47,29 @@ end)
 import ParticleInCell
 import Diagnostics
 
-function ParticleInCell.enter_loop()
-  Diagnostics.open_container("06-field")
-  Diagnostics.open_container("06-particle")
-  Diagnostics.open_container("06-circuit")
+function ParticleInCell.after_loop(i, t, dt)
+  Diagnostics.new_iteration("06_circuit", i, t, dt) do it
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/x")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/y")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/z")
+    Diagnostics.save_diagnostic(it, "e-/position")
+    Diagnostics.save_diagnostic(it, "e-/momentum")
+    Diagnostics.save_diagnostic(it, "e-/weighting")
+    Diagnostics.save_diagnostic(it, "e-/charge")
+    Diagnostics.save_diagnostic(it, "e-/mass")
+    Diagnostics.save_diagnostic(it, "e-/id")
+    Diagnostics.save_diagnostic(it, "rho")
+    Diagnostics.save_diagnostic(it, "phi")
+    Diagnostics.save_diagnostic(it, "ne-")
+    Diagnostics.save_diagnostic(it, "nO")
+    Diagnostics.save_diagnostic(it, "E")
+    Diagnostics.save_diagnostic(it, "Q1")
+    Diagnostics.save_diagnostic(it, "I1")
+    Diagnostics.save_diagnostic(it, "V1")
+    Diagnostics.save_diagnostic(it, "Vext")
+  end
 end
 
-function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "06-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ϕ",   "06-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO",  "06-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ne-", "06-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("pve-","06-particle",it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("i",   "06-circuit", it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("q",   "06-circuit", it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("V",   "06-circuit", it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("dσ",  "06-circuit", it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("Vext","06-circuit", it, Δt*it-Δt)
-end
-
-function ParticleInCell.exit_loop()
-  Diagnostics.close_container("06-field")
-  Diagnostics.close_container("06-particle")
-  Diagnostics.close_container("06-circuit")
-end
 ParticleInCell.init(ParticleInCell.MaxwellianSource(1e3/Δt, [0 Lx; 0 Ly], [0 0; 0 0]), e, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(0δ, config.grid), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts)

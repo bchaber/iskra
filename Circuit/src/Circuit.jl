@@ -1,5 +1,6 @@
 module Circuit
 using DataStructures
+using Diagnostics
 
 export CircuitRLC
 export @netlist
@@ -128,10 +129,10 @@ function advance_circuit!(cir::CircuitRLC, V, Δt)
     cir.i /= (L/Δt + R/2)
   end
   cir.t += Δt
-  #@diag "i" TimeData(cir.i)
-  #@diag "q" TimeData(cir.q)
-  #@diag "V" TimeData(v(t))
-  #@diag "Vext" TimeData(vext)
+  @probe "Q1"   cir.q "C"
+  @probe "I1"   cir.i "A"
+  @probe "V1"   v(t)  "V"
+  @probe "Vext" vext  "V"
 end
 
 Base.show(io :: IO, e :: Resistor) = print(io, e.name, ": ", e.val, " Ω")

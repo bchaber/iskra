@@ -28,7 +28,7 @@ function foo!(pd :: PlasmaDevice, i::Number, Δt)
   positive, negative = pd.positive, pd.negative
   dσ = -Δt*circuit.i/positive.area
   positive.dq = .0
-  #@diag "dσ" TimeData(dσ)
+  @probe "dQ" dσ "C"
 end
 function advance!(circuit :: Nothing, ϕ, Δt, config) end
 function advance!(circuit :: CircuitRLC, ϕ, Δt, config)
