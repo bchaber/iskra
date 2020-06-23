@@ -5,19 +5,7 @@ export CircuitRLC
 export @netlist
 export rlc
 export advance_circuit!
-#export TimeData
 export resonant_frequency, damping_factor
-
-#import Diagnostics: DiagnosticData, @diag, save_diagnostic
-#import PlotVTK: pvd_add_timestep, field_as_vectors
-#struct TimeData <: DiagnosticData
-#   y :: Array{Float64,1}
-#end
-#TimeData(y::Float64) =
-#TimeData([y])
-
-#save_diagnostic(dname::String, d::TimeData, cname::String, c::Any, it::Integer, t::Float64) =
-#  pvd_add_timestep(c, field_as_vectors([0.], [0.], cname*dname, dname => (d.y), it=it, save=false), t)
 
 abstract type  CircuitDevice end
 abstract type  CircuitElement end
