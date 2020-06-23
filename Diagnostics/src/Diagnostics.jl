@@ -7,13 +7,14 @@ using RegularGrid
 
 import Dates
 
-export @particle
-export @field
+export @particle, @field
+export @probe
 export new_iteration, save_diagnostic
 
 abstract type Record end
 
 include("openpmd.jl")
+include("circuit.jl")
 
 const records = Dict{String, Record}()
 const root = RootMetadata()
