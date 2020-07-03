@@ -1,4 +1,4 @@
-function particle_to_grid(part, grid, pu)
+function particle_to_grid(part::KineticSpecies{2, V}, grid::CartesianGrid{2}, pu) where V
   nx, ny = size(grid)
   Δx, Δy = grid.Δh
   np = part.np
@@ -22,11 +22,11 @@ function particle_to_grid(part, grid, pu)
   return u
 end
 
-function grid_to_particle(grid, part, u)
+function grid_to_particle(grid::CartesianGrid{2}, part::KineticSpecies{2, V}, u) where V
   np = part.np
   Δh = grid.Δh
   px = view(part.x, 1:np, :)
-  pu = zeros(np, 3)
+  pu = zeros(np, V)
 
   for p=1:np
     i, j, hx, hy = particle_cell(px, p, Δh)

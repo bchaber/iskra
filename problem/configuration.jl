@@ -75,7 +75,7 @@ function create_gamma_ionization_source(rate, x, v)
 end
 
 function create_kinetic_species(name, N, q, m, weight)
-  species = ParticleInCell.KineticSpecies(name, N)
+  species = ParticleInCell.KineticSpecies{2,3}(name, N)
   species.q = q
   species.m = m
   species.wg .*= weight
