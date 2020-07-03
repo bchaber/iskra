@@ -10,18 +10,17 @@ mutable struct PoissonSolver
   dofs :: Dict{Symbol, AbstractArray}
 end
 
-function create_poisson_solver(grid::UniformGrid{XY2D}, ε0::Float64)
+function create_poisson_solver(grid::CartesianGrid{2}, ε0::Float64)
     nx, ny = size(grid)
     create_generalized_poisson_solver(grid, ones(nx+1, ny+1, 1), ε0)
 end
 
 # Implement generalized Poisson solver from (eq. 37-40):
 # https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel 2012 - Solving the Generalized Poisson Equation using FDM.pdf
-function create_generalized_poisson_solver(grid::UniformGrid{XY2D}, εr::Array{Float64,3}, ε0::Float64)
+function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Float64,3}, ε0::Float64)
     nx, ny = size(grid)
     nn = nx⋅ny
-    Δh = grid.Δh
-    Δx, Δy, ~ = Δh
+    Δx, Δy = grid.Δh
     dofs = collect(1:nn)
     A = zeros(nn, nn)
     b = zeros(nn)

@@ -1,5 +1,6 @@
 import ParticleInCell
 import FiniteDifferenceMethod
+import RegularGrid
 
 mutable struct Config
   solver
@@ -37,8 +38,9 @@ function create_electrode(nodes, config;   fixed=false, σ=0.0, ϕ=0.0)
   return electrode
 end
 
-function create_electrode(nodes, ps, grid; fixed=false, σ=0.0, ϕ=0.0)
-  Δx, Δy, Δz = grid.Δh
+function create_electrode(nodes, ps, grid::RegularGrid.UniformGrid{:xy, 2}; fixed=false, σ=0.0, ϕ=0.0)
+  Δx, Δy = grid.Δh
+  Δz = 1.0
   function calculate_area(nodes)
     area = 0.
     for c in findall(nodes)

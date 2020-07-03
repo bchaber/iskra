@@ -68,8 +68,8 @@ function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{<:Surface,1}, Δh
   return st
 end
 
-function create_surface_tracker(grid::UniformGrid{XY2D}, ds=AbsorbingSurface())
-  Δx, _, _ = grid.Δh
+function create_surface_tracker(grid::UniformGrid{:xy, 2}, ds=AbsorbingSurface())
+  Δx, ~  = grid.Δh
   nx, ny = size(grid)
   bcs = zeros(Int8, nx, ny, 1)
   return create_surface_tracker(bcs, Surface[], Δx, ds)
