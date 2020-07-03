@@ -24,7 +24,8 @@ const particles = ParticleMetadata()
 
 function register_diagnostic(key::String, units::String, data, record; kwargs...)
   if haskey(records, key) == false
-    records[key] = record(zero(data), units; kwargs...)
+    println("Registering diagnostics ", key)
+    records[key] = init!(record, data, units; kwargs...)
   end
   update!(records[key], units, data; kwargs...)
   nothing
@@ -50,6 +51,12 @@ function forhdf5(v) v end
 function forhdf5(v::NTuple{N,T}) where {N,T}
   N > 0 ? [v...] : Float64[]
 end
+
+function addattribute(sym, node, field)
+  attr = attrs(node)
+  attr[string(sym)] = forhdf5(field)
+end
+
 function addattributes(metadata, node; except=(), fields=nothing)
   attr = attrs(node)
 
@@ -92,40 +99,30 @@ function save_record(it, key, record)
 end
 
 function save_record(it::HDF5Group, key::String, record::ParticleRecord)
-  f = @sprintf "%s/%s" root.particlesPath key
-  for (i, component) in enumerate(record.components)
-    g = @sprintf "%s/%s" f component
-    it[g] = record.data[1:record.np,i]
-    addattributes(record.metadata, it[g]; fields=(:unitSI,))
-  end
+  f = root.particlesPath * key
 
-  if record.components == ()
-    if isnan(record.metadata.value)
-      it[f] = record.data[1:record.np]
-      addattributes(record.metadata, it[f]; fields=(:unitSI,))
+  for (component, output) in record.components
+    g = component == ' ' ? f : f * '/' * component
+    if length(record.input) > 1
+      it[g] = output
     else
       g_create(it, f)
-      addattributes(record.metadata, it[f]; fields=(:unitSI,:value,:shape))
+      addattribute(:value, it[g], record.input[1])
+      addattribute(:shape, it[g], output |> size)
     end
+    addattributes(record.metadata, it[g]; fields=(:unitSI,))
   end
-
-  addattributes(record.metadata, it[f]; except=(:unitSI,:value,:shape))
+  addattributes(record.metadata, it[f]; except=(:unitSI,))
 end
 
 function save_record(it::HDF5Group, key::String, record::FieldRecord)
-  f = @sprintf "%s/%s" root.meshesPath key
+  f = root.meshesPath * key
 
-  for (i, component) in enumerate(record.components)
-    g = @sprintf "%s/%s" f component
-    it[g] = record.data[:,:,i]
+  for (component, output) in record.components
+    g = component == ' ' ? f : f * '/' * component
+    it[g] = output
     addattributes(record.metadata, it[g]; fields=(:position, :unitSI))
   end
-
-  if record.components == ()
-    it[f] = record.data[:,:]
-    addattributes(record.metadata, it[f]; fields=(:position, :unitSI))
-  end
-
   addattributes(record.metadata, it[f]; except=(:position, :unitSI))
 end
 

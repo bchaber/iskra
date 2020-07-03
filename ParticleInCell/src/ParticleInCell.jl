@@ -61,11 +61,10 @@ module ParticleInCell
     @particle part.name*"/mass" "kg" [part.m] part
     @particle part.name*"/charge" "C" [part.q] part
     @particle part.name*"/weighting" "1"  part.wg part weighted=true
-    @particle part.name*"/momentum" "m/s" part.v  part components=("x","y","z")
-    @particle part.name*"/position" "m"   part.x  part components=("x","y","z")
+    @particle part.name*"/momentum" "m/s" part.v  part withcomponents=true
+    @particle part.name*"/position" "m"   part.x  part withcomponents=true
     @particle part.name*"/positionOffset/x" "m" [0.] part
     @particle part.name*"/positionOffset/y" "m" [0.] part
-    @particle part.name*"/positionOffset/z" "m" [0.] part
   end
   
   function advance!(fluid :: FluidSpecies, E, Δt, config)
@@ -75,7 +74,7 @@ module ParticleInCell
     fluid.n .+= Δn
     
     @field "d"*fluid.name "1/m^2" Δn config.grid
-    @field "v"*fluid.name "m/s"  v config.grid components=("x", "y", "z")
+    @field "v"*fluid.name "m/s"  v config.grid withcomponents=true
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
@@ -124,7 +123,7 @@ module ParticleInCell
 
       @field "rho" "C/m^2" ρ grid
       @field "phi" "V"     ϕ grid
-      @field "E" "V/m" E grid components=("x","y","z")
+      @field "E" "V/m" E grid withcomponents=true
       after_loop(iteration, iteration*Δt-Δt, Δt)
 
       println("Time Step #", iteration)
