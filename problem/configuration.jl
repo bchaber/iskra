@@ -1,6 +1,6 @@
-import ParticleInCell
-import FiniteDifferenceMethod
-import RegularGrid
+using ParticleInCell
+using FiniteDifferenceMethod
+using RegularGrid
 
 mutable struct Config
   solver
