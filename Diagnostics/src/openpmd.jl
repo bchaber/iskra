@@ -90,21 +90,29 @@ struct ParticleRecordMetadata
   weightingPower :: Float64
 
   unitSI :: Float64 # Component
-
-  value :: Float64
-  shape :: Int64
 end
 
-mutable struct ParticleRecord{T, N, M} <: Record
-  data :: Array{T, N}
-  components :: NTuple{M, String}
-  name :: String
-  np :: Int64
-  metadata :: ParticleRecordMetadata
+struct ParticleRecord{T, D} <: Record
+  name       :: String
+  input      :: Array{T, D}
+  components :: Dict{Char, AbstractArray}
+  metadata   :: ParticleRecordMetadata
 end
+
+function recreate(val::PaddedView, species)
+  PaddedView(val.fillvalue, parent(val), (1:species.np,))
+end
+
+function recreate(val::SubArray, species)
+  _, i = val.indices
+  view(parent(val), 1:species.np, i)
+end
+
 function update!(record::ParticleRecord, units, data; species, optional...)
-  record.np    = species.np
-  record.data .= data
+  record.input .= data
+  for (key, val) in record.components
+    record.components[key] = recreate(val, species)
+  end
 end
 
 struct FieldRecordMetadata{N}
@@ -125,54 +133,61 @@ struct FieldRecordMetadata{N}
   unitSI :: Float64
 end
 
-struct FieldRecord{T, N, M, D} <: Record
-  data  :: Array{T, D}
-  components :: NTuple{M, String}
-  metadata :: FieldRecordMetadata{N}
+struct FieldRecord{T, D, N} <: Record
+  input      :: Array{T, D}
+  components :: Dict{Char, AbstractArray}
+  metadata   :: FieldRecordMetadata{N}
 end
 function update!(record::FieldRecord, units, data; grid, optional...)
-  record.data .= data
+  record.input .= data
+end
+function zview(parent, indices)
+  PaddedView(parent |> eltype |> zero, parent, (indices,))
 end
 
-@inline function checkfieldcomponents(data, components)
-  N, M = size(data, 3), length(components)
-  if N > 1 || M > 0
-    @assert M == N "Number of components $M does not match data size $N"
-  end
-end
-
-@inline function checkparticlecomponents(data, components)
-  N, M = size(data, 2), length(components)
-  if N > 1 || M > 0
-    @assert M == N "Number of components $M does not match data size $N"
-  end
-end
-
-function ParticleRecord(data, units;
-  species, offset=0.0, weighted=false, components=())
-  checkparticlecomponents(data, components)
+function init!(::Type{ParticleRecord}, data, units;
+  species, offset=0.0, weighted=false, withcomponents=false)
   unitDimension, unitSI = usi(units)
 
-  npar = species.np
   name = species.name
   weightingPower = 1.0
+  input = zero(data)
 
-  value = length(data) > 1 ? NaN : data[1]
-  shape = species.np
-  
+  zz = data |> eltype |> zero
+  components = Dict{Char, AbstractArray}()
+  if withcomponents
+    components['x'] = view(input, 1:species.np, 1)
+    components['y'] = view(input, 1:species.np, 2)
+    components['z'] = view(input, 1:species.np, 3)
+  elseif length(data) > 1
+    components[' ']  = view(input, 1:species.np, 1)
+  else
+    components[' ']  = PaddedView(zz, input, (1:species.np,))
+  end
+
   metadata = ParticleRecordMetadata(unitDimension, offset,
-    weighted, weightingPower, unitSI, value, shape)
-  ParticleRecord(data, components, name, npar, metadata)
+    weighted, weightingPower, unitSI)
+  record =   ParticleRecord(name, input, components, metadata)
 end
 
-function FieldRecord(data, units;
-  grid, offset=0.0, pos=nothing, components=())
-  checkfieldcomponents(data, components)
+function init!(::Type{FieldRecord}, data, units;
+  grid, offset=0.0, pos=nothing, withcomponents=false)
   unitDimension, unitSI   = usi(units)
   
   axisLabels, geometry, N = geo(grid)
   gridSpacing = grid.Δh[1:N]
   gridGlobalOffset = tuple(zeros(N)...)
+  input = zero(data)
+
+  zz = data |> eltype |> zero
+  components = Dict{Char, AbstractArray}()
+  if withcomponents
+    components['x'] = view(input, :, :, 1)
+    components['y'] = view(input, :, :, 2)
+   #components['z'] = view(input, :, :, 3)
+  elseif length(data) > 1
+    components[' '] = view(input, :, :, 1)
+  end
 
   if isnothing(pos)
     pos = tuple(zeros(N)...)
@@ -183,5 +198,5 @@ function FieldRecord(data, units;
     gridGlobalOffset, gridSpacing, 1.0,
     "none",
     pos, unitSI)
-  FieldRecord(data, components, metadata)
+  record   = FieldRecord(input, components, metadata)
 end
