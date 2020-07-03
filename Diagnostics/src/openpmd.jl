@@ -99,8 +99,8 @@ struct ParticleRecord{T, D} <: Record
   metadata   :: ParticleRecordMetadata
 end
 
-function recreate(val::PaddedView, species)
-  PaddedView(val.fillvalue, parent(val), (1:species.np,))
+function recreate(val::Array, species)
+  similar(val, species.np)
 end
 
 function recreate(val::SubArray, species)
@@ -141,9 +141,6 @@ end
 function update!(record::FieldRecord, units, data; grid, optional...)
   record.input .= data
 end
-function zview(parent, indices)
-  PaddedView(parent |> eltype |> zero, parent, (indices,))
-end
 
 function init!(::Type{ParticleRecord}, data, units;
   species, offset=0.0, weighted=false, withcomponents=false)
@@ -153,16 +150,17 @@ function init!(::Type{ParticleRecord}, data, units;
   weightingPower = 1.0
   input = zero(data)
 
-  zz = data |> eltype |> zero
   components = Dict{Char, AbstractArray}()
   if withcomponents
-    components['x'] = view(input, 1:species.np, 1)
-    components['y'] = view(input, 1:species.np, 2)
-    components['z'] = view(input, 1:species.np, 3)
+    N, M = size(input)
+    zz = view(zeros(N, 1), 1:species.np, 1)
+    components['x'] = M > 0 ? view(input, 1:species.np, 1) : zz
+    components['y'] = M > 1 ? view(input, 1:species.np, 2) : zz
+    components['z'] = M > 2 ? view(input, 1:species.np, 3) : zz
   elseif length(data) > 1
     components[' ']  = view(input, 1:species.np, 1)
   else
-    components[' ']  = PaddedView(zz, input, (1:species.np,))
+    components[' ']  = similar(input, species.np)
   end
 
   metadata = ParticleRecordMetadata(unitDimension, offset,
@@ -174,23 +172,24 @@ function init!(::Type{FieldRecord}, data, units;
   grid, offset=0.0, pos=nothing, withcomponents=false)
   unitDimension, unitSI   = usi(units)
   
-  axisLabels, geometry, N = geo(grid)
-  gridSpacing = grid.Δh[1:N]
-  gridGlobalOffset = tuple(zeros(N)...)
+  axisLabels, geometry, L = geo(grid)
+  gridSpacing = grid.Δh
+  gridGlobalOffset = tuple(zeros(L)...)
   input = zero(data)
 
-  zz = data |> eltype |> zero
   components = Dict{Char, AbstractArray}()
   if withcomponents
-    components['x'] = view(input, :, :, 1)
-    components['y'] = view(input, :, :, 2)
-   #components['z'] = view(input, :, :, 3)
+    N, M, K = size(input)
+    zz = zeros(N, M)
+    components['x'] = K > 0 ? view(input, :, :, 1) : zz
+    components['y'] = K > 1 ? view(input, :, :, 2) : zz
+    components['z'] = K > 2 ? view(input, :, :, 3) : zz
   elseif length(data) > 1
     components[' '] = view(input, :, :, 1)
   end
 
   if isnothing(pos)
-    pos = tuple(zeros(N)...)
+    pos = tuple(zeros(L)...)
   end
 
   metadata = FieldRecordMetadata(unitDimension, offset,

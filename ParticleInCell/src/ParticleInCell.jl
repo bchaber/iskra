@@ -65,6 +65,7 @@ module ParticleInCell
     @particle part.name*"/position" "m"   part.x  part withcomponents=true
     @particle part.name*"/positionOffset/x" "m" [0.] part
     @particle part.name*"/positionOffset/y" "m" [0.] part
+    @particle part.name*"/positionOffset/z" "m" [0.] part
   end
   
   function advance!(fluid :: FluidSpecies, E, Δt, config)
@@ -123,7 +124,7 @@ module ParticleInCell
 
       @field "rho" "C/m^2" ρ grid
       @field "phi" "V"     ϕ grid
-      @field "E" "V/m" E grid withcomponents=true
+      @field "E"   "V/m"   E grid withcomponents=true
       after_loop(iteration, iteration*Δt-Δt, Δt)
 
       println("Time Step #", iteration)
