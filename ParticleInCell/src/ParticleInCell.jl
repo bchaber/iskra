@@ -1,5 +1,7 @@
 module ParticleInCell
   export init, solve
+  export KineticSpecies, FluidSpecies
+  export MaxwellianSource
   using Diagnostics
   using LinearAlgebra
   using Circuit
