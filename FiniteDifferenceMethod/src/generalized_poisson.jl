@@ -48,7 +48,7 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
     end
     A ./= (Δx*Δx) # TODO: it will break when Δx ≠ Δy
     dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ)
-    ps = PoissonSolver(A, b, x, εr, ε0, Δh, dofs)
+    ps = PoissonSolver(A, b, x, εr, ε0, (Δx, Δy, .0), dofs)
     return ps
 end
 
