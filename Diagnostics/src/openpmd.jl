@@ -6,8 +6,10 @@ ind(d::Unitful.Dimension{:Temperature}) = 5
 ind(d::Unitful.Dimension{:Amount})      = 6
 ind(d::Unitful.Dimension{:Luminosity})  = 7
 
-geo(grid::UniformGrid{XY2D}) = ("x", "y"), "cartesian", 2
-geo(grid::UniformGrid{RZ2D}) = ("r", "z"), "cartesian", 2
+geo(grid::CartesianGrid{2}) = ("x", "y"), "cartesian", 2
+geo(grid::CartesianGrid{3}) = ("x", "y", "z"), "cartesian", 3
+geo(grid::AxialGrid{1})     = ("r",), "spherical", 2
+geo(grid::AxialGrid{2})     = ("r", "z"), "cylindrical", 2
 current_version() = "git+?"
 current_date() = Dates.format(Dates.now(), "Y/m/d HH:MM")
 
