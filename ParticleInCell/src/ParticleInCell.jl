@@ -45,7 +45,7 @@ module ParticleInCell
     sample!(src, species, Δt)
   end
 
-  function advance!(part :: KineticSpecies, E, Δt, config)
+  function advance!(part::KineticSpecies, E, Δt, config)
     tracker = config.tracker
     pusher = config.pusher
     grid = config.grid
