@@ -4,6 +4,7 @@ module ParticleInCell
   using LinearAlgebra
   using Circuit
   using FiniteDifferenceMethod
+  using RegularGrid
 
   include("pic/kinetic.jl")
   include("pic/fluid.jl")
@@ -88,9 +89,6 @@ module ParticleInCell
     grid  = config.grid
     Δt = float(Δt)
     nx, ny = size(grid)
-    Δx, Δy, Δz = grid.Δh
-    spacing = [Δx, Δy]
-    origin  = grid.origin
     enter_loop()
 
     ϕ = zeros(nx, ny)

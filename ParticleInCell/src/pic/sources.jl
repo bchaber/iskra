@@ -1,18 +1,18 @@
 using RegularGrid
 
-mutable struct DensitySource
-  δ :: Array{Float64,2}
-  grid :: UniformGrid{XY2D}
+mutable struct DensitySource{C, D}
+  δ :: Array{Float64, D}
+  grid :: UniformGrid{C, D}
 end
 
-mutable struct MaxwellianSource
+mutable struct MaxwellianSource{D}
    rate :: Float64
-   x :: AbstractArray{Float64,2}
-   v :: AbstractArray{Float64,2}
+   x :: AbstractArray{Float64, D}
+   v :: AbstractArray{Float64, D}
    species
 end
 MaxwellianSource(rate, x, v) =
-MaxwellianSource(rate, x, v, nothing)
+MaxwellianSource(float(rate), float.(x), v, nothing)
   
 function sample!(config :: MaxwellianSource, species :: KineticSpecies, Δt)
   np = species.np

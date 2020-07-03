@@ -1,11 +1,11 @@
 
 
-function wrap!(part::KineticSpecies, grid::UniformGrid{XY2D})
-  nx, ny, nz = grid.nx-1, grid.ny-1, grid.nz-1
-  Δx, Δy, Δz = grid.Δh
-  Lx, Ly, Lz = [nx, ny, nz] .* [Δx, Δy, Δz]
-  origin = grid.origin
-  bb = [origin origin] .+ [0. Lx; 0. Ly; 0 Lz]
+function wrap!(part::KineticSpecies, grid::UniformGrid{:xy, 2})
+  nx, ny = grid.n .- 1
+  Δx, Δy = grid.Δh
+  Lx, Ly = [nx, ny] .* [Δx, Δy]
+  ox, oy = grid.origin
+  bb = [ox oy] .+ [0. Lx; 0. Ly]
   px = view(part.x, 1:part.np, :)
   for p=1:part.np
     if px[p,1] < bb[1,1] px[p,1] += Lx end
