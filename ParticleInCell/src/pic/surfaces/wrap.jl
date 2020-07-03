@@ -1,6 +1,6 @@
 
 
-function wrap!(part::KineticSpecies, grid::UniformGrid{:xy, 2})
+function wrap!(part::KineticSpecies, grid::CartesianGrid{2})
   nx, ny = grid.n .- 1
   Δx, Δy = grid.Δh
   Lx, Ly = [nx, ny] .* [Δx, Δy]
