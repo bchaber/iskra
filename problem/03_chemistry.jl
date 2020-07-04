@@ -16,7 +16,7 @@ Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
-O  = create_fluid_species( "O", 0.0, 0qe, 8mp, nx+1, ny+1)
+O  = create_fluid_species("O",  0.0, 0qe, 8mp, nx+1, ny+1)
 iO = create_fluid_species("O+", 0.0,+1qe, 8mp, nx+1, ny+1)
 e  = create_fluid_species("e-", 1.0,-1qe, 1me, nx+1, ny+1)
 using Chemistry
