@@ -3,7 +3,7 @@ end
 
 function calculate_advection_diffusion(n, D, v, Δh, Δt)
     nx, ny = size(n)
-    Δx, Δy, ~ = Δh
+    Δx, Δy = Δh
     vx = view(v,:,:,1)
     vy = view(v,:,:,2)
     Δn = zeros(nx, ny)

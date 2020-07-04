@@ -80,7 +80,7 @@ end
 
 function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 	nx, ny = size(config.grid)
-	Δx, Δy, ~ = config.grid.Δh
+	Δx, Δy = config.grid.Δh
 	ν = zeros(nx, ny) # collision count
 	if length(dsmc.collisions_remaining) == 0
 		dsmc.collisions_remaining = zeros(nx, ny)

@@ -93,7 +93,7 @@ end
 
 function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 	ν = zeros(size(config.grid)) # collision count
-	Δx, Δy, ~ = config.grid.Δh
+	Δx, Δy = config.grid.Δh
 	for collision in mcc.collisions
 		source, target = collision.source, collision.target
 		density = PIC.density(target, config.grid)
