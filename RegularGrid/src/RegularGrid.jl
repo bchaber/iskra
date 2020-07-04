@@ -6,10 +6,8 @@ module RegularGrid
       data::Dict{String,AbstractArray}
          n::NTuple{D,Integer}
         Δh::NTuple{D,Float64}
-         u::Array{Float64,D}
-         v::Array{Float64,D}
-         w::Array{Float64,D}
       node::Array{Float64,D}
+    coords::NTuple{D,Array{Float64,D}}
     origin::NTuple{D,Float64}
     end
 
@@ -29,20 +27,40 @@ module RegularGrid
         Δy = length(yy) > 1 ? yy[2] - yy[1] : 1.0
         x = repeat(xx,   1, ny)
         y = repeat(yy', nx,  1)
-        z = zeros(nx, ny)
         n = nx*ny
         node = reshape(1:n, nx, ny)
         data = Dict{String,AbstractArray}()
-        CartesianGrid{2}(data, (nx, ny), (Δx, Δy), x, y, z, node, (xs, ys))
+        CartesianGrid{2}(data, (nx, ny), (Δx, Δy), node, (x, y), (xs, ys))
     end
 
-    function create_staggered_grid(g::UniformGrid{:xy, 2})
-        x0, xn = extrema(g.u)
-        y0, yn = extrema(g.v)
+    function create_uniform_grid(xx)
+        nx = length(xx)
+        xs = xx[1]
+        Δx = length(xx) > 1 ? xx[2] - xx[1] : 1.0
+        x = xx
+        n = nx
+        node = 1:n
+        data = Dict{String,AbstractArray}()
+        CartesianGrid{1}(data, (nx,), (Δx,), node, (x,), (xs,))
+    end
+
+    function create_staggered_grid(g::CartesianGrid{2})
+        xx, yy = g.coords
+        x0, xn = extrema(xx)
+        y0, yn = extrema(yy)
         Δx, Δy = g.Δh
         nx, ny = g.n
-        xs = range(x0-Δx/2, xn+Δx/2, length=nx+1)
-        ys = range(y0-Δy/2, yn+Δy/2, length=ny+1)
+        xs = range(x0-Δx/2.0, xn+Δx/2.0, length=nx+1)
+        ys = range(y0-Δy/2.0, yn+Δy/2.0, length=ny+1)
         create_uniform_grid(xs, ys)
+    end
+
+    function create_staggered_grid(g::CartesianGrid{1})
+        xx, = g.coords
+        x0, xn = extrema(g.u)
+        Δx, = g.Δh
+        nx, = g.n
+        xs = range(x0-Δx/2.0, xn+Δx/2.0, length=nx+1)
+        create_uniform_grid(xs)
     end
 end
