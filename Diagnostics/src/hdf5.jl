@@ -77,3 +77,9 @@ function save_record(it::HDF5Group, key::String, record::FieldRecord)
   end
   addattributes(record.metadata, it[f]; except=(:position, :unitSI))
 end
+
+function save_record(it::HDF5Group, key::String, record::CircuitProbeRecord)
+  f = @sprintf "%s/%s" root.meshesPath key
+  it[f] = record.data
+  addattributes(record.metadata, it[f])
+end
