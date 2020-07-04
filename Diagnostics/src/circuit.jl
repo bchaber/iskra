@@ -3,7 +3,7 @@ mutable struct CircuitProbeRecord <: Record
   metadata :: FieldRecordMetadata{2}
 end
 
-function CircuitProbeRecord(data, units::String; offset=0.0)
+function init!(::Type{CircuitProbeRecord}, data, units::String; offset=0.0)
   unitDimension, unitSI   = usi(units)
   
   axisLabels, geometry, N = ("",""), "cartesian", 2
@@ -15,7 +15,7 @@ function CircuitProbeRecord(data, units::String; offset=0.0)
     gridGlobalOffset, gridSpacing, 1.0,
     "none",
     pos, unitSI)
-  CircuitProbeRecord(data * ones(1,1), metadata)
+  record = CircuitProbeRecord(data * ones(1,1), metadata)
 end
 
 function update!(record::CircuitProbeRecord, units, data; optional...)
@@ -28,10 +28,4 @@ macro probe(key, data, units, optional...)
     Diagnostics.register_diagnostic($(esc(key)), $(esc(units)), $(esc(data)),
       CircuitProbeRecord; $(kwargs...))
   end
-end
-
-function save_record(it::HDF5Group, key::String, record::CircuitProbeRecord)
-  f = @sprintf "%s/%s" root.meshesPath key
-  it[f] = record.data
-  addattributes(record.metadata, it[f])
 end
