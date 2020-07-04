@@ -50,26 +50,16 @@ create_electrode(bcs .== 2, config; fixed=true)
 import ParticleInCell
 import Diagnostics
 
-function ParticleInCell.enter_loop()
-  Diagnostics.open_container("03-field")
-  Diagnostics.open_container("03-particle")
+function ParticleInCell.after_loop(i, t, dt)
+  Diagnostics.new_iteration("03_chemistry", i, t, dt) do it
+    Diagnostics.save_diagnostic(it, "phi")
+    Diagnostics.save_diagnostic(it, "nO")
+    Diagnostics.save_diagnostic(it, "nO+")
+    Diagnostics.save_diagnostic(it, "ne-")
+    Diagnostics.save_diagnostic(it, "E")
+  end
 end
 
-function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ϕ",   "03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO",  "03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO+", "03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ne-", "03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ΔnO", "03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ΔnO+","03-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("Δne-","03-field",   it, Δt*it-Δt)
-end
-
-function ParticleInCell.exit_loop()
-  Diagnostics.close_container("03-field")
-  Diagnostics.close_container("03-particle")
-end
 ParticleInCell.init(ParticleInCell.DensitySource(1e6δ, config.grid), O, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(1e4δ, config.grid), e, Δt)
 @time ParticleInCell.solve(config, Δt, ts)

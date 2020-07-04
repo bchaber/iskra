@@ -48,26 +48,35 @@ create_electrode(bcs .== 2, config; fixed=true)
 import ParticleInCell
 import Diagnostics
 
-function ParticleInCell.enter_loop()
-  Diagnostics.open_container("04-field")
-  Diagnostics.open_container("04-particle")
+function ParticleInCell.after_loop(i, t, dt)
+  Diagnostics.new_iteration("04_mcc", i, t, dt) do it
+    Diagnostics.save_diagnostic(it, "phi")
+    Diagnostics.save_diagnostic(it, "nuMCC")
+    Diagnostics.save_diagnostic(it, "nO")
+    Diagnostics.save_diagnostic(it, "ne-")
+    Diagnostics.save_diagnostic(it, "nO+")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/x")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/y")
+    Diagnostics.save_diagnostic(it, "e-/positionOffset/z")
+    Diagnostics.save_diagnostic(it, "e-/position")
+    Diagnostics.save_diagnostic(it, "e-/momentum")
+    Diagnostics.save_diagnostic(it, "e-/weighting")
+    Diagnostics.save_diagnostic(it, "e-/charge")
+    Diagnostics.save_diagnostic(it, "e-/mass")
+    Diagnostics.save_diagnostic(it, "e-/id")
+    Diagnostics.save_diagnostic(it, "O+/positionOffset/x")
+    Diagnostics.save_diagnostic(it, "O+/positionOffset/y")
+    Diagnostics.save_diagnostic(it, "O+/positionOffset/z")
+    Diagnostics.save_diagnostic(it, "O+/position")
+    Diagnostics.save_diagnostic(it, "O+/momentum")
+    Diagnostics.save_diagnostic(it, "O+/weighting")
+    Diagnostics.save_diagnostic(it, "O+/charge")
+    Diagnostics.save_diagnostic(it, "O+/mass")
+    Diagnostics.save_diagnostic(it, "O+/id")
+    Diagnostics.save_diagnostic(it, "E")
+  end
 end
 
-function ParticleInCell.after_loop(it)
-  Diagnostics.save_diagnostic("E",   "04-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ϕ",   "04-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ν",   "04-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO",  "04-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("ne-", "04-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("nO+", "04-field",   it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("pve-","04-particle",it, Δt*it-Δt)
-  Diagnostics.save_diagnostic("pvO+","04-particle",it, Δt*it-Δt)
-end
-
-function ParticleInCell.exit_loop()
-  Diagnostics.close_container("04-field")
-  Diagnostics.close_container("04-particle")
-end
 ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(5e3δ, config.grid), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts)
