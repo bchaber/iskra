@@ -31,10 +31,10 @@ function grid_to_particle(grid::CartesianGrid{2}, part::KineticSpecies{2, V}, u)
   for p=1:np
     i, j, hx, hy = particle_cell(px, p, Δh)
     # gather electric field
-    pu[p,:] = (1-hx)*(1-hy)* u(i , j  ) + # contribution from (i,j)
-                 hx *(1-hy)* u(i+1,j  ) + # (i+1,j)
-              (1-hx)*   hy * u(i,  j+1) + # (i,j+1)
-                 hx *   hy * u(i+1,j+1)   # (i+1,j+1)
+    pu[p,:] = (1.0-hx)*(1.0-hy)* u(i , j  ) + # contribution from (i,j)
+                   hx *(1.0-hy)* u(i+1,j  ) + # (i+1,j)
+              (1.0-hx)*     hy * u(i,  j+1) + # (i,j+1)
+                   hx *     hy * u(i+1,j+1)   # (i+1,j+1)
   end
 
   return pu
