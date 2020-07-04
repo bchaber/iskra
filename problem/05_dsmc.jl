@@ -35,7 +35,7 @@ config.interactions = [collisions]
 ############################################
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
-xx, yy = config.grid.x, config.grid.y
+xx, yy = config.grid.coords
 εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny, 1)
 bcs[ nx,  1, 1] = 1

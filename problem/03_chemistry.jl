@@ -37,7 +37,7 @@ config.interactions = [chemistry]
 ############################################
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
-xx, yy = config.grid.x, config.grid.y
+xx, yy = config.grid.coords
 δ = @. exp(-(xx-0.5Lx)^2/0.03Lx -(yy-0.5Ly)^2/0.03Ly)
 εr  = ones(mx, my, 1)
 bcs = zeros(Int8, nx, ny, 1)
