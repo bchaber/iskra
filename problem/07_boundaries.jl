@@ -44,18 +44,10 @@ import Diagnostics
 
 function ParticleInCell.after_loop(i, t, dt)
   Diagnostics.new_iteration("07_boundaries", i, t, dt) do it
-    Diagnostics.save_diagnostic(it, "ne-")
-    Diagnostics.save_diagnostic(it, "e-/positionOffset/x")
-    Diagnostics.save_diagnostic(it, "e-/positionOffset/y")
-    Diagnostics.save_diagnostic(it, "e-/positionOffset/z")
-    Diagnostics.save_diagnostic(it, "e-/position")
-    Diagnostics.save_diagnostic(it, "e-/momentum")
-    Diagnostics.save_diagnostic(it, "e-/weighting")
-    Diagnostics.save_diagnostic(it, "e-/charge")
-    Diagnostics.save_diagnostic(it, "e-/mass")
-    Diagnostics.save_diagnostic(it, "e-/id")
-    Diagnostics.save_diagnostic(it, "phi")
-    Diagnostics.save_diagnostic(it, "E")
+    Diagnostics.save_records(it, "e-/")
+    Diagnostics.save_record(it, "ne-")
+    Diagnostics.save_record(it, "phi")
+    Diagnostics.save_record(it, "E")
   end
 end
 
