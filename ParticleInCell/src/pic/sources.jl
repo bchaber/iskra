@@ -1,20 +1,20 @@
 using RegularGrid
 
-mutable struct DensitySource{C, D}
+mutable struct DensitySource{D}
   δ :: Array{Float64, D}
-  grid :: UniformGrid{C, D}
+  grid :: CartesianGrid{D}
 end
 
-mutable struct MaxwellianSource{D}
+mutable struct MaxwellianSource{D, V}
    rate :: Float64
-   x :: AbstractArray{Float64, D}
-   v :: AbstractArray{Float64, D}
+   x :: AbstractArray{Float64, 2}
+   v :: AbstractArray{Float64, 2}
    species
 end
 MaxwellianSource(rate, x, v) =
-MaxwellianSource(float(rate), float.(x), v, nothing)
+MaxwellianSource{2,3}(float(rate), float.(x), v, nothing)
   
-function sample!(config :: MaxwellianSource, species :: KineticSpecies, Δt)
+function sample!(config :: MaxwellianSource{2,3}, species :: KineticSpecies{2,3}, Δt)
   np = species.np
   cx, cv = config.x, config.v
   px, pv = @views species.x[1+np:end,:], species.v[1+np:end,:]
@@ -28,7 +28,7 @@ function sample!(config :: MaxwellianSource, species :: KineticSpecies, Δt)
   species.np += n
 end
 
-function sample!(config :: DensitySource, species :: FluidSpecies, Δt)
+function sample!(config :: DensitySource{D}, species :: FluidSpecies{D}, Δt) where D
   species.n .+= config.δ
 end
 

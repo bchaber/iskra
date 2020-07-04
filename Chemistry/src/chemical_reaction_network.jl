@@ -4,7 +4,7 @@ end
 
 function PIC.perform!(network::ChemicalReactionNetwork, E, Δt, config)
 	Δn = Dict()
-	Δx, Δy, ~ = config.grid.Δh
+	Δx, Δy = config.grid.Δh
 	for reaction in network.reactions
 		rate = reaction.rate.(E[:,:,1])
 		for (species, coeff) in reaction.stoichiometry
