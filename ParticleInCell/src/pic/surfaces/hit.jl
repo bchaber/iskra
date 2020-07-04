@@ -37,14 +37,14 @@ function hit!(::AbsorbingSurface,
   absorbed!(st, pt′)
 end
 function hit!(s::ReflectiveSurface,
-              part::KineticSpecies,
+              part::KineticSpecies{D,V},
               st ::SurfaceTracker,
               pt ::TrackedParticle,
-              pt′::TrackedParticle)
+              pt′::TrackedParticle) where {D,V}
   Δt′, p, i′, j′ = pt′
   n̂  = normalvector(pt, pt′)
-  px = view(part.x, p, :)
-  pv = view(part.v, p, :)
+  px = view(part.x, p, 1:D)
+  pv = view(part.v, p, 1:D)
 
   px .-= pv*Δt′
   for i=1:3
