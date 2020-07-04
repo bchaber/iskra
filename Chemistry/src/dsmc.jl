@@ -142,7 +142,7 @@ function PIC.perform!(dsmc::DirectSimulationMonteCarlo, E, Δt, config)
 end
 
 function dsmc(reactions)
-	reminder = 0
+	reminder = 0.0
 	collisions = []
 	for reaction in reactions
 		products = []

@@ -84,7 +84,7 @@ function create_kinetic_species(name, N, q, m, weight)
 end
 
 function create_fluid_species(name, μ, q, m, mx, my)
-  T = 300 # K
+  T = 300.0 # K
   n = zeros(mx, my)
   species = FluidSpecies(name, μ, q, m, n, T)
   return species
