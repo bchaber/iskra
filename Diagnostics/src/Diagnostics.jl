@@ -125,7 +125,15 @@ function save_record(it::HDF5Group, key::String, record::FieldRecord)
   addattributes(record.metadata, it[f]; except=(:position, :unitSI))
 end
 
-function save_diagnostic(it, key)
+function save_records(it, prefix)
+  for key in keys(records)
+    if startswith(key, prefix)
+      save_record(it, key, records[key])
+    end
+  end
+end
+
+function save_record(it, key)
   if haskey(records, key)
     save_record(it, key, records[key])
   else

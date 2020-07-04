@@ -52,11 +52,11 @@ import Diagnostics
 
 function ParticleInCell.after_loop(i, t, dt)
   Diagnostics.new_iteration("03_chemistry", i, t, dt) do it
-    Diagnostics.save_diagnostic(it, "phi")
-    Diagnostics.save_diagnostic(it, "nO")
-    Diagnostics.save_diagnostic(it, "nO+")
-    Diagnostics.save_diagnostic(it, "ne-")
-    Diagnostics.save_diagnostic(it, "E")
+    Diagnostics.save_record(it, "phi")
+    Diagnostics.save_record(it, "nO")
+    Diagnostics.save_record(it, "nO+")
+    Diagnostics.save_record(it, "ne-")
+    Diagnostics.save_record(it, "E")
   end
 end
 

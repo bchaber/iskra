@@ -40,11 +40,11 @@ import Diagnostics
 
 function ParticleInCell.after_loop(i, t, dt)
   Diagnostics.new_iteration("02_fluid_ions", i, t, dt) do it
-    Diagnostics.save_diagnostic(it, "nO+")
-    Diagnostics.save_diagnostic(it, "dO+")
-    Diagnostics.save_diagnostic(it, "vO+")
-    Diagnostics.save_diagnostic(it, "phi")
-    Diagnostics.save_diagnostic(it, "E")
+    Diagnostics.save_record(it, "nO+")
+    Diagnostics.save_record(it, "dO+")
+    Diagnostics.save_record(it, "vO+")
+    Diagnostics.save_record(it, "phi")
+    Diagnostics.save_record(it, "E")
   end
 end
 
