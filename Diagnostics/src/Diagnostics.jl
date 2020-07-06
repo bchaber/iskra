@@ -9,7 +9,7 @@ import Dates
 
 export @particle, @field
 export @probe
-export new_iteration, save_diagnostic
+export new_iteration, save_record, save_records
 
 abstract type Record end
 
