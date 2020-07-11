@@ -15,9 +15,9 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 -.1Δh/Δt; 0 0]
-e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
-γ = create_gamma_ionization_source(1/Δt, sx, sv)
+sx, sv = [0 Lx; 0 Ly], [0 -0.05Δh/Δt; 0 0]
+e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1);
+γ = create_gamma_ionization_source(1/Δt, sx, sv);
 
 using RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = create_uniform_grid(xs, ys)
