@@ -45,21 +45,37 @@ config.circuit = rlc(@netlist begin
 end)
 ############################################
 import ParticleInCell
-import Diagnostics
+using Diagnostics
+using XDMF
 
 function ParticleInCell.after_loop(i, t, dt)
-  Diagnostics.new_iteration("06_circuit", i, t, dt) do it
-    Diagnostics.save_records(it, "e-/")
-    Diagnostics.save_record(it, "rho")
-    Diagnostics.save_record(it, "phi")
-    Diagnostics.save_record(it, "ne-")
-    Diagnostics.save_record(it, "nO")
-    Diagnostics.save_record(it, "E")
-    Diagnostics.save_record(it, "Q1")
-    Diagnostics.save_record(it, "I1")
-    Diagnostics.save_record(it, "V1")
-    Diagnostics.save_record(it, "Vext")
+  cd("/tmp")
+  new_iteration("06_circuit", i, t, dt) do it
+    save_records(it, "e-/")
+    #save_record(it, "rho")
+    #save_record(it, "phi")
+    #save_record(it, "ne-")
+    #save_record(it, "nO")
+    #save_record(it, "E")
+    save_record(it, "Q1")
+    save_record(it, "I1")
+    save_record(it, "V1")
+    save_record(it, "Vext")
   end
+end
+
+function ParticleInCell.exit_loop()
+  println("Exporting to XDMF...")
+  cd("/tmp/06_circuit")
+  electrons = new_document()
+  probes = new_document()
+  fields = new_document()
+  xdmf(1:ts) do it
+    write_species(it, electrons, "e-")
+    write_probes(it, probes)
+  end
+  save_document(electrons, "electrons")
+  save_document(probes, "probes")
 end
 
 ParticleInCell.init(ParticleInCell.MaxwellianSource(1e3/Δt, [0 Lx; 0 Ly], [0 0; 0 0]), e, Δt)

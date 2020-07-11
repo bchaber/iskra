@@ -40,14 +40,25 @@ grounded = create_electrode(bcs .== 3, config; fixed=true)
 ParticleInCell.track_surface!(config.tracker, bcs .== 4, reflecting)
 ############################################
 import ParticleInCell
-import Diagnostics
+using Diagnostics
+using XDMF
 
 function ParticleInCell.after_loop(i, t, dt)
-  Diagnostics.new_iteration("07_boundaries", i, t, dt) do it
-    Diagnostics.save_records(it, "e-/")
-    Diagnostics.save_record(it, "ne-")
-    Diagnostics.save_record(it, "phi")
-    Diagnostics.save_record(it, "E")
+  new_iteration("07_boundaries", i, t, dt) do it
+    save_records(it, "e-/")
+    save_record(it, "ne-")
+    save_record(it, "phi")
+    save_record(it, "E")
+  end
+end
+
+function ParticleInCell.exit_loop()
+  println("Exporting to XDMF...")
+  xdmf("07_boundaries", 1:ts, "electrons.xdmf") do it, f, t
+  	save_species(["e-"], it, f, t)
+  end
+  xdmf("07_boundaries", 1:ts, "fields.xdmf") do it, f, t
+  	save_fields(it, f, t)
   end
 end
 
