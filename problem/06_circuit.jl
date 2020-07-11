@@ -39,8 +39,9 @@ driven   = create_electrode(bcs .== 1, config; σ=1ε0)
 grounded = create_electrode(bcs .== 2, config; fixed=true)
 
 config.circuit = rlc(@netlist begin
-  V1, 3, GND, t -> sin(2π*.1e3*t)
-  L1, NOD, VCC, 1nH
+  V1, 3, GND, t -> sin(2π*5e6*t)
+  L1, NOD, VCC, 1000nH
+  C1, NOD, VCC, 1000nF
   R1, GND, NOD, 1
 end)
 ############################################
