@@ -45,7 +45,8 @@ create_electrode(bcs .== 1, config; σ=1e3ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
 import ParticleInCell
-import Diagnostics
+using Diagnostics
+using XDMF
 
 function thermal_speed(T, m)
   kB = 1.3806503e-23
@@ -53,16 +54,28 @@ function thermal_speed(T, m)
 end
 
 function ParticleInCell.after_loop(i, t, dt)
-  Diagnostics.new_iteration("05_dsmc", i, t, dt) do it
-    Diagnostics.save_record(it, "phi")
-    Diagnostics.save_record(it, "nuDSMC")
-    Diagnostics.save_record(it, "nO")
-    Diagnostics.save_record(it, "ne-")
-    Diagnostics.save_record(it, "nO+")
-    Diagnostics.save_record(it, "E")
-    Diagnostics.save_records(it, "e-/")
-    Diagnostics.save_records(it, "O+/")
-    Diagnostics.save_records(it, "O/")
+  cd("/tmp")
+  new_iteration("05_dsmc", i, t, dt) do it
+    save_record(it, "phi")
+    save_record(it, "nuDSMC")
+    save_record(it, "nO")
+    save_record(it, "ne-")
+    save_record(it, "nO+")
+    save_record(it, "E")
+    save_records(it, "e-/")
+    save_records(it, "O+/")
+    save_records(it, "O/")
+  end
+end
+
+function ParticleInCell.exit_loop()
+  println("Exporting to XDMF...")
+  cd("/tmp/05_dsmc")
+  xdmf(1:ts) do it
+    save_species(it, "xdmf/electrons.xdmf", "e-")
+    save_species(it, "xdmf/neutrals.xdmf", "O")
+    save_species(it, "xdmf/ions.xdmf", "O+")
+    save_fields(it,  "xdmf/fields.xdmf")
   end
 end
 

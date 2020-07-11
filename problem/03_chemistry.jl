@@ -48,15 +48,25 @@ create_electrode(bcs .== 1, config; σ=1ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
 import ParticleInCell
-import Diagnostics
+using Diagnostics
+using XDMF
 
 function ParticleInCell.after_loop(i, t, dt)
-  Diagnostics.new_iteration("03_chemistry", i, t, dt) do it
-    Diagnostics.save_record(it, "phi")
-    Diagnostics.save_record(it, "nO")
-    Diagnostics.save_record(it, "nO+")
-    Diagnostics.save_record(it, "ne-")
-    Diagnostics.save_record(it, "E")
+  cd("/tmp")
+  new_iteration("03_chemistry", i, t, dt) do it
+    save_record(it, "phi")
+    save_record(it, "nO")
+    save_record(it, "nO+")
+    save_record(it, "ne-")
+    save_record(it, "E")
+  end
+end
+
+function ParticleInCell.exit_loop()
+  println("Exporting to XDMF...")
+  cd("/tmp/03_chemistry")
+  xdmf(1:ts) do it
+  	save_fields(it, "xdmf/fields.xdmf")
   end
 end
 

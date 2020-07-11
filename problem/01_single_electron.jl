@@ -37,13 +37,24 @@ create_electrode(bcs .== 1, config; σ=-1ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
 import ParticleInCell
-import Diagnostics
+using Diagnostics
+using XDMF
 
 function ParticleInCell.after_loop(i, t, dt)
-  Diagnostics.new_iteration("01_single_particle", i, t, dt) do it
-    Diagnostics.save_records(it, "e-/")
-    Diagnostics.save_record(it, "rho")
-    Diagnostics.save_record(it, "phi")
+  cd("/tmp")
+  new_iteration("01_single_particle", i, t, dt) do it
+    save_records(it, "e-/")
+    save_record(it, "rho")
+    save_record(it, "phi")
+  end
+end
+
+function ParticleInCell.exit_loop()
+  println("Exporting to XDMF...")
+  cd("/tmp/01_single_particle")
+  xdmf(1:ts) do it
+  	save_species(it, "xdmf/electrons.xdmf", "e-")
+  	save_fields(it,  "xdmf/fields.xdmf")
   end
 end
 

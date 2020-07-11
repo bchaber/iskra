@@ -46,19 +46,37 @@ create_electrode(bcs .== 1, config; σ=1e3ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
 import ParticleInCell
-import Diagnostics
+using Diagnostics
+using XDMF
 
 function ParticleInCell.after_loop(i, t, dt)
-  Diagnostics.new_iteration("04_mcc", i, t, dt) do it
-    Diagnostics.save_record(it, "phi")
-    Diagnostics.save_record(it, "nuMCC")
-    Diagnostics.save_record(it, "nO")
-    Diagnostics.save_record(it, "ne-")
-    Diagnostics.save_record(it, "nO+")
-    Diagnostics.save_record(it, "E")
-    Diagnostics.save_records(it, "e-/")
-    Diagnostics.save_records(it, "O+/")
+  cd("/tmp")
+  new_iteration("04_mcc", i, t, dt) do it
+    save_record(it, "phi")
+    save_record(it, "nuMCC")
+    save_record(it, "nO")
+    save_record(it, "ne-")
+    save_record(it, "nO+")
+    save_record(it, "E")
+    save_records(it, "e-/")
+    save_records(it, "O+/")
   end
+end
+
+function ParticleInCell.exit_loop()
+  println("Exporting to XDMF...")
+  cd("/tmp/04_mcc")
+  electrons = new_document()
+  fields = new_document()
+  ions = new_document()
+  xdmf(1:ts) do it
+    write_species(it, electrons, "e-")
+    write_species(it, ions, "O+")
+    write_fields(it, fields)
+  end
+  save_document(electrons, "electrons")
+  save_document(fields)
+  save_document(ions)
 end
 
 ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
