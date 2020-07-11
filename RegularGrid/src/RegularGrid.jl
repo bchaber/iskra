@@ -57,7 +57,7 @@ module RegularGrid
 
     function create_staggered_grid(g::CartesianGrid{1})
         xx, = g.coords
-        x0, xn = extrema(g.u)
+        x0, xn = extrema(xx)
         Δx, = g.Δh
         nx, = g.n
         xs = range(x0-Δx/2.0, xn+Δx/2.0, length=nx+1)
