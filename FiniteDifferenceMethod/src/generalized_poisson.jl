@@ -66,6 +66,7 @@ function apply_dirichlet(ps::PoissonSolver{:xy, 2}, nodes::BitArray{2}, ϕ0)
         A[ϕ[i,j],:]     .= 0 # clear row
         A[ϕ[i,j],ϕ[i,j]] = 1 # ϕ(i,j)
         b[ϕ[i,j]]        = ϕ0
+        setdiff!(ρ, ϕ[i,j])
     end
 end
 
