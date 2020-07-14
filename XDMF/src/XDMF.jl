@@ -37,7 +37,7 @@ end
 function xdmf(func::Function, iterations)
   for i in iterations
     mkpath("./xdmf")
-    name = @sprintf "./hdf5/data%d.h5" i
+    name = @sprintf "hdf5/data%d.h5" i
     file = h5open(name, "r");
     try
       XDMFFile(i, file) |> func
