@@ -1,3 +1,13 @@
+abstract type FieldBoundary end
+struct Open <: FieldBoundary end
+struct Other <: FieldBoundary end
+struct Periodic <: FieldBoundary end
+struct Reflecting <: FieldBoundary end
+struct Top end
+struct Right end
+struct Bottom end
+struct Left end
+
 mutable struct PoissonSolver{CS, D}
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
@@ -5,6 +15,7 @@ mutable struct PoissonSolver{CS, D}
   εr:: AbstractArray{Float64,D}
   ε0:: Float64
   Δh :: NTuple{D, Float64}
+  bnds :: Dict{Symbol, FieldBoundary}
   dofs :: Dict{Symbol, AbstractArray}
 end
 
@@ -46,6 +57,8 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
     end
     A ./= (Δx*Δx) # TODO: it will break when Δx ≠ Δy
     dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ, :ρ => ρ)
+    bnds = Dict{Symbol, FieldBoundary}(:left => Open(), :right => Open(),
+                                       :bottom => Open(), :top => Open())
     ps = PoissonSolver{:xy, 2}(A, b, x, εr, ε0, (Δx, Δy), bnds, dofs)
     return ps
 end
@@ -133,7 +146,26 @@ get_rhs(ps::PoissonSolver, s::Symbol, i::Int64, j::Int64) =
 get_rhs(ps::PoissonSolver, s::Symbol, i::Int64) =
     view(ps.b, ps.dofs[s][i])
 
-function calculate_electric_potential(ps::PoissonSolver, f)
+
+update!(::Open,     ::Top,    f, ϕ, nx, ny) = nothing #f[ϕ[nx,:]] .= 2.0f[ϕ[nx,:]]
+update!(::Open,     ::Right,  f, ϕ, nx, ny) = nothing #f[ϕ[:,ny]] .= 2.0f[ϕ[:,ny]]
+update!(::Open,     ::Bottom, f, ϕ, nx, ny) = nothing #f[ϕ[1, :]] .= 2.0f[ϕ[1, :]]
+update!(::Open,     ::Left,   f, ϕ, nx, ny) = nothing #f[ϕ[:, 1]] .= 2.0f[ϕ[:, 1]]
+
+update!(::Periodic, ::Top,    f, ϕ, nx, ny) = f[ϕ[nx,:]] .= f[ϕ[1, :]] .+ f[ϕ[nx, :]]
+update!(::Periodic, ::Right,  f, ϕ, nx, ny) = f[ϕ[:,ny]] .= f[ϕ[:, 1]] .+ f[ϕ[:, ny]]
+update!(::Periodic, ::Bottom, f, ϕ, nx, ny) = f[ϕ[1, :]] .= f[ϕ[1, :]] .+ f[ϕ[nx, :]]
+update!(::Periodic, ::Left,   f, ϕ, nx, ny) = f[ϕ[:, 1]] .= f[ϕ[:, 1]] .+ f[ϕ[:, ny]]
+
+function update_source_term!(ps::PoissonSolver{:xy, 2}, f, ϕ)
+    nx, ny = size(ϕ)
+    update!(ps.bnds[:top],    Top(),    f, ϕ, nx, ny)
+    update!(ps.bnds[:right],  Right(),  f, ϕ, nx, ny)
+    update!(ps.bnds[:bottom], Bottom(), f, ϕ, nx, ny)
+    update!(ps.bnds[:left],   Left(),   f, ϕ, nx, ny)
+end
+
+function calculate_electric_potential(ps::PoissonSolver{CS, 2}, f) where CS
     A, b, x, ε0 = ps.A, ps.b, ps.x, ps.ε0
     dofs = ps.dofs[:ϕ]
     internal = dofs[2:end-1,2:end-1]
