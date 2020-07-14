@@ -35,7 +35,7 @@ module ParticleInCell
   end
 
   # hooks
-  function enter_loop() end
+  function enter_loop(cfg) end
   function after_loop(it, t, Δt) end
   function exit_loop() end
 
@@ -91,7 +91,7 @@ module ParticleInCell
     grid  = config.grid
     Δt = float(Δt)
     nx, ny = size(grid)
-    enter_loop()
+    enter_loop(config)
 
     ϕ = zeros(nx, ny)
     ρ = zeros(nx, ny)
