@@ -14,11 +14,6 @@ function particle_to_grid(part::KineticSpecies{2, V}, grid::CartesianGrid{2}, pu
     u[i+1,j+1] +=    hx *   hy * pu(p)/(Δx*Δy)
   end
 
-  u[ 1,:] .*= 2
-  u[nx,:] .*= 2
-  u[:, 1] .*= 2
-  u[:,ny] .*= 2
-
   return u
 end
 
