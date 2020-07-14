@@ -19,11 +19,11 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
     nx, ny = size(grid)
     nn = nx⋅ny
     Δx, Δy = grid.Δh
-    dofs = collect(1:nn)
     A = zeros(nn, nn)
     b = zeros(nn)
     x = zeros(nn)
-    ϕ = reshape(dofs, nx, ny)
+    ϕ = reshape(collect(1:nn), nx, ny)
+    ρ = reshape(collect(1:nn), nn)
     for j=1:ny
         for i=1:nx
             if i < nx
@@ -45,7 +45,7 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
         end
     end
     A ./= (Δx*Δx) # TODO: it will break when Δx ≠ Δy
-    dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ)
+    dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ, :ρ => ρ)
     ps = PoissonSolver{:xy, 2}(A, b, x, εr, ε0, (Δx, Δy), bnds, dofs)
     return ps
 end
@@ -56,7 +56,7 @@ end
 
 function apply_dirichlet(ps::PoissonSolver{:xy, 2}, nodes::BitArray{2}, ϕ0)
     A, b = ps.A, ps.b
-    ϕ = ps.dofs[:ϕ]
+    ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ]
     ids = CartesianIndices(size(nodes))
     if ϕ0 ≠ 0
         println("ERROR: non-zero Dirichlet Boundary Condition")
