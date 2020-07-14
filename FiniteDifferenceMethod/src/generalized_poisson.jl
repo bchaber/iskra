@@ -1,23 +1,21 @@
-# TODO: PoissonSolver should be parametrized with CoordinateSystem
-mutable struct PoissonSolver
+mutable struct PoissonSolver{CS, D}
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
   x :: AbstractArray{Float64,1}
-  εr:: AbstractArray{Float64,3}
+  εr:: AbstractArray{Float64,D}
   ε0:: Float64
-  Δh :: Tuple{Float64,Float64,Float64}
-
+  Δh :: NTuple{D, Float64}
   dofs :: Dict{Symbol, AbstractArray}
 end
 
 function create_poisson_solver(grid::CartesianGrid{2}, ε0::Float64)
     nx, ny = size(grid)
-    create_generalized_poisson_solver(grid, ones(nx+1, ny+1, 1), ε0)
+    create_generalized_poisson_solver(grid, ones(nx+1, ny+1), ε0)
 end
 
 # Implement generalized Poisson solver from (eq. 37-40):
 # https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel 2012 - Solving the Generalized Poisson Equation using FDM.pdf
-function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Float64,3}, ε0::Float64)
+function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Float64,2}, ε0::Float64)
     nx, ny = size(grid)
     nn = nx⋅ny
     Δx, Δy = grid.Δh
@@ -48,7 +46,7 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
     end
     A ./= (Δx*Δx) # TODO: it will break when Δx ≠ Δy
     dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ)
-    ps = PoissonSolver(A, b, x, εr, ε0, (Δx, Δy, .0), dofs)
+    ps = PoissonSolver{:xy, 2}(A, b, x, εr, ε0, (Δx, Δy), bnds, dofs)
     return ps
 end
 
@@ -56,7 +54,7 @@ function solve(A::Array{Float64,2}, b::Array{Float64,1})
   return A\b
 end
 
-function apply_dirichlet(ps::PoissonSolver, nodes::BitArray{3}, ϕ0)
+function apply_dirichlet(ps::PoissonSolver{:xy, 2}, nodes::BitArray{2}, ϕ0)
     A, b = ps.A, ps.b
     ϕ = ps.dofs[:ϕ]
     ids = CartesianIndices(size(nodes))
@@ -89,9 +87,9 @@ end
 # Coefficients are doubled so that the
 # the whole space charge density contributes
 # to the Boundary Condition (instead of ρ0/2)
-function apply_neumann(ps::PoissonSolver, nodes, dof)
+function apply_neumann(ps::PoissonSolver{:xy, 2}, nodes, dof)
     εr = ps.εr
-    Δx, Δy, ~ = ps.Δh
+    Δx, Δy = ps.Δh
     ϕ = ps.dofs[:ϕ]
     σ = ps.dofs[:σ]
     nx, ny = size(ϕ)
@@ -144,14 +142,14 @@ function calculate_electric_potential(ps::PoissonSolver, f)
     return ϕ
 end
 
-function calculate_electric_field(ps::PoissonSolver, ϕ)
+function calculate_electric_field(ps::PoissonSolver{CS,2}, ϕ) where CS
     nx, ny = size(ϕ)
     calculate_electric_field!(ps, ϕ, zeros(nx, ny, 3))
 end
 
-function calculate_electric_field!(ps::PoissonSolver, ϕ, E)
+function calculate_electric_field!(ps::PoissonSolver{:xy, 2}, ϕ, E)
     nx, ny = size(ϕ)
-    Δx, Δy, ~ = ps.Δh
+    Δx, Δy = ps.Δh
 
     E[2:nx-1,:,1] = (ϕ[1:nx-2,:] - ϕ[3:nx,:])/2Δx # central difference on internal nodes
     E[:,2:ny-1,2] = (ϕ[:,1:ny-2] - ϕ[:,3:ny])/2Δy # central difference on internal nodes

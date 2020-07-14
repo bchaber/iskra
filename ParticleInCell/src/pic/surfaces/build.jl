@@ -25,7 +25,7 @@ create_periodic_surface()   = PeriodicSurface()
 create_absorbing_surface()  = AbsorbingSurface()
 create_reflective_surface() = ReflectiveSurface()
 
-function build_default_surface!(st::SurfaceTracker, bcs::BitArray{3}, ds::Surface)
+function build_default_surface!(st::SurfaceTracker, bcs::BitArray{2}, ds::Surface)
   nx, ny = size(bcs)
   for i=1:nx-1
     get!(st, (i,1,i,0),     ds)
@@ -38,7 +38,7 @@ function build_default_surface!(st::SurfaceTracker, bcs::BitArray{3}, ds::Surfac
   end
 end
 
-function build_surface_lookup!(st::SurfaceTracker, bcs::BitArray{3}, ss::Surface)
+function build_surface_lookup!(st::SurfaceTracker, bcs::BitArray{2}, ss::Surface)
   nx, ny = size(bcs)
   for i=1:nx-1
     for j=1:ny-1
@@ -54,7 +54,7 @@ function build_surface_lookup!(st::SurfaceTracker, bcs::BitArray{3}, ss::Surface
   end
 end
 
-function create_surface_tracker(bcs::Array{Int8, 3}, ss::Array{<:Surface,1}, Δh,
+function create_surface_tracker(bcs::Array{Int8,2}, ss::Array{<:Surface,1}, Δh,
         ds = AbsorbingSurface())
   tracked = Vector{TrackedParticle}()
   surface = Dict{BoundaryCells, Surface}()
@@ -71,10 +71,10 @@ end
 function create_surface_tracker(grid::CartesianGrid{2}, ds=AbsorbingSurface())
   Δx, ~  = grid.Δh
   nx, ny = size(grid)
-  bcs = zeros(Int8, nx, ny, 1)
+  bcs = zeros(Int8, nx, ny)
   return create_surface_tracker(bcs, Surface[], Δx, ds)
 end
 
-function track_surface!(st::SurfaceTracker, bcs::BitArray{3}, ss::Surface)
+function track_surface!(st::SurfaceTracker, bcs::BitArray{2}, ss::Surface)
   build_surface_lookup!(st, bcs, ss)
 end

@@ -55,7 +55,7 @@ function create_electrode(nodes, ps, grid::CartesianGrid{2}; fixed=false, σ=0.0
     c ≠ nothing ? c.I : nothing
   end
   area = calculate_area(nodes)
-  i,j,k = find_reference_node(nodes)
+  i,j  = find_reference_node(nodes)
 
   if fixed
     apply_dirichlet(ps, nodes, ϕ)
