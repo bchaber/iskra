@@ -167,12 +167,11 @@ end
 
 function calculate_electric_potential(ps::PoissonSolver{CS, 2}, f) where CS
     A, b, x, ε0 = ps.A, ps.b, ps.x, ps.ε0
-    dofs = ps.dofs[:ϕ]
-    internal = dofs[2:end-1,2:end-1]
-    b[internal] .= f[internal]
-    x.= solve(A, b/ε0)
-    ϕ = x[dofs]
-    return ϕ
+    ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ]
+    update_source_term!(ps, f, ϕ)
+    b[ρ] .= f[ρ]
+    x .= solve(A, b/ε0)
+    return x[ϕ] # we could use (or even reuse!) a view here
 end
 
 function calculate_electric_field(ps::PoissonSolver{CS,2}, ϕ) where CS
