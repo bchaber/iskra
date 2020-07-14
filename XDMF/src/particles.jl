@@ -28,7 +28,7 @@ function add_species(particles, fname::String, n::String, g::HDF5Group, geometry
     d = g["position/"*m]
     dataitem = new_child(geometry, "DataItem")
     set_attributes(dataitem, Name=m, Format="HDF5", NumberType="Float", Precision="8", Dimensions=np)
-    add_text(dataitem, @sprintf "%s:%s" fname name(d))
+    add_text(dataitem, @sprintf "%s/%s:%s" pwd() fname name(d))
   end
 
   for m in ("id",)
@@ -37,7 +37,7 @@ function add_species(particles, fname::String, n::String, g::HDF5Group, geometry
     set_attributes(attribute, Name=n*m, AttributeType="Scalar", Center="Node")
     dataitem = new_child(attribute, "DataItem")
     set_attributes(dataitem, Name=m, Format="HDF5", NumberType="UInt", Dimensions=np)
-    add_text(dataitem, @sprintf "%s:%s" fname name(d))
+    add_text(dataitem, @sprintf "%s/%s:%s" pwd() fname name(d))
   end
   return np
 end

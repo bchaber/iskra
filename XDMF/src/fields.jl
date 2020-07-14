@@ -93,7 +93,7 @@ function add_field(fields, fname::String, n::String, g::HDF5Dataset, origin, spa
   set_attributes(dataitem;
     Format="HDF5", NumberType="Float", Precision="8",
     Dimensions=d)
-  add_text(dataitem, @sprintf "%s:%s" fname name(g))
+  add_text(dataitem, @sprintf "%s/%s:%s" pwd() fname name(g))
   return o, s, d
 end
 
