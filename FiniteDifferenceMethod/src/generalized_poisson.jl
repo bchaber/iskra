@@ -50,7 +50,7 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
     return ps
 end
 
-function solve(A::Array{Float64,2}, b::Array{Float64,1})
+function solve(A, b)
   return A\b
 end
 
