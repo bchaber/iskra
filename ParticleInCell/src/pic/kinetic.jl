@@ -1,7 +1,7 @@
 mutable struct KineticSpecies{D, V}
   x :: AbstractArray{Float64,2} # position
   v :: AbstractArray{Float64,2} # velocity
-  n :: AbstractArray{Float64,2} # density
+  n :: AbstractArray{Float64,D} # density
   m :: Float64 # mass
   q :: Float64 # charge
   np :: Int64     # current number of particles
@@ -14,8 +14,8 @@ end
 Base.show(io::IO, sp::KineticSpecies) = print(io, sp.name)
 particle_uuids(N::Int64) = collect(UInt32(1):UInt32(N))
 KineticSpecies{D,V}(name::String, N::Int64) where {D, V} =
-  KineticSpecies{D,V}(zeros(N, D), zeros(N, V), zeros(0,0),
-    .0, .0, 0, 1., ones(N), particle_uuids(N), name)
+  KineticSpecies{D,V}(zeros(N, D), zeros(N, V), D > 1 ? zeros(0,0) : zeros(0),
+    .0, .0, 0, 1., ones(N), particle_uuids(N), name) # HACK!
 
 function remove!(sp::KineticSpecies, i::Int64)
   np = sp.np
