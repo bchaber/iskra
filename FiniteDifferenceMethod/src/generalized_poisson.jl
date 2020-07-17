@@ -204,25 +204,6 @@ get_rhs(ps::PoissonSolver, s::Symbol, i::Int64, j::Int64) =
 get_rhs(ps::PoissonSolver, s::Symbol, i::Int64) =
     view(ps.b, ps.dofs[s][i])
 
-
-update!(::Open,     ::Top,    f, ϕ, nx, ny) = nothing #f[ϕ[nx,:]] .= 2.0f[ϕ[nx,:]]
-update!(::Open,     ::Right,  f, ϕ, nx, ny) = nothing #f[ϕ[:,ny]] .= 2.0f[ϕ[:,ny]]
-update!(::Open,     ::Bottom, f, ϕ, nx, ny) = nothing #f[ϕ[1, :]] .= 2.0f[ϕ[1, :]]
-update!(::Open,     ::Left,   f, ϕ, nx, ny) = nothing #f[ϕ[:, 1]] .= 2.0f[ϕ[:, 1]]
-
-update!(::Periodic, ::Top,    f, ϕ, nx, ny) = f[ϕ[nx,:]] .= f[ϕ[1, :]] .+ f[ϕ[nx, :]]
-update!(::Periodic, ::Right,  f, ϕ, nx, ny) = f[ϕ[:,ny]] .= f[ϕ[:, 1]] .+ f[ϕ[:, ny]]
-update!(::Periodic, ::Bottom, f, ϕ, nx, ny) = f[ϕ[1, :]] .= f[ϕ[1, :]] .+ f[ϕ[nx, :]]
-update!(::Periodic, ::Left,   f, ϕ, nx, ny) = f[ϕ[:, 1]] .= f[ϕ[:, 1]] .+ f[ϕ[:, ny]]
-
-function update_source_term!(ps::PoissonSolver{:xy, 2}, f, ϕ)
-    nx, ny = size(ϕ)
-    update!(ps.bnds[:top],    Top(),    f, ϕ, nx, ny)
-    update!(ps.bnds[:right],  Right(),  f, ϕ, nx, ny)
-    update!(ps.bnds[:bottom], Bottom(), f, ϕ, nx, ny)
-    update!(ps.bnds[:left],   Left(),   f, ϕ, nx, ny)
-end
-
 function calculate_electric_potential(ps::PoissonSolver{CS, 2}, f) where CS
     A, b, x, ε0 = ps.A, ps.b, ps.x, ps.ε0
     ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ]
