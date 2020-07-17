@@ -209,9 +209,22 @@ function calculate_electric_potential(ps::PoissonSolver{CS, D}, f) where {CS, D}
     return x[ϕ] # we could use (or even reuse!) a view here
 end
 
-function calculate_electric_field(ps::PoissonSolver{CS,2}, ϕ) where CS
-    nx, ny = size(ϕ)
-    calculate_electric_field!(ps, ϕ, zeros(nx, ny, 3))
+calculate_electric_field(ps::PoissonSolver{CS, 1}, ϕ) where CS =
+    calculate_electric_field!(ps, ϕ, zeros(size(ϕ, 1), 3))
+calculate_electric_field(ps::PoissonSolver{CS, 2}, ϕ) where CS =
+    calculate_electric_field!(ps, ϕ, zeros(size(ϕ, 1), size(ϕ, 2), 3))
+
+function calculate_electric_field!(ps::PoissonSolver{:xy, 1}, ϕ, E)
+    nx, = size(ϕ)
+    Δx, = ps.Δh
+
+    E[2:nx-1,1] = (ϕ[1:nx-2] - ϕ[3:nx])/2Δx # central difference on internal nodes
+    #E[ 1,1] = (ϕ[nx]   - ϕ[2])/2Δx # central difference on internal nodes
+    #E[nx,1] = (ϕ[nx-1] - ϕ[1])/2Δx # central difference on internal nodes
+    E[1 ,1]  = (ϕ[1]    - ϕ[ 2])/Δx  #  forward difference on x=0
+    E[nx,1]  = (ϕ[nx-1] - ϕ[nx])/Δx  # backward difference on x=Lx
+    
+    return E
 end
 
 function calculate_electric_field!(ps::PoissonSolver{:xy, 2}, ϕ, E)
