@@ -31,10 +31,9 @@ end
 
 # Implement generalized Poisson solver from (eq. 37-40):
 # https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel 2012 - Solving the Generalized Poisson Equation using FDM.pdf
-function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Float64,2}, ε0::Float64)
-    nx, ny = size(grid)
+function create_generalized_poisson_solver(grid::CartesianGrid{D}, εr::Array{Float64,2}, ε0::Float64) where D
+    nx, ny = size(εr) .- 1
     nn = nx⋅ny
-    Δx, Δy = grid.Δh
     A = zeros(nn, nn)
     b = zeros(nn)
     x = zeros(nn)
@@ -60,11 +59,11 @@ function create_generalized_poisson_solver(grid::CartesianGrid{2}, εr::Array{Fl
             end
         end
     end
-    A ./= (Δx*Δx) # TODO: it will break when Δx ≠ Δy
     dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ, :ρ => ρ)
     bnds = Dict{Symbol, FieldBoundary}(:left => Open(), :right => Open(),
                                        :bottom => Open(), :top => Open())
-    ps = PoissonSolver{:xy, 2}(A, b, x, εr, ε0, (Δx, Δy), bnds, dofs)
+    A ./= prod(grid.Δh) # TODO: it will break when Δx ≠ Δy
+    ps = PoissonSolver{:xy, D}(A, b, x, εr, ε0, grid.Δh, bnds, dofs)
     return ps
 end
 
@@ -72,7 +71,7 @@ function solve(A, b)
   return A\b
 end
 
-function apply_dirichlet(ps::PoissonSolver{:xy, 2}, nodes::BitArray{2}, ϕ0)
+function apply_dirichlet(ps::PoissonSolver{:xy, D}, nodes::BitArray{D}, ϕ0) where D
     A, b = ps.A, ps.b
     ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ]
     ids = CartesianIndices(size(nodes))
@@ -80,11 +79,10 @@ function apply_dirichlet(ps::PoissonSolver{:xy, 2}, nodes::BitArray{2}, ϕ0)
         println("ERROR: non-zero Dirichlet Boundary Condition")
     end
     for ij in ids[nodes]
-        i, j = ij.I
-        A[ϕ[i,j],:]     .= 0 # clear row
-        A[ϕ[i,j],ϕ[i,j]] = 1 # ϕ(i,j)
-        b[ϕ[i,j]]        = ϕ0
-        setdiff!(ρ, ϕ[i,j])
+        A[ϕ[ij],:]     .= 0 # clear row
+        A[ϕ[ij],ϕ[ij]] = 1 # ϕ(i,j)
+        b[ϕ[ij]]        = ϕ0
+        setdiff!(ρ, ϕ[ij])
     end
 end
 
