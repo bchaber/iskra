@@ -204,12 +204,11 @@ get_rhs(ps::PoissonSolver, s::Symbol, i::Int64, j::Int64) =
 get_rhs(ps::PoissonSolver, s::Symbol, i::Int64) =
     view(ps.b, ps.dofs[s][i])
 
-function calculate_electric_potential(ps::PoissonSolver{CS, 2}, f) where CS
+function calculate_electric_potential(ps::PoissonSolver{CS, D}, f) where {CS, D}
     A, b, x, ε0 = ps.A, ps.b, ps.x, ps.ε0
     ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ]
-    update_source_term!(ps, f, ϕ)
-    b[ρ] .= f[ρ]
-    x .= solve(A, b/ε0)
+    b[ρ] .= f[ρ] ./ ε0
+    x .= solve(A, b)
     return x[ϕ] # we could use (or even reuse!) a view here
 end
 
