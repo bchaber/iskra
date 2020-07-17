@@ -1,4 +1,15 @@
-
+function wrap!(part::KineticSpecies, grid::CartesianGrid{1})
+  nx, = grid.n .- 1
+  Δx, = grid.Δh
+  Lx = nx*Δx
+  ox = grid.origin
+  bb = ox .+ [0. Lx]
+  px = view(part.x, 1:part.np, :)
+  for p=1:part.np
+    if px[p,1] < bb[1,1] px[p,1] += Lx end
+    if px[p,1] > bb[1,2] px[p,1] -= Lx end
+  end
+end
 
 function wrap!(part::KineticSpecies, grid::CartesianGrid{2})
   nx, ny = grid.n .- 1

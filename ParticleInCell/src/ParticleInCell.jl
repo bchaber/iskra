@@ -29,9 +29,7 @@ module ParticleInCell
     fij = @views 1 .+ px[p, :] ./ Δh
     ij = floor.(Int64, fij)
     hxy = fij .- ij
-    i, j  = ij
-    hx,hy = hxy
-    return i, j, hx, hy
+    return ij, hxy
   end
 
   # hooks
@@ -51,10 +49,9 @@ module ParticleInCell
     tracker = config.tracker
     pusher = config.pusher
     grid = config.grid
-    nx, ny = size(grid)
 
     track!(tracker, part, Δt)
-    partE = grid_to_particle(grid, part, (i,j) -> E[i, j, :])
+    partE = grid_to_particle(grid, part, E)
     push_particles!(pusher, part, partE, Δt)
     check!(tracker, part, Δt)
 
@@ -90,12 +87,12 @@ module ParticleInCell
     cells = config.cells
     grid  = config.grid
     Δt = float(Δt)
-    nx, ny = size(grid)
+
     enter_loop(config)
 
-    ϕ = zeros(nx, ny)
-    ρ = zeros(nx, ny)
-    E = zeros(nx, ny, 3)
+    ϕ = zeros(size(grid))
+    ρ = zeros(size(grid))
+    E = zeros(size(grid)..., 3)
 
     for iteration=1:timesteps # iterate for ts time step
       # Create particles

@@ -103,7 +103,7 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 		Nc = Pt * source.np
 		for ~=1:floor(Int64, Nc)
 			p = rand(1:source.np)
-			i, j, _, _ = PIC.particle_cell(source.x, p, config.grid.Δh)
+			(i, j), ~ = PIC.particle_cell(source.x, p, config.grid.Δh)
 			n = density[i,j]
 			if n < 0
 				println("Density is negative, skipping")

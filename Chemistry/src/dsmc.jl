@@ -24,7 +24,7 @@ DirectSimulationMonteCarlo(collisions) = DirectSimulationMonteCarlo(collisions, 
 
 function cache!(candidates, species, nx, ny, Δh)
 	for p=1:species.np
-		i, j, ~, ~ = PIC.particle_cell(species.x, p, Δh)
+		(i, j), ~ = PIC.particle_cell(species.x, p, Δh)
 		push!(candidates[i, j], p)
 	end
 end

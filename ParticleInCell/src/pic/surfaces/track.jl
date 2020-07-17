@@ -44,8 +44,8 @@ function track!(st::SurfaceTracker, part::KineticSpecies, Δt)
 
   empty!(st.tracked)
   for p=1:part.np
-    i, j, hx, hy = particle_cell(px, p, st.Δh)
-    if (i,j) ∈ st
+    (i, j), (hx, hy) = particle_cell(px, p, st.Δh)
+    if (i, j) ∈ st
       track!(st, (Δt, p, i, j, hx, hy))
     end
   end
