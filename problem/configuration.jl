@@ -70,9 +70,12 @@ function create_electrode(nodes, ps, grid::CartesianGrid{2}; fixed=false, σ=0.0
   end
 end
 
-function create_gamma_ionization_source(rate, x, v)
-  D, V = size(x, 1), size(v, 1)
-  MaxwellianSource{D,V}(float.(rate), float.(x), float.(v))
+create_gamma_ionization_source(rate, wx::Float64, wv; dx=nothing, dv=nothing) = create_gamma_ionization_source(rate, [wx], wv; dx=dx, dv=dv)
+function create_gamma_ionization_source(rate, wx, wv; dx=nothing, dv=nothing)
+  D, V = size(wx, 2), size(wv, 2)
+  if isnothing(dx) dx = zero(wx) end
+  if isnothing(dv) dv = zero(wv) end
+  MaxwellianSource{D,V}(float.(rate), float.(wx), float.(wv); dx=float.(dx), dv=float.(dv))
 end
 
 function create_kinetic_species(name, N, q, m, weight; D=2, V=3)
