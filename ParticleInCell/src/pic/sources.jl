@@ -7,22 +7,29 @@ end
 
 mutable struct MaxwellianSource{D, V}
    rate :: Float64
-   x :: AbstractArray{Float64, 2}
-   v :: AbstractArray{Float64, 2}
+   wx :: Matrix{Float64}
+   dx :: Matrix{Float64}
+   wv :: Matrix{Float64}
+   dv :: Matrix{Float64}
+   MaxwellianSource{1,V}(rate::Float64, wx::Float64, wv::Matrix{Float64}; dx=zero(Float64), dv=nothing) where {V} =
+    MaxwellianSource{1,V}(rate, [wx], wv; dx=[dx], dv=dv)
+   MaxwellianSource{1,V}(rate::Float64, wx::Vector{Float64}, wv::Matrix{Float64}; dx=zeros(1),dv=nothing) where {V} =
+    MaxwellianSource{1,V}(rate, wx[:,:], wv; dx=dx[:,:], dv=dv)
+   MaxwellianSource{D,V}(rate::Float64, wx::Matrix{Float64}, wv::Matrix{Float64}; dx=nothing, dv=nothing) where {D,V} =
+     new{D,V}(rate,
+              wx, isnothing(dx) ? zeros(1, D) : dx,
+              wv, isnothing(dv) ? zeros(1, V) : dv)
 end
 
 function sample!(config :: MaxwellianSource{D, V}, species :: KineticSpecies{D, V}, Δt) where {D, V}
   np = species.np
-  cx, cv = config.x, config.v
+  wx, wv = config.wx, config.wv
+  dx, dv = config.dx, config.dv
   px, pv = @views species.x[1+np:end,:], species.v[1+np:end,:]
 
   n = minimum([size(px, 1), floor(Integer, config.rate*Δt)])
-  Dx = reshape(cx[:, 1], 1, :)
-  dx = reshape(cx[:, 2], 1, :)
-  Dv = reshape(cv[:, 1], 1, :)
-  dv = reshape(cv[:, 2], 1, :)
-  px[1:n, :] =  rand(n,D) .* repeat(dx, n) .+ repeat(Dx, n)
-  pv[1:n, :] = randn(n,V) .* repeat(dv, n) .+ repeat(Dv, n)
+  px[1:n, :] =  rand(n,D) .* repeat(wx, n) .+ repeat(dx, n)
+  pv[1:n, :] = randn(n,V) .* repeat(wv, n) .+ repeat(dv, n)
   species.np += n
 end
 
