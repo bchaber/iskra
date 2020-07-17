@@ -8,15 +8,20 @@ struct Right end
 struct Bottom end
 struct Left end
 
-mutable struct PoissonSolver{CS, D}
+mutable struct PoissonSolver{CS, D} # D < 3
   A :: AbstractArray{Float64,2}
   b :: AbstractArray{Float64,1}
   x :: AbstractArray{Float64,1}
-  εr:: AbstractArray{Float64,D}
+  εr:: AbstractArray{Float64,2}
   ε0:: Float64
   Δh :: NTuple{D, Float64}
   bnds :: Dict{Symbol, FieldBoundary}
   dofs :: Dict{Symbol, AbstractArray}
+end
+
+function create_poisson_solver(grid::CartesianGrid{1}, ε0::Float64)
+    nx, = size(grid)
+    create_generalized_poisson_solver(grid, ones(nx+1, 2), ε0)
 end
 
 function create_poisson_solver(grid::CartesianGrid{2}, ε0::Float64)
