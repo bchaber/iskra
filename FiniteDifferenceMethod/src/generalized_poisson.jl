@@ -137,6 +137,61 @@ function apply_neumann(ps::PoissonSolver{:xy, 2}, nodes, dof)
     end
 end
 
+function apply_periodic(ps::PoissonSolver{:xy, 1})
+    εr,A = ps.εr, ps.A
+    Δx,  = ps.Δh
+    ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ], ps.A
+    nx,  = size(ϕ)
+    ps.bnds[:left] = Periodic()
+    ps.bnds[:right] = Periodic()
+    
+    A[ϕ[1], ϕ[ 1]] -= (0.5εr[2] + 0.5εr[1])/Δx^2
+    A[ϕ[1], ϕ[nx]] += (0.5εr[2] + 0.5εr[1])/Δx^2
+
+    A[ϕ[nx],ϕ[nx]] -= (0.5εr[2] + 0.5εr[1])/Δx^2
+    A[ϕ[nx],ϕ[ 1]] += (0.5εr[2] + 0.5εr[1])/Δx^2
+end
+
+function apply_periodic(ps::PoissonSolver{:xy, 2}, axis)
+    εr,A = ps.εr, ps.A
+    Δx, Δy = ps.Δh
+    ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ], ps.A
+    nx, ny = size(ϕ)
+    if axis == 1
+        ps.bnds[:left] = Periodic()
+        ps.bnds[:right] = Periodic()
+        for j in (1, ny)
+            for i=1:nx
+                if j == ny
+                    A[ϕ[i,j],ϕ[i,j]] -= (0.5εr[i+1,j+1] + 0.5εr[i,j+1])/Δx^2
+                    A[ϕ[i,j],ϕ[i,1]] += (0.5εr[i+1,j+1] + 0.5εr[i,j+1])/Δx^2
+                end
+                if j == 1
+                    A[ϕ[i,j],ϕ[i, j]] -= (0.5εr[i+1,j]   + 0.5εr[i,j])/Δx^2
+                    A[ϕ[i,j],ϕ[i,ny]] += (0.5εr[i+1,j]   + 0.5εr[i,j])/Δx^2
+                end
+            end
+        end
+    end
+
+    if axis == 2
+        ps.bnds[:top] = Periodic()
+        ps.bnds[:bottom] = Periodic()
+        for j=1:ny
+            for i in (1, nx)
+                if i == nx
+                    A[ϕ[i,j],ϕ[i,j]] -= (0.5εr[i+1,j+1] + 0.5εr[i+1,j])/Δy^2
+                    A[ϕ[i,j],ϕ[1,j]] += (0.5εr[i+1,j+1] + 0.5εr[i+1,j])/Δy^2
+                end
+                if i == 1
+                    A[ϕ[i,j],ϕ[i, j]] -= (0.5εr[i,j]     + 0.5εr[i,j+1])/Δy^2
+                    A[ϕ[i,j],ϕ[nx,j]] += (0.5εr[i,j]     + 0.5εr[i,j+1])/Δy^2
+                end
+            end
+        end
+    end
+end
+
 get_solution(ps::PoissonSolver, s::Symbol, i::Int64, j::Int64) =
     view(ps.x, ps.dofs[s][i,j])
 get_solution(ps::PoissonSolver, s::Symbol, i::Int64) =
