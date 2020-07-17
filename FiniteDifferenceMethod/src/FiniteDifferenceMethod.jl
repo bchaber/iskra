@@ -1,5 +1,5 @@
 module FiniteDifferenceMethod
-    export apply_dirichlet, apply_neumann
+    export apply_dirichlet, apply_neumann, apply_periodic
     export get_rhs, get_solution
 	export create_poisson_solver
     export create_generalized_poisson_solver
