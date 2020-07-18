@@ -62,7 +62,7 @@ function create_generalized_poisson_solver(grid::CartesianGrid{D}, εr::Array{Fl
     dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ, :ρ => ρ)
     bnds = Dict{Symbol, FieldBoundary}(:left => Open(), :right => Open(),
                                        :bottom => Open(), :top => Open())
-    A ./= prod(grid.Δh) # TODO: it will break when Δx ≠ Δy
+    A ./= grid.Δh[1]^2 # TODO: it will break when Δx ≠ Δy
     ps = PoissonSolver{:xy, D}(A, b, x, εr, ε0, grid.Δh, bnds, dofs)
     return ps
 end
