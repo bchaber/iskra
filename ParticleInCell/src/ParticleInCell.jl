@@ -60,7 +60,7 @@ module ParticleInCell
     @particle part.name*"/mass" "kg" [part.m] part
     @particle part.name*"/charge" "C" [part.q] part
     @particle part.name*"/weighting" "1"  part.wg part weighted=true
-    @particle part.name*"/momentum" "m/s" part.v  part withcomponents=true
+    @particle part.name*"/momentum" "kg*m/s" part.m*part.v  part withcomponents=true
     @particle part.name*"/position" "m"   part.x  part withcomponents=true
     @particle part.name*"/positionOffset/x" "m" [0.] part
     @particle part.name*"/positionOffset/y" "m" [0.] part
