@@ -46,6 +46,10 @@ function init!(::Type{FieldRecord}, data, units;
 
   components = Dict{Char, AbstractArray}()
   if withcomponents
+    if ndims(data) == 2 # HACK!
+      N, K = size(data)
+      input = zeros(N, 1, K)
+    end
     N, M, K = size(input)
     zz = zeros(N, M)
     components['x'] = K > 0 ? view(input, :, :, 1) : zz
@@ -68,5 +72,5 @@ function init!(::Type{FieldRecord}, data, units;
 end
 
 function update!(record::FieldRecord, units, data; grid, optional...)
-  record.input .= data
+  record.input[:] .= data[:] # HACK!
 end
