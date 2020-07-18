@@ -9,8 +9,8 @@ function particle_to_grid(part::KineticSpecies{1, V}, grid::CartesianGrid{1}, pu
     vu = view(pu, p)
     (i,), (hx,) = particle_cell(px, p, grid.Δh)
     # interpolate charge to nodes
-    u[i  ,1] += (1-hx)*vu/Δx
-    u[i+1,1] +=    hx *vu/Δx
+    u[i  ,1] += (1.0 .- hx) .* vu ./ Δx
+    u[i+1,1] +=         hx  .* vu ./ Δx
   end
 
   return u
@@ -27,10 +27,10 @@ function particle_to_grid(part::KineticSpecies{2, V}, grid::CartesianGrid{2}, pu
     vu = view(pu, p)
     (i, j), (hx, hy) = particle_cell(px, p, grid.Δh)
     # interpolate charge to nodes
-    u[i  ,j]   += (1-hx)*(1-hy)* vu/(Δx*Δy)
-    u[i+1,j]   +=    hx *(1-hy)* vu/(Δx*Δy)
-    u[i  ,j+1] += (1-hx)*   hy * vu/(Δx*Δy)
-    u[i+1,j+1] +=    hx *   hy * vu/(Δx*Δy)
+    u[i  ,j]   += (1.0 .- hx) .* (1.0 .- hy) .* vu ./ (Δx .* Δy)
+    u[i+1,j]   +=         hx  .* (1.0 .- hy) .* vu ./ (Δx .* Δy)
+    u[i  ,j+1] += (1.0 .- hx) .*         hy  .* vu ./ (Δx .* Δy)
+    u[i+1,j+1] +=         hx  .*         hy  .* vu ./ (Δx .* Δy)
   end
 
   return u
