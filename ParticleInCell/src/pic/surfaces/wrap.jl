@@ -1,27 +1,31 @@
-function wrap!(part::KineticSpecies, grid::CartesianGrid{1})
-  nx, = grid.n .- 1
-  Δx, = grid.Δh
-  Lx = nx*Δx
-  ox = grid.origin
-  bb = ox .+ [0. Lx]
-  px = view(part.x, 1:part.np, :)
-  for p=1:part.np
-    if px[p,1] < bb[1,1] px[p,1] += Lx end
-    if px[p,1] > bb[1,2] px[p,1] -= Lx end
+function discard!(part::KineticSpecies{D,V}, grid::CartesianGrid{D}; dims=1:D) where {D, V}
+  for i=dims
+    nx = grid.n[i] - 1
+    Δx = grid.Δh[i]
+    Lx = nx*Δx
+    ox = grid.origin[i]
+    px = view(part.x, 1:part.np, i)
+    for p=reverse(1:part.np)
+      α = fld(px[p] - ox, Lx)
+      if α ≠ 0
+        remove!(part, p)
+      end
+    end
   end
 end
 
-function wrap!(part::KineticSpecies, grid::CartesianGrid{2})
-  nx, ny = grid.n .- 1
-  Δx, Δy = grid.Δh
-  Lx, Ly = [nx, ny] .* [Δx, Δy]
-  ox, oy = grid.origin
-  bb = [ox oy] .+ [0. Lx; 0. Ly]
-  px = view(part.x, 1:part.np, :)
-  for p=1:part.np
-    if px[p,1] < bb[1,1] px[p,1] += Lx end
-    if px[p,1] > bb[1,2] px[p,1] -= Lx end
-    if px[p,2] < bb[2,1] px[p,2] += Ly end
-    if px[p,2] > bb[2,2] px[p,2] -= Ly end
+function wrap!(part::KineticSpecies{D,V}, grid::CartesianGrid{D}; dims=1:D) where {D, V}
+  for i=dims
+    nx = grid.n[i] - 1
+    Δx = grid.Δh[i]
+    Lx = nx*Δx
+    ox = grid.origin[i]
+    px = view(part.x, 1:part.np, i)
+    for p=1:part.np
+      α = fld(px[p] - ox, Lx)
+      if α ≠ 0
+        px[p] -= α*Lx
+      end
+    end
   end
 end
