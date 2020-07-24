@@ -125,7 +125,7 @@ function advance_circuit!(cir::CircuitRLC, V, Δt)
     cir.i -=  q/C
     cir.i /= (L/Δt + R/2)
     cir.q  = q + Δt*i
-  else
+  else L > 0.0 || R > 0.0
     cir.i /= (L/Δt + R/2)
   end
   cir.t += Δt
