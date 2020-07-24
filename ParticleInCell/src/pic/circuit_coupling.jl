@@ -23,17 +23,23 @@ end
 function Circuit.voltage(pd :: PlasmaDevice)
   pd.positive.ϕ - pd.negative.ϕ
 end
-function foo!(pd :: Circuit.CircuitDevice, ::Number, Δt) end
-function foo!(pd :: PlasmaDevice, i::Number, Δt)
+function foo!(pd :: Circuit.CircuitDevice, current, Δt)
+  0.0
+end
+function foo!(pd :: PlasmaDevice, current, Δt)
   positive, negative = pd.positive, pd.negative
-  dσ = -Δt*circuit.i/positive.area
   positive.dq = .0
-  @probe "dQ" dσ "C"
+  dσ = -Δt*current/positive.area
 end
 function advance!(circuit :: Nothing, ϕ, Δt, config) end
 function advance!(circuit :: CircuitRLC, ϕ, Δt, config)
   advance_circuit!(circuit, 0, Δt)
-  foo!(circuit.ext, circuit.i, Δt)
+  dσ = foo!(circuit.ext, circuit.i, Δt)
+  ε0 = config.solver.ε0
+  σ = get_rhs(config.solver, :σ, 1) # Hack!
+  σ .+= dσ
+  @probe "dsigma" dσ "C/m^2"
+  @probe  "sigma" first(σ) "C/m^2"
 end
 
 function hit!(s::FloatingPotentialElectrode,
