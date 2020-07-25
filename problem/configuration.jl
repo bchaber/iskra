@@ -39,6 +39,7 @@ function create_electrode(nodes, config;   fixed=false, σ=0.0, ϕ=0.0)
 end
 
 function create_electrode(nodes, ps, grid::CartesianGrid{2}; fixed=false, σ=0.0, ϕ=0.0)
+  nx, ny = size(grid)
   Δx, Δy = grid.Δh
   Δz = 1.0
   function calculate_area(nodes)
