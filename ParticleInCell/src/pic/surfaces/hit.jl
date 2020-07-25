@@ -1,6 +1,6 @@
 function normalvector(pt :: TrackedParticle, pt′ :: TrackedParticle)
-  _, _, i,  j  = pt
-  _, _, i′, j′ = pt′
+  _, _, (i,  j)  = pt
+  _, _, (i′, j′) = pt′
   return [i′-i, j′-j, 0.]
 end
 
@@ -10,13 +10,13 @@ function absorbed!(st::SurfaceTracker, pt′::TrackedParticle)
 end
 
 function scattered!(st::SurfaceTracker, pt′::TrackedParticle)
-  Δt, p, i, j, hx, hy = pt′
+  Δt, p, (i, j), (hx, hy) = pt′
   i′, j′, hx′, hy′ = i, j, hx, hy
   if (hx == 0.)  i′, hx′ = i-1, 1. end
   if (hx == 1.)  i′, hx′ = i+1, 0. end
   if (hy == 0.)  j′, hy′ = j-1, 1. end
   if (hy == 1.)  j′, hy′ = j+1, 0. end
-  track!(st, (Δt, p, i′, j′, hx′, hy′))
+  track!(st, (Δt, p, (i′, j′), (hx′, hy′)))
 end
 
 function emit!(st::SurfaceTracker, pt′::TrackedParticle,
@@ -41,13 +41,13 @@ function hit!(s::ReflectiveSurface,
               st ::SurfaceTracker,
               pt ::TrackedParticle,
               pt′::TrackedParticle) where {D,V}
-  Δt′, p, i′, j′ = pt′
+  Δt′, p, _, _ = pt′
   n̂  = normalvector(pt, pt′)
   px = view(part.x, p, 1:D)
   pv = view(part.v, p, 1:D)
 
   px .-= pv*Δt′
-  for i=1:3
+  for i=1:3 # HACK?
     if n̂[i] ≠ 0
       pv[i] *= -1
     end

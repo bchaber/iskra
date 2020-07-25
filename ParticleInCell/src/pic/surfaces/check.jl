@@ -1,6 +1,20 @@
+function check(pt::TrackedParticle{1}, pv::AbstractArray{Float64,2}, Δh)
+  Δt, p, (i,), (hx,) = pt
+  vx = pv[p,1]
+  dx = (vx > 0) ? Δh*(1-hx) : Δh*hx
 
-function check(pt::TrackedParticle, pv::AbstractArray{Float64,2}, Δh)
-  Δt, p, i, j, hx, hy = pt
+  Δtx = dx/abs(vx)
+  if Δt < Δtx # particle stayed in the same cell
+    return pt
+  end
+
+  return (vx > 0) ?
+      (Δt-Δtx, p, (i+1,), (0.,)) :
+      (Δt-Δtx, p, (i-1,), (1.,))
+end
+
+function check(pt::TrackedParticle{2}, pv::AbstractArray{Float64,2}, Δh)
+  Δt, p, (i, j), (hx, hy) = pt
   vx, vy = pv[p,1], pv[p,2]
   dx = (vx > 0) ? Δh*(1-hx) : Δh*hx
   dy = (vy > 0) ? Δh*(1-hy) : Δh*hy
@@ -12,12 +26,12 @@ function check(pt::TrackedParticle, pv::AbstractArray{Float64,2}, Δh)
 
   if Δtx < Δty
     return (vx > 0) ?
-      (Δt-Δtx, p, i+1, j, 0., hy + vy*Δtx/Δh) :
-      (Δt-Δtx, p, i-1, j, 1., hy + vy*Δtx/Δh)
+      (Δt-Δtx, p, (i+1, j), (0., hy + vy*Δtx/Δh)) :
+      (Δt-Δtx, p, (i-1, j), (1., hy + vy*Δtx/Δh))
   else
     return (vy > 0) ?
-      (Δt-Δty, p, i, j+1, hx + vx*Δty/Δh, 0.) :
-      (Δt-Δty, p, i, j-1, hx + vx*Δty/Δh, 1.)
+      (Δt-Δty, p, (i, j+1), (hx + vx*Δty/Δh, 0.)) :
+      (Δt-Δty, p, (i, j-1), (hx + vx*Δty/Δh, 1.))
   end
 end
     
@@ -34,12 +48,12 @@ function check!(st::SurfaceTracker, part::KineticSpecies, Δt)
   while length(st.tracked) > 0
     pt  = popfirst!(st.tracked)
     pt′ = check(pt, pv, st.Δh)
-    _, p, i,  j  = pt
-    _, _, i′, j′ = pt′
-    if i == i′ && j == j′
+    _, p, ij, _  = pt
+    _, _, ij′, _ = pt′
+    if ij == ij′
       continue
     end
-    surface = get(st, (i, j, i′,j′), nothing)
+    surface = get(st, (ij, ij′), nothing)
     if surface ≠ nothing
       hit!(surface, part, st, pt, pt′)
     else

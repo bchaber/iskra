@@ -17,18 +17,18 @@ function Base.setindex!(st::SurfaceTracker,
   setindex!(st.surface, v0, bc)
 end
 
-function Base.in(x::BoundaryCell,  st::SurfaceTracker)
-  for (i,j,k,l) in keys(st.surface)
-    if (i,j) == x || (k,l) == x
+function Base.in(x::BoundaryCell,  st::SurfaceTracker{D}) where {D} 
+  for (ij, kl) in keys(st.surface)
+    if ij == x || kl == x
       return true
     end
   end
   return false
 end
 
-function Base.in(x::BoundaryCells, st::SurfaceTracker)
-  for (i,j,k,l) in keys(st.surface)
-    if (i,j,k,l) == x || (k,l,i,j) == x
+function Base.in(x::BoundaryCells{D}, st::SurfaceTracker{D}) where {D}
+  for (ij, kl) in keys(st.surface)
+    if (ij..., kl...) == x || (kl..., ij...) == x
       return true
     end
   end
@@ -44,9 +44,10 @@ function track!(st::SurfaceTracker, part::KineticSpecies, Δt)
 
   empty!(st.tracked)
   for p=1:part.np
-    (i, j), (hx, hy) = particle_cell(px, p, st.Δh)
-    if (i, j) ∈ st
-      track!(st, (Δt, p, i, j, hx, hy))
+    ij, hxy = particle_cell(px, p, st.Δh)
+    ij, hxy = tuple(ij...), tuple(hxy...)
+    if ij ∈ st
+      track!(st, (Δt, p, ij, hxy))
     end
   end
 end
