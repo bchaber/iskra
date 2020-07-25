@@ -70,6 +70,11 @@ function create_electrode(nodes, ps, grid::CartesianGrid{2}; fixed=false, σ=0.0
   end
 end
 
+function plasma_frequency(species::KineticSpecies, n)
+  q, m = species.q, species.q
+  2π*q*sqrt(n/m)
+end
+
 function thermal_speed(T, m)
   sqrt(2kB*T/m)
 end
