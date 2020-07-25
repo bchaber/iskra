@@ -55,7 +55,8 @@ module ParticleInCell
     push_particles!(pusher, part, partE, Δt)
     check!(tracker, part, Δt)
 
-    wrap!(part, grid)
+    discard!(part, grid; dims=1)
+    wrap!(part, grid; dims=2)
     @particle part.name*"/id" "1"  part.id part
     @particle part.name*"/mass" "kg" [part.m] part
     @particle part.name*"/charge" "C" [part.q] part
