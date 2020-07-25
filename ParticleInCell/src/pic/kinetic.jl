@@ -40,7 +40,7 @@ function remove_particles!(part, Δh, matches)
   p = 1
   px = view(part.x, 1:part.np, :)
   while p <= part.np
-    (i, j), ~ = particle_cell(px, p, Δh)
+    i, j, _, _ = particle_cell(px, p, Δh)
     if matches(i,j)
       remove!(part, p)
       continue
@@ -50,4 +50,4 @@ function remove_particles!(part, Δh, matches)
 end
 
 is_fluid(species :: KineticSpecies) = false
-density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, species.wg)
+density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.wg[p])

@@ -29,7 +29,9 @@ module ParticleInCell
     fij = @views 1 .+ px[p, :] ./ Δh
     ij = floor.(Int64, fij)
     hxy = fij .- ij
-    return ij, hxy
+    i, j = ij
+    hx, hy = hxy
+    return i, j, hx, hy
   end
 
   # hooks
@@ -51,7 +53,7 @@ module ParticleInCell
     grid = config.grid
 
     track!(tracker, part, Δt)
-    partE = grid_to_particle(grid, part, E)
+    partE = grid_to_particle(grid, part, (i,j) -> E[i,j,:])
     push_particles!(pusher, part, partE, Δt)
     check!(tracker, part, Δt)
 
