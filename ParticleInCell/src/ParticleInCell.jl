@@ -38,6 +38,7 @@ module ParticleInCell
   function enter_loop(cfg) end
   function after_loop(it, t, Δt) end
   function exit_loop() end
+  function after_push(part, grid) wrap!(part, grid) end
 
   # extension points
   function perform!(interaction, E, Δt, config) end
@@ -56,9 +57,8 @@ module ParticleInCell
     partE = grid_to_particle(grid, part, (i,j) -> E[i,j,:])
     push_particles!(pusher, part, partE, Δt)
     check!(tracker, part, Δt)
+    after_push(part, grid)
 
-    discard!(part, grid; dims=1)
-    wrap!(part, grid; dims=2)
     @particle part.name*"/id" "1"  part.id part
     @particle part.name*"/mass" "kg" [part.m] part
     @particle part.name*"/charge" "C" [part.q] part
