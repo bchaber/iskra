@@ -5,9 +5,10 @@ macro reactions(ex)
 end
 
 struct ChemicalReaction
+  type # reactiono type
   rate # might be any symbol: function or variable
   reactants # list of reactant's name and its order
-  stoichiometry # list of net coefficients 
+  stoichiometry # list of net coefficients
 end
 
 function def_reaction_network(ex::Expr)
@@ -27,7 +28,10 @@ function parse(ex::Expr, reactions, mapping)
     if ex.head == :tuple
       rate = ex.args[1]
       eqn  = ex.args[2]
-
+      type = nothing
+      if length(ex.args) > 2
+        type = ex.args[3]
+      end
       reactants = :([])     # indices
       stoichiometry = :([]) # net stoichiometry
 
@@ -46,7 +50,7 @@ function parse(ex::Expr, reactions, mapping)
         end
       end
 
-      push!(reactions.args, :(ChemicalReaction($(esc(rate)), $reactants, $stoichiometry)))
+      push!(reactions.args, :(ChemicalReaction($(esc(type)), $(esc(rate)), $reactants, $stoichiometry)))
     end
 end
 
@@ -54,7 +58,7 @@ function parse_reaction(ex::Expr, mapping)
   reactants = Dict{Symbol,Int}()
   products  = Dict{Symbol,Int}()
 
-  if ex.head == :-->
+  if ex.head == :--> || ex.head == :->
     exr = ex.args[1] # LHS
     exp = ex.args[2] # RHS
 

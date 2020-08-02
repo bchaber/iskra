@@ -1,20 +1,21 @@
+using ParticleInCell
 module MCC
-	struct ElasticCollision
+	using ParticleInCell
+	struct ElasticIsotropic end
+	struct ElasticBackward end
+	struct Ionization energy :: Float64 end
+	struct Excitation energy :: Float64 end
+	struct Collision{T}
+		type :: T
 		rate
-		source # particles
-		target # fluid
-	end
-
-	struct IonizationCollision
-		rate
-		source # particles
-		target # fluid
-		products # particles
+		source :: KineticSpecies
+		target :: FluidSpecies
+		products :: Vector{KineticSpecies}
 	end
 end
 
 struct MonteCarloCollisions
-	collisions
+	collisions :: Vector{MCC.Collision}
 end
 
 function isotropic_velocity(ν)
@@ -34,7 +35,7 @@ function maxwellian_velocity(ν)
 	v ./ norm(v) .* ν
 end
 
-function perform!(collision::MCC.ElasticCollision, p, Δt, grid)
+function perform!(collision::MCC.Collision{MCC.ElasticIsotropic}, p, Δt, grid)
 	source, target = collision.source, collision.target
 	mr1 = source.m/(source.m + target.m)
 	mr2 = target.m/(source.m + target.m)
@@ -52,8 +53,8 @@ function perform!(collision::MCC.ElasticCollision, p, Δt, grid)
 	tv            = vc_cm .- mr1 * vr_cp;
 end
 
-function perform!(collision::MCC.IonizationCollision, p, Δt, grid)
-	source = collision.source
+function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
+	source, target = collision.source, collision.target
 	qe = 1.60217646e-19
 	sv = view(source.v, p, :)
 	sE = 0.5source.m*dot(sv, sv)/qe - 12.0697 #target.ionization_energy;
@@ -72,7 +73,7 @@ function perform!(collision::MCC.IonizationCollision, p, Δt, grid)
 	sv .= isotropic_velocity(e1ν)
 
 	# assume the new electron and ion are created at the neutral temperature
-	T = 300 # target.temperature # 300K = 25°C
+	T = target.T
 	# create new ion and electron
 	source.x[source.np+1,:] .= source.x[p,:]
 	source.v[source.np+1,:] .= isotropic_velocity(e2ν);
@@ -129,31 +130,38 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 	@field "nuMCC" "1/m^2" ν config.grid
 end
 
+function accept(reaction::ChemicalReaction)
+	default_type = MCC.ElasticIsotropic()
+	products = KineticSpecies[]
+	source = target = nothing
+	@assert length(reaction.reactants) == 2 "Monte Carlo Collisions support only two reacting species: one fluid and one kinetic"
+	for (r, _) in reaction.reactants
+		if PIC.is_fluid(r) target = r else source = r end
+	end
+	for (p, c) in reaction.stoichiometry
+		if c > 0 push!(products, p) end
+	end
+
+	if source == nothing error("Reaction without particle species") end
+	if target == nothing error("Reaction without fluid species") end
+
+	if isnothing(reaction.type)
+		MCC.Collision(default_type, reaction.rate, source, target, products)
+	else
+		MCC.Collision(reaction.type, reaction.rate, source, target, products)
+	end
+end
+
 function mcc(reactions)
-	collisions = []
+	collisions = MCC.Collision[]
 	for reaction in reactions
-		products = []
-		source = target = nothing
-		@assert length(reaction.reactants) == 2 "Monte Carlo Collisions support only two reacting species: one fluid and one kinetic"
-		for (r,_) in reaction.reactants
-			if PIC.is_fluid(r) target = r else source = r end
-		end
-		for (p,c) in reaction.stoichiometry
-			if c > 0 push!(products, p) end
-		end
-		if source ≠ nothing && target ≠ nothing
-			if length(products) > 0
-				push!(collisions, MCC.IonizationCollision(reaction.rate, source, target, products))
-			else
-				push!(collisions, MCC.ElasticCollision(reaction.rate, source, target))
-			end
-		else
-			if source == nothing error("Reaction without particle species") end
-			if target == nothing error("Reaction without fluid species") end
-		end
+		collision = accept(reaction)
+		push!(collisions, collision)
 	end
 	MonteCarloCollisions(collisions)
 end
 
-Base.show(io :: IO, r :: MCC.ElasticCollision) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.source, " + ", r.target, "\telastic") 
-Base.show(io :: IO, r :: MCC.IonizationCollision) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.products, "\tionization")
+Base.show(io :: IO, r :: MCC.Collision{MCC.ElasticBackward}) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.source, " + ", r.target, "\telastic (backward)") 
+Base.show(io :: IO, r :: MCC.Collision{MCC.ElasticIsotropic}) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.source, " + ", r.target, "\telastic (isotropic)") 
+Base.show(io :: IO, r :: MCC.Collision{MCC.Excitation}) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.source, " + ", r.target, "\texcitation") 
+Base.show(io :: IO, r :: MCC.Collision{MCC.Ionization}) = print(io, r.rate, ", ", r.source, " + ", r.target, "-->", r.products, "\tionization")
