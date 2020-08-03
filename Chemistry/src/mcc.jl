@@ -14,8 +14,39 @@ module MCC
 	end
 end
 
-struct MonteCarloCollisions
+mutable struct MonteCarloCollisions
 	collisions :: Vector{MCC.Collision}
+	max_σₜg :: Float64
+	m :: Float64 # mass in eV
+	remainder :: Float64
+	#ε :: Vector{Float64}
+end
+
+@inline mass(species) = species.m/1.60217646e-19 # qe = 1.60217646e-19C
+function MonteCarloCollisions(collisions :: Vector{MCC.Collision})
+	ε = [0.0]
+	for collision in collisions
+		εᵢ = collision.rate.nodes[:,1]
+		println(collision, ": ", extrema(εᵢ))
+		append!(ε, εᵢ)
+	end
+	ε = sort(unique(ε))
+
+	collision = first(collisions)
+
+	mₛ = mass(collision.source)
+	α = sqrt(2.0/mₛ)
+	v = α .* sqrt.(ε)
+
+	σₜg = zero(v)
+	for collision in collisions
+		σᵢ = collision.rate
+		σₜg .+= σᵢ.(ε) .* v
+	end
+	println(collision.source, " MCC Energy range: ", extrema(ε))
+	println(collision.source, " MCC Velocity range: ", extrema(v))
+	println(collision.source, " MCC maximal velocity: ", v[argmax(σₜg)])
+	return MonteCarloCollisions(collisions, maximum(σₜg), mₛ, 0.0)
 end
 
 function isotropic_velocity(ν)
@@ -35,19 +66,36 @@ function maxwellian_velocity(ν)
 	v ./ norm(v) .* ν
 end
 
-function perform!(collision::MCC.Collision{MCC.ElasticIsotropic}, p, Δt, grid)
+function perform!(collision::MCC.Collision{MCC.ElasticBackward}, p, Δt, grid)
 	source, target = collision.source, collision.target
 	mr1 = source.m/(source.m + target.m)
 	mr2 = target.m/(source.m + target.m)
-	#print("*")
 	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
 	g = source.v[p,:] .- tv
 	vc_cm = mr1 * source.v[p,:] + mr2 * tv
 
-    B = 2rand() - 1
-    A = sqrt(1 - B^2)
-	C = 2π*rand()
-	vr_cp = norm(g) * [B, A*cos(C), A*sin(C)]
+    sinθ = sqrt(rand())
+    cosθ = sqrt(1.0 - sinθ^2)
+	ϕ = 2π*rand()
+
+	vr_cp = norm(g) * [sinθ*cos(ϕ), sinθ*sin(ϕ), cosθ]
+	    
+	source.v[p,:] = vc_cm .+ mr2 * vr_cp;
+	tv            = vc_cm .- mr1 * vr_cp;
+end
+
+function perform!(collision::MCC.Collision{MCC.ElasticIsotropic}, p, Δt, grid)
+	source, target = collision.source, collision.target
+	mr1 = source.m/(source.m + target.m)
+	mr2 = target.m/(source.m + target.m)
+	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
+	g = source.v[p,:] .- tv
+	vc_cm = mr1 * source.v[p,:] + mr2 * tv
+
+    θ = 2π*rand()
+	ϕ = 2π*rand()
+
+	vr_cp = norm(g) * [sin(θ)*cos(ϕ), sin(θ)*sin(ϕ), cos(θ)]
 	    
 	source.v[p,:] = vc_cm .+ mr2 * vr_cp;
 	tv            = vc_cm .- mr1 * vr_cp;
@@ -55,20 +103,21 @@ end
 
 function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
 	source, target = collision.source, collision.target
-	qe = 1.60217646e-19
+	mₛ = mass(source)
 	sv = view(source.v, p, :)
-	sE = 0.5source.m*dot(sv, sv)/qe - 12.0697 #target.ionization_energy;
+	sE = 0.5mₛ*dot(sv, sv) - collision.type.energy;
 	if sE < 0
 	  println("Source species has not enough energy for ionization: ", sE)
 	  return
 	end
-	print("!")
+
 	# randomly redistribute the remaining energy to the two electrons
 	e1E = sE * rand()
 	e2E = sE - e1E
 	# speed reduced by the ionization energy
-	e1ν = sqrt(e1E*qe*2/source.m)
-	e2ν = sqrt(e2E*qe*2/source.m)
+	α = sqrt(2/mₛ)
+	e1ν = α*sqrt(e1E)
+	e2ν = α*sqrt(e2E)
 	        
 	sv .= isotropic_velocity(e1ν)
 
@@ -92,42 +141,84 @@ function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
 	end
 end
 
+function perform!(collision::MCC.Collision{MCC.Excitation}, p, Δt, grid)
+	source, target = collision.source, collision.target
+	mₛ = mass(source)
+		sv = view(source.v, p, :)
+	sE = 0.5mₛ*dot(sv, sv) - collision.type.energy;
+	if sE < 0
+	  println("Source species has not enough energy for excitation: ", sE)
+	  return
+	end
+	
+	# speed reduced by the excitation energy
+	α = sqrt(2/mₛ)
+	eν = α*sqrt(sE)
+	        
+	sv .= isotropic_velocity(eν)
+end
+
 function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
-	ν = zeros(size(config.grid)) # collision count
+	nx, ny = size(config.grid)
+	N = length(mcc.collisions)
+	ν = zeros(nx, ny, N) # collision frequency
 	Δx, Δy = config.grid.Δh
-	for collision in mcc.collisions
-		source, target = collision.source, collision.target
-		density = PIC.density(target, config.grid)
-		nmax = maximum(density)
-		σgmax = maximum(collision.rate) * argmax(collision.rate)
-		Pt = @. 1 - exp(-σgmax * Δt * nmax)
-		Nc = Pt * source.np
-		for ~=1:floor(Int64, Nc)
-			p = rand(1:source.np)
-			i, j, _, _ = PIC.particle_cell(source.x, p, config.grid.Δh)
-			n = density[i,j]
-			if n < 0
-				println("Density is negative, skipping")
-				continue
-			end
 
-			sv = source.v
-			tv = (target.q/target.m)*E*Δt
+	collision = first(mcc.collisions)
+	density = PIC.density(collision.target, config.grid)
+	source, target = collision.source, collision.target
+	max_σₜg = mcc.max_σₜg
 
-			g  = norm(tv[i,j,:] .- sv[p,:])
-			σg = collision.rate(g) * g
+	max_n₀ = maximum(density)
+	max_Pₜ = 1.0 - exp(-max_n₀ * max_σₜg * Δt)
+	if max_Pₜ > 1.0/N
+		@assert false "Maximum probability ($max_Pₜ) is greater than 1/$N"
+	end
+	
+	mcc.remainder, Nc = modf(N * max_Pₜ * source.np + mcc.remainder)
+	#println("Checking ", Nc, " particles (", source, ")")
+	#println("...plus ", mcc.remainder, " in the next iteration")
+	for ~=1:Nc
+		# choose a particle
+		p = rand(1:source.np)
+		i, j, _, _ = PIC.particle_cell(source.x, p, config.grid.Δh)
+		n = density[i,j]
+		if n < 0
+			println("Density is negative, skipping")
+			continue
+		end
 
-			P  = @. 1 - exp(-σg * Δt * n);
-			R  = rand()
-			
-			if P/Pt < R
-				continue
-			end
+		# select a collision process
+		U = rand()
+		k = floor(Int64, N*U + 1)
+		collision = mcc.collisions[k]
+
+		# calculate the energy of the particle
+		sv = source.v
+		tv = (target.q/target.m)*E*Δt
+		g  = norm(tv[i,j,:] .- sv[p,:])
+		ε  = 0.5mcc.m * g^2
+		σₖg = collision.rate(ε) * g
+
+		Pₖ  = 1.0 .- exp.(-n .* σₖg .* Δt)
+		Pₖ /= N * max_Pₜ
+		if Pₖ > 1.0
+			println("Particle's velocity: ", sv[p,:])
+			println("Gas thermal velocity: ", tv[i,j,:])
+			println("Gas density: ", n)
+			println("Energy: ", ε)
+			@assert false "Energy outside of the range"
+		end
+
+		if U > k/N - Pₖ
 			perform!(collision, p, Δt, config.grid)
-			ν[i,j] += 1
+			ν[i,j,k] += 1
 		end
 	end
-	@field "nuMCC" "1/m^2" ν config.grid
+	println("Collisions: ", maximum(sum(ν;dims=3)), " out of ", Nc)
+	for k=1:N
+		@field "nuMCC-"*source.name*"-"*string(k) "1/m^2" ν[:,:,k] config.grid
+	end
 end
 
 function accept(reaction::ChemicalReaction)
