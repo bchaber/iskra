@@ -71,17 +71,40 @@ function perform!(collision::MCC.Collision{MCC.ElasticBackward}, p, Δt, grid)
 	mr1 = source.m/(source.m + target.m)
 	mr2 = target.m/(source.m + target.m)
 	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
-	g = source.v[p,:] .- tv
-	vc_cm = mr1 * source.v[p,:] + mr2 * tv
+	sv = view(source.v, p, :)
+	vr = sv .- tv
+	w  = mr1 .* sv .+ mr2 .* tv
 
-    sinθ = sqrt(rand())
-    cosθ = sqrt(1.0 - sinθ^2)
-	ϕ = 2π*rand()
+	vrx  = vr[1]
+	vry  = vr[2]
+	vrz  = vr[3]
+	
+	cosθ = vrz/norm(vr)
+	sinθ = sqrt(1.0 - cosθ^2)
+	
+	if sinθ ≈ 0.0
+		cosϕ = 1.0
+		sinϕ = 0.0
+	else
+		cosϕ = vrx/norm(vr*sinθ)
+		sinϕ = vry/norm(vr*sinθ)
+	end
+	
+	sinχ = sqrt(rand())
+    cosχ = sqrt(1.0 - sinχ^2)
+    
+    η = 2π*rand()
+    sinη = sin(η)
+    cosη = cos(η)
 
-	vr_cp = norm(g) * [sinθ*cos(ϕ), sinθ*sin(ϕ), cosθ]
+    T₂ = [ cosϕ*cosθ -sinϕ  cosϕ*sinθ
+          -sinϕ*cosθ  cosϕ  sinϕ*sinθ
+          -sinθ       0.0   cosθ]'
+    T₁ = [sinχ*cosη sinχ*sinη -cosχ]
+	vr_cp = norm(vr) * vec(T₁ * T₂)
 	    
-	source.v[p,:] = vc_cm .+ mr2 * vr_cp;
-	tv            = vc_cm .- mr1 * vr_cp;
+	sv .= w .+ mr2 * vr_cp;
+	tv .= w .- mr1 * vr_cp;
 end
 
 function perform!(collision::MCC.Collision{MCC.ElasticIsotropic}, p, Δt, grid)
@@ -89,16 +112,41 @@ function perform!(collision::MCC.Collision{MCC.ElasticIsotropic}, p, Δt, grid)
 	mr1 = source.m/(source.m + target.m)
 	mr2 = target.m/(source.m + target.m)
 	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
-	g = source.v[p,:] .- tv
-	vc_cm = mr1 * source.v[p,:] + mr2 * tv
+	sv = view(source.v, p, :)
+	vr = sv .- tv
+	w  = mr1 .* sv .+ mr2 .* tv
 
-    θ = 2π*rand()
-	ϕ = 2π*rand()
+	vrx  = vr[1]
+	vry  = vr[2]
+	vrz  = vr[3]
+	
+	cosθ = vrz/norm(vr)
+	sinθ = sqrt(1.0 - cosθ^2)
+	
+	if sinθ ≈ 0.0
+		cosϕ = 1.0
+		sinϕ = 0.0
+	else
+		cosϕ = vrx/norm(vr*sinθ)
+		sinϕ = vry/norm(vr*sinθ)
+	end
 
-	vr_cp = norm(g) * [sin(θ)*cos(ϕ), sin(θ)*sin(ϕ), cos(θ)]
-	    
-	source.v[p,:] = vc_cm .+ mr2 * vr_cp;
-	tv            = vc_cm .- mr1 * vr_cp;
+    χ = 2π*rand()
+	sinχ = sin(χ)
+    cosχ = cos(χ)
+    
+    η = 2π*rand()
+    sinη = sin(η)
+    cosη = cos(η)
+
+    T₂ = [ cosϕ*cosθ -sinϕ  cosϕ*sinθ
+          -sinϕ*cosθ  cosϕ  sinϕ*sinθ
+          -sinθ       0.0   cosθ]'
+    T₁ = [sinχ*cosη sinχ*sinη +cosχ]
+	vr_cp = norm(vr) * vec(T₁ * T₂)
+
+	sv .= w .+ mr2 * vr_cp;
+	tv .= w .- mr1 * vr_cp;
 end
 
 function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
