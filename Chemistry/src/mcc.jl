@@ -80,7 +80,7 @@ function maxwellian_velocity(ν)
 	v ./ norm(v) .* ν
 end
 
-function transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
+function unrotated(sinθ, cosθ, sinϕ, cosϕ)
 	[ cosϕ*cosθ -sinϕ*cosθ -sinθ
 	 -sinϕ       cosϕ        0.0
 	  cosϕ*sinθ  sinϕ*sinθ  cosθ]
@@ -108,14 +108,14 @@ end
 function isotropic_scattering(v)
 	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
     sinχ, cosχ, sinη, cosη = isotropic_distribution()
-	T = transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
+	T = unrotated(sinθ, cosθ, sinϕ, cosϕ)
     vec([sinχ*cosη sinχ*sinη cosχ] * T)
 end
 
 function diffuse_reflection(v)
 	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
 	sinχ, cosχ, sinη, cosη = cosine_distribution()
-    T = transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
+    T = unrotated(sinθ, cosθ, sinϕ, cosϕ)
 	vec([sinχ*cosη sinχ*sinη cosχ] * T)
 end
 
