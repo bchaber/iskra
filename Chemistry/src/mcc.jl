@@ -62,7 +62,7 @@ end
 
 @inline function cosine_distribution()
 	sinχ = sqrt(rand())
-    cosχ = sqrt(1.0 - sinχ^2)
+    cosχ =-sqrt(1.0 - sinχ^2)
     
     η = 2π*rand()
     sinη = sin(η)
@@ -116,7 +116,7 @@ function diffuse_reflection(v)
 	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
 	sinχ, cosχ, sinη, cosη = cosine_distribution()
     T = transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
-	vec([sinχ*cosη sinχ*sinη -cosχ] * T)
+	vec([sinχ*cosη sinχ*sinη cosχ] * T)
 end
 
 function perform!(collision::MCC.Collision{MCC.ElasticBackward}, p, Δt, grid)
