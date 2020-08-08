@@ -76,8 +76,7 @@ function thermal_speed(T, m)
 end
 
 function maxwellian_velocity(v)
-    v = randn(3)
-	v ./ norm(v) .* ν
+    randn(3) .* v
 end
 
 function unrotated(sinθ, cosθ, sinϕ, cosϕ)
