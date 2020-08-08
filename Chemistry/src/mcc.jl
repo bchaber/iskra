@@ -75,8 +75,8 @@ function thermal_speed(T, m)
 	sqrt(2kB*T/m)
 end
 
-function maxwellian_velocity(ν)
-    v = [randn(), randn(), 0]
+function maxwellian_velocity(v)
+    v = randn(3)
 	v ./ norm(v) .* ν
 end
 
