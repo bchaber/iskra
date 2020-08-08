@@ -49,11 +49,25 @@ function MonteCarloCollisions(collisions :: Vector{MCC.Collision})
 	return MonteCarloCollisions(collisions, maximum(σₜg), mₛ, 0.0)
 end
 
-function isotropic_velocity(ν)
-	θ = 2rand() * π
-	r = 2rand() - 1
-	a = sqrt(1 - r^2)
-	[cos(θ)*a, sin(θ)*a, r] .* ν
+@inline function isotropic_distribution()
+    χ = 2π*rand()
+	sinχ = sin(χ)
+    cosχ = cos(χ)
+    
+    η = 2π*rand()
+    sinη = sin(η)
+    cosη = cos(η)
+    return sinχ, cosχ, sinη, cosη
+end
+
+@inline function cosine_distribution()
+	sinχ = sqrt(rand())
+    cosχ = sqrt(1.0 - sinχ^2)
+    
+    η = 2π*rand()
+    sinη = sin(η)
+    cosη = cos(η)
+    return sinχ, cosχ, sinη, cosη
 end
 
 function thermal_speed(T, m)
@@ -66,43 +80,56 @@ function maxwellian_velocity(ν)
 	v ./ norm(v) .* ν
 end
 
-function perform!(collision::MCC.Collision{MCC.ElasticBackward}, p, Δt, grid)
-	source, target = collision.source, collision.target
-	mr1 = source.m/(source.m + target.m)
-	mr2 = target.m/(source.m + target.m)
-	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
-	sv = view(source.v, p, :)
-	vr = sv .- tv
-	w  = mr1 .* sv .+ mr2 .* tv
+function transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
+	[ cosϕ*cosθ -sinϕ*cosθ -sinθ
+	 -sinϕ       cosϕ        0.0
+	  cosϕ*sinθ  sinϕ*sinθ  cosθ]
+end
 
-	vrx  = vr[1]
-	vry  = vr[2]
-	vrz  = vr[3]
-	
-	cosθ = vrz/norm(vr)
+function euler_angles(v)
+	vx = v[1]
+	vy = v[2]
+	vz = v[3]
+	nv = norm(v)
+
+	cosθ = vz/nv
 	sinθ = sqrt(1.0 - cosθ^2)
 	
 	if sinθ ≈ 0.0
 		cosϕ = 1.0
 		sinϕ = 0.0
 	else
-		cosϕ = vrx/norm(vr*sinθ)
-		sinϕ = vry/norm(vr*sinθ)
+		cosϕ = vx/nv/sinθ
+		sinϕ = vy/nv/sinθ
 	end
-	
-	sinχ = sqrt(rand())
-    cosχ = sqrt(1.0 - sinχ^2)
-    
-    η = 2π*rand()
-    sinη = sin(η)
-    cosη = cos(η)
+	return sinθ, cosθ, sinϕ, cosϕ
+end
 
-    T₂ = [ cosϕ*cosθ -sinϕ  cosϕ*sinθ
-          -sinϕ*cosθ  cosϕ  sinϕ*sinθ
-          -sinθ       0.0   cosθ]'
-    T₁ = [sinχ*cosη sinχ*sinη -cosχ]
-	vr_cp = norm(vr) * vec(T₁ * T₂)
-	    
+function isotropic_scattering(v)
+	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
+    sinχ, cosχ, sinη, cosη = isotropic_distribution()
+	T = transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
+    vec([sinχ*cosη sinχ*sinη cosχ] * T)
+end
+
+function diffuse_reflection(v)
+	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
+	sinχ, cosχ, sinη, cosη = cosine_distribution()
+    T = transform_to_laboratory_frame(sinθ, cosθ, sinϕ, cosϕ)
+	vec([sinχ*cosη sinχ*sinη -cosχ] * T)
+end
+
+function perform!(collision::MCC.Collision{MCC.ElasticBackward}, p, Δt, grid)
+	source, target = collision.source, collision.target
+	mr1 = source.m/(source.m + target.m)
+	mr2 = target.m/(source.m + target.m)
+	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
+	sv = view(source.v, p, :)
+
+	vr = sv .- tv
+	w  = mr1 .* sv .+ mr2 .* tv
+	vr_cp = norm(vr) * diffuse_reflection(vr)
+
 	sv .= w .+ mr2 * vr_cp;
 	tv .= w .- mr1 * vr_cp;
 end
@@ -113,38 +140,11 @@ function perform!(collision::MCC.Collision{MCC.ElasticIsotropic}, p, Δt, grid)
 	mr2 = target.m/(source.m + target.m)
 	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
 	sv = view(source.v, p, :)
+
 	vr = sv .- tv
 	w  = mr1 .* sv .+ mr2 .* tv
-
-	vrx  = vr[1]
-	vry  = vr[2]
-	vrz  = vr[3]
 	
-	cosθ = vrz/norm(vr)
-	sinθ = sqrt(1.0 - cosθ^2)
-	
-	if sinθ ≈ 0.0
-		cosϕ = 1.0
-		sinϕ = 0.0
-	else
-		cosϕ = vrx/norm(vr*sinθ)
-		sinϕ = vry/norm(vr*sinθ)
-	end
-
-    χ = 2π*rand()
-	sinχ = sin(χ)
-    cosχ = cos(χ)
-    
-    η = 2π*rand()
-    sinη = sin(η)
-    cosη = cos(η)
-
-    T₂ = [ cosϕ*cosθ -sinϕ  cosϕ*sinθ
-          -sinϕ*cosθ  cosϕ  sinϕ*sinθ
-          -sinθ       0.0   cosθ]'
-    T₁ = [sinχ*cosη sinχ*sinη +cosχ]
-	vr_cp = norm(vr) * vec(T₁ * T₂)
-
+	vr_cp = norm(vr) * isotropic_scattering(vr)
 	sv .= w .+ mr2 * vr_cp;
 	tv .= w .- mr1 * vr_cp;
 end
@@ -153,7 +153,7 @@ function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
 	source, target = collision.source, collision.target
 	mₛ = mass(source)
 	sv = view(source.v, p, :)
-	sE = 0.5mₛ*dot(sv, sv) - collision.type.energy;
+	sE = 0.5mₛ*dot(sv, sv) - collision.type.energy
 	if sE < 0
 	  println("Source species has not enough energy for ionization: ", sE)
 	  return
@@ -162,28 +162,29 @@ function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
 	# randomly redistribute the remaining energy to the two electrons
 	e1E = sE * rand()
 	e2E = sE - e1E
-	# speed reduced by the ionization energy
-	α = sqrt(2/mₛ)
+	# incident electron's speed reduced by the ionization energy
+	α = sqrt(2.0/mₛ)
 	e1ν = α*sqrt(e1E)
 	e2ν = α*sqrt(e2E)
-	        
-	sv .= isotropic_velocity(e1ν)
 
-	# assume the new electron and ion are created at the neutral temperature
-	T = target.T
-	# create new ion and electron
+	sv .= e1ν .* diffuse_reflection(sv)
+
+	# create new electron backscattered from the gas atom
 	source.x[source.np+1,:] .= source.x[p,:]
-	source.v[source.np+1,:] .= isotropic_velocity(e2ν);
+	source.v[source.np+1,:] .= e2ν .* diffuse_reflection(sv)
 	source.np += 1
+
+	# create new ion with 
+	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
 	for product in collision.products
 		if product == source
 			continue
 		end
 		mp = source.w0/product.w0 + rand()
-		νth = thermal_speed(T, product.m)
+		# assume the new electron and ion are created at the neutral temperature
 		for i=1:round(Integer, mp)
 			product.x[product.np+1,:] .= source.x[p,:]
-			product.v[product.np+1,:] .= maxwellian_velocity(νth);
+			product.v[product.np+1,:] .= tv
 			product.np += 1
 		end
 	end
@@ -192,18 +193,17 @@ end
 function perform!(collision::MCC.Collision{MCC.Excitation}, p, Δt, grid)
 	source, target = collision.source, collision.target
 	mₛ = mass(source)
-		sv = view(source.v, p, :)
+	sv = view(source.v, p, :)
 	sE = 0.5mₛ*dot(sv, sv) - collision.type.energy;
-	if sE < 0
+	if sE < 0.0
 	  println("Source species has not enough energy for excitation: ", sE)
 	  return
 	end
 	
 	# speed reduced by the excitation energy
 	α = sqrt(2/mₛ)
-	eν = α*sqrt(sE)
-	        
-	sv .= isotropic_velocity(eν)
+	eν = α*sqrt(sE) 
+	sv.= eν .* isotropic_scattering(sv)
 end
 
 function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
