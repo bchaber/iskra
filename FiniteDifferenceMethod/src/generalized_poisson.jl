@@ -67,6 +67,137 @@ function create_generalized_poisson_solver(grid::CartesianGrid{D}, εr::Array{Fl
     return ps
 end
 
+function create_poisson_solver(grid::AxialGrid{2}, ε0::Float64)
+    nr, nz = size(grid)
+    nn = nr⋅nz
+    A = zeros(nn, nn)
+    b = zeros(nn)
+    x = zeros(nn)
+    ϕ = reshape(collect(1:nn), nr, nz)
+    ρ = reshape(collect(1:nn), nn)
+    Δr, Δz = grid.Δh
+    # interior
+    for j=2:(nz-1)
+        for i=2:(nr-1)
+            r = (i-1)*Δr
+            A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+            A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+
+            A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+            
+            A[ϕ[i,j],ϕ[i+1,j]] += 0.5/Δr/r
+            A[ϕ[i,j],ϕ[i-1,j]] -= 0.5/Δr/r
+        end
+    end
+    # bottom
+    for j=1
+        for i=2:(nr-1)
+            r = (i-1)*Δr
+            A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+            A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+
+            A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δz^2
+            
+            A[ϕ[i,j],ϕ[i+1,j]] += 0.5/Δr/r
+            A[ϕ[i,j],ϕ[i-1,j]] -= 0.5/Δr/r
+        end
+    end
+    # top
+    for j=nz
+        for i=2:(nr-1)
+            r = (i-1)*Δr
+            A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+            A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+
+            A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+            
+            A[ϕ[i,j],ϕ[i+1,j]] += 0.5/Δr/r
+            A[ϕ[i,j],ϕ[i-1,j]] -= 0.5/Δr/r
+        end
+    end
+    # axis
+    for j=2:(nz-1)
+        for i=1
+            r = (i-1)*Δr
+            A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+            A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δr^2
+
+            A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+        end
+    end
+    # side
+    for j=2:(nz-1)
+        for i=nr
+            r = (i-1)*Δr
+            A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δr^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+            A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+
+            A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+            A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+        end
+    end
+    # corners
+    let j=1,  i=1
+        r = (i-1)*Δr
+        A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δr^2
+
+        A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δz^2
+    end
+    let j=nz, i=1
+        r = (i-1)*Δr
+        A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δr^2
+
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+    end
+    let j=1,  i=nr
+        r = (i-1)*Δr
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δr^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+        A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+
+        A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δz^2
+    end
+    let j=nz, i=nr
+        r = (i-1)*Δr
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δr^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+        A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+
+        A[ϕ[i,j],ϕ[i,j]]   += 1.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+        A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+    end
+    dofs = Dict{Symbol, AbstractArray}(:ϕ => ϕ, :ρ => ρ)
+    bnds = Dict{Symbol, FieldBoundary}(:left => Open(), :right => Open(),
+                                       :bottom => Open(), :top => Open())
+    ps = PoissonSolver{:rz, 2}(A, b, x, ones(nr,nz), ε0, grid.Δh, bnds, dofs)
+    return ps
+end
+
 function solve(A, b)
   return A\b
 end
@@ -186,6 +317,43 @@ function apply_periodic(ps::PoissonSolver{:xy, 2}, axis)
                 if i == 1
                     A[ϕ[i,j],ϕ[i, j]] -= (0.5εr[i,j]     + 0.5εr[i,j+1])/Δy^2
                     A[ϕ[i,j],ϕ[nx,j]] += (0.5εr[i,j]     + 0.5εr[i,j+1])/Δy^2
+                end
+            end
+        end
+    end
+end
+
+function apply_periodic(ps::PoissonSolver{:rz, 2}, axis)
+    εr,A = ps.εr, ps.A
+    Δx, Δy = ps.Δh
+    ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ], ps.A
+    nx, ny = size(ϕ)
+    @assert axis != 1 "Cannot apply periodic boundary condition in r-axis"
+    if axis == 2
+        ps.bnds[:top] = Periodic()
+        ps.bnds[:bottom] = Periodic()
+        for j in (1, nz)
+            for i=2:(nr-1)
+                A[ϕ[i,j],ϕ[i+1,j]] += 1.0/Δr^2
+                A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δr^2
+                A[ϕ[i,j],ϕ[i-1,j]] += 1.0/Δr^2
+                
+                if j == 1
+                    A[ϕ[i,j],ϕ[i,j+1]] += 1.0/Δz^2
+                    A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+                    A[ϕ[i,j],ϕ[i,nz]]  += 1.0/Δz^2
+                end
+
+                if j == nz
+                    A[ϕ[i,j],ϕ[i,1]]   += 1.0/Δz^2
+                    A[ϕ[i,j],ϕ[i,j]]   -= 2.0/Δz^2
+                    A[ϕ[i,j],ϕ[i,j-1]] += 1.0/Δz^2
+                end
+
+                if i > 1 && i < nr
+                    r = (i-1)*Δr
+                    A[ϕ[i,j],ϕ[i+1,j]] += 0.5/Δr/r
+                    A[ϕ[i,j],ϕ[i-1,j]] -= 0.5/Δr/r
                 end
             end
         end
