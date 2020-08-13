@@ -1,5 +1,6 @@
 module RegularGrid
     export create_uniform_grid, create_staggered_grid
+    export create_axial_grid
     export UniformGrid, CartesianGrid, AxialGrid
 
     struct UniformGrid{C, D}
@@ -42,6 +43,19 @@ module RegularGrid
         node = 1:n
         data = Dict{String,AbstractArray}()
         CartesianGrid{1}(data, (nx,), (Δx,), node, (x,), (xs,))
+    end
+
+    function create_axial_grid(rr, zz)
+        nr, nz = length(rr), length(zz)
+        rs, zs = rr[1], zz[1]
+        Δr = length(rr) > 1 ? rr[2] - rr[1] : 1.0
+        Δz = length(zz) > 1 ? zz[2] - zz[1] : 1.0
+        r = repeat(rr,   1, nz)
+        z = repeat(zz', nr,  1)
+        n = nr*nz
+        node = reshape(1:n, nr, nz)
+        data = Dict{String,AbstractArray}()
+        AxialGrid{2}(data, (nr, nz), (Δr, Δz), node, (r, z), (rs, zs))
     end
 
     function create_staggered_grid(g::CartesianGrid{2})
