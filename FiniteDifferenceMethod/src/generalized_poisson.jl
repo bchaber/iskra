@@ -29,7 +29,7 @@ function create_poisson_solver(grid::CartesianGrid{2}, ε0::Float64)
     create_generalized_poisson_solver(grid, ones(nx+1, ny+1), ε0)
 end
 
-# Implement generalized Poisson solver from (eq. 37-40):
+# For implementation of generalized Poisson solver see (eq. 37-40) in:
 # https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel 2012 - Solving the Generalized Poisson Equation using FDM.pdf
 function create_generalized_poisson_solver(grid::CartesianGrid{D}, εr::Array{Float64,2}, ε0::Float64) where D
     nx, ny = size(εr) .- 1
@@ -42,20 +42,20 @@ function create_generalized_poisson_solver(grid::CartesianGrid{D}, εr::Array{Fl
     for j=1:ny
         for i=1:nx
             if i < nx
-                A[ϕ[i,j],ϕ[i,j]]   -= 0.5εr[i+1,j+1] + 0.5εr[i+1,j]   # ϕ(i,j)
-                A[ϕ[i,j],ϕ[i+1,j]] += 0.5εr[i+1,j+1] + 0.5εr[i+1,j]   # ϕ(i+1,j)
+                A[ϕ[i,j],ϕ[i,j]]   -= 1.0   # ϕ(i,j)
+                A[ϕ[i,j],ϕ[i+1,j]] += 1.0   # ϕ(i+1,j)
             end
             if i > 1
-                A[ϕ[i,j],ϕ[i,j]]   -= 0.5εr[i,j]     + 0.5εr[i,j+1]   # ϕ(i,j)
-                A[ϕ[i,j],ϕ[i-1,j]] += 0.5εr[i,j]     + 0.5εr[i,j+1]   # ϕ(i-1,j)
+                A[ϕ[i,j],ϕ[i,j]]   -= 1.0   # ϕ(i,j)
+                A[ϕ[i,j],ϕ[i-1,j]] += 1.0   # ϕ(i-1,j)
             end
             if j < ny
-                A[ϕ[i,j],ϕ[i,j]]   -= 0.5εr[i+1,j+1] + 0.5εr[i,j+1]   # ϕ(i,j)
-                A[ϕ[i,j],ϕ[i,j+1]] += 0.5εr[i+1,j+1] + 0.5εr[i,j+1]   # ϕ(i,j+1)
+                A[ϕ[i,j],ϕ[i,j]]   -= 1.0   # ϕ(i,j)
+                A[ϕ[i,j],ϕ[i,j+1]] += 1.0   # ϕ(i,j+1)
             end
             if j > 1
-                A[ϕ[i,j],ϕ[i,j]]   -= 0.5εr[i+1,j]   + 0.5εr[i,j]     # ϕ(i,j)
-                A[ϕ[i,j],ϕ[i,j-1]] += 0.5εr[i+1,j]   + 0.5εr[i,j]     # ϕ(i,j-1)
+                A[ϕ[i,j],ϕ[i,j]]   -= 1.0   # ϕ(i,j)
+                A[ϕ[i,j],ϕ[i,j-1]] += 1.0   # ϕ(i,j-1)
             end
         end
     end
