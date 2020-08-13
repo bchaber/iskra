@@ -71,13 +71,13 @@ function solve(A, b)
   return A\b
 end
 
-function apply_dirichlet(ps::PoissonSolver{:xy, D}, nodes::BitArray{D}, ϕ0) where D
+function apply_dirichlet(ps::PoissonSolver{CS, D}, nodes::BitArray{D}, ϕ0) where {CS, D}
     A, b = ps.A, ps.b
     ϕ, ρ = ps.dofs[:ϕ], ps.dofs[:ρ]
     ids = CartesianIndices(size(nodes))
     for ij in ids[nodes]
         A[ϕ[ij],:]     .= 0 # clear row
-        A[ϕ[ij],ϕ[ij]] = 1 # ϕ(i,j)
+        A[ϕ[ij],ϕ[ij]]  = 1 # ϕ(i,j)
         b[ϕ[ij]]        = ϕ0
         setdiff!(ρ, ϕ[ij])
     end
@@ -227,9 +227,9 @@ function calculate_electric_field!(ps::PoissonSolver{:xy, 1}, ϕ, E)
     return E
 end
 
-function calculate_electric_field!(ps::PoissonSolver{:xy, 2}, ϕ, E)
-    nx, ny = size(ϕ)
-    Δx, Δy = ps.Δh
+function calculate_electric_field!(ps::PoissonSolver{CS, 2}, ϕ, E) where CS
+    nx, ny = size(ϕ) # equivalent to nr, nz
+    Δx, Δy = ps.Δh   # equivalent to Δr, Δz
 
     E[2:nx-1,:,1] = (ϕ[1:nx-2,:] - ϕ[3:nx,:])/2Δx # central difference on internal nodes
     E[:,2:ny-1,2] = (ϕ[:,1:ny-2] - ϕ[:,3:ny])/2Δy # central difference on internal nodes

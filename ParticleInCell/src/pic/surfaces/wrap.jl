@@ -1,4 +1,4 @@
-function discard!(part::KineticSpecies{D,V}, grid::CartesianGrid{D}; dims=1:D) where {D, V}
+function discard!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) where {CS, D, V}
   for i=dims
     nx = grid.n[i] - 1
     Δx = grid.Δh[i]
@@ -14,7 +14,7 @@ function discard!(part::KineticSpecies{D,V}, grid::CartesianGrid{D}; dims=1:D) w
   end
 end
 
-function wrap!(part::KineticSpecies{D,V}, grid::CartesianGrid{D}; dims=1:D) where {D, V}
+function wrap!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) where {CS, D, V}
   for i=dims
     nx = grid.n[i] - 1
     Δx = grid.Δh[i]
