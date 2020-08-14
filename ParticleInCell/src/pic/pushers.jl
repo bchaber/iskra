@@ -1,4 +1,5 @@
 export create_boris_pusher, create_axial_boris_pusher
+export initial_half_step
 
 struct BorisPusher{T} end
 create_boris_pusher() = BorisPusher{:xy}()
@@ -39,4 +40,8 @@ function transform_from_cartesian_to_cylindrical!(part::KineticSpecies{2, 3}, Δ
   x[1:np,1] .= r
   v[1:np,1] .= vr
   v[1:np,3] .= vy
+end
+
+function initial_half_step(v0, qm, E, Δt)
+  v = v0 - qm * E * 0.5Δt
 end
