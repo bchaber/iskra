@@ -30,8 +30,14 @@ function transform_from_cartesian_to_cylindrical!(part::KineticSpecies{2, 3}, Δ
   y = Δt * v[1:np,3] # y ← Δt⋅vz
   r = sqrt.(x[1:np,1].^2 .+ y[1:np].^2) # r ← √(x² + y²)
 
-  sinθ = y[1:np,1]./r
-  cosθ = sqrt.(1.0 .- sinθ.^2)
+  if r ≈ 0.0
+    sinθ = 0.0
+    cosθ = 1.0
+  else
+    sinθ = y[1:np,1]./r
+    cosθ = sqrt.(1.0 .- sinθ.^2)
+  end
+
   vr = cosθ .* v[1:np,1] .+ sinθ .* v[1:np,3]
   vy =-sinθ .* v[1:np,1] .+ cosθ .* v[1:np,3]
   x[1:np,1] .= r
