@@ -16,7 +16,7 @@ function push_particles!(::BorisPusher{:rz},
   transform_from_cartesian_to_cylindrical!(part, Δt)
 end
 
-function ⋅(u::Matrix{Float64}, v::Matrix{Float64})
+function LinearAlgebra.dot(u::Matrix{Float64}, v::Matrix{Float64})
   n, m = size(u)
   w = zeros(n)
   for i=1:n
@@ -25,7 +25,7 @@ function ⋅(u::Matrix{Float64}, v::Matrix{Float64})
   return w
 end
 
-function ×(u::Matrix{Float64}, v::Matrix{Float64})
+function LinearAlgebra.cross(u::Matrix{Float64}, v::Matrix{Float64})
   n, m = size(u)
   w = zeros(n, m)
   for i=1:n
