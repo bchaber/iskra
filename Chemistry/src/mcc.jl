@@ -223,8 +223,6 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 	end
 	
 	mcc.remainder, Nc = modf(N * max_Pₜ * source.np + mcc.remainder)
-	#println("Checking ", Nc, " particles (", source, ")")
-	#println("...plus ", mcc.remainder, " in the next iteration")
 	for ~=1:Nc
 		# choose a particle
 		p = rand(1:source.np)
@@ -262,7 +260,6 @@ function PIC.perform!(mcc::MonteCarloCollisions, E, Δt, config)
 			ν[i,j,k] += 1
 		end
 	end
-	println("Collisions: ", maximum(sum(ν;dims=3)), " out of ", Nc)
 	for k=1:N
 		@field "nuMCC-"*source.name*"-"*string(k) "1/m^2" ν[:,:,k] config.grid
 	end
