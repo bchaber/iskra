@@ -7,6 +7,7 @@ module FiniteDifferenceMethod
     export calculate_electric_field!
     export calculate_electric_potential
     export calculate_advection_diffusion
+    export calculate_magnetic_field
     using RegularGrid
     using LinearAlgebra
  

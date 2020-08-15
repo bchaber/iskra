@@ -48,14 +48,15 @@ module ParticleInCell
     sample!(src, species, Δt)
   end
 
-  function advance!(part::KineticSpecies, E, Δt, config)
+  function advance!(part::KineticSpecies, E, B, Δt, config)
     tracker = config.tracker
     pusher = config.pusher
     grid = config.grid
 
     track!(tracker, part, Δt)
     partE = grid_to_particle(grid, part, (i,j) -> E[i,j,:])
-    push_particles!(pusher, part, partE, Δt)
+    partB = grid_to_particle(grid, part, (i,j) -> B[i,j,:])
+    push_particles!(pusher, part, partE, partB, Δt)
     check!(tracker, part, Δt)
     after_push(part, grid)
 
@@ -70,7 +71,7 @@ module ParticleInCell
     @particle part.name*"/positionOffset/z" "m" [0.] part
   end
   
-  function advance!(fluid :: FluidSpecies, E, Δt, config)
+  function advance!(fluid :: FluidSpecies, E, B, Δt, config)
     q, m = fluid.q, fluid.m
     v = E*Δt*(q/m)
     Δn = calculate_advection_diffusion(fluid.n, fluid.μ, v, config.grid.Δh, Δt)
@@ -96,6 +97,7 @@ module ParticleInCell
     ϕ = zeros(size(grid))
     ρ = zeros(size(grid))
     E = zeros(size(grid)..., 3)
+    B = zeros(size(grid)..., 3)
 
     for iteration=1:timesteps # iterate for ts time step
       # Create particles
@@ -109,7 +111,7 @@ module ParticleInCell
       end
       # Advance species
       for part in species
-        advance!(part, E, Δt, config)
+        advance!(part, E, B, Δt, config)
       end
       advance!(circuit, ϕ, Δt, config)
       # Calculate charge density
@@ -121,12 +123,14 @@ module ParticleInCell
         @field "n"*part.name "1/m^2" part.n grid
       end
       # Calculate electric field
-      ϕ  = calculate_electric_potential(solver, -ρ)
-      E  = calculate_electric_field(solver, ϕ)
+      ϕ = calculate_electric_potential(solver, -ρ)
+      E = calculate_electric_field(solver, ϕ)
+      B = calculate_magnetic_field(solver)
 
       @field "rho" "C/m^2" ρ grid
       @field "phi" "V"     ϕ grid
       @field "E"   "V/m"   E grid withcomponents=true
+      @field "B"   "A/m"   B grid withcomponents=true
       after_loop(iteration, iteration*Δt-Δt, Δt)
 
       println("Time Step #", iteration)

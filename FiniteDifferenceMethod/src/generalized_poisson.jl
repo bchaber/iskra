@@ -408,3 +408,12 @@ function calculate_electric_field!(ps::PoissonSolver{CS, 2}, ϕ, E) where CS
 
     return E
 end
+
+function calculate_magnetic_field(ps::PoissonSolver{CS, 2}) where CS
+    nx, ny = size(ps.dofs[:ϕ]) # equivalent to nr, nz
+
+    B = zeros(nx, ny, 3)
+    B[:,:,2] .= 0.0
+
+    return B
+end

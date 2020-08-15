@@ -6,24 +6,47 @@ create_boris_pusher() = BorisPusher{:xy}()
 create_axial_boris_pusher() = BorisPusher{:rz}()
 
 function push_particles!(::BorisPusher{:xy},
-	part::KineticSpecies{D, V}, E, Δt) where {D, V}
-  push_in_cartesian!(part, E, Δt)
+	part::KineticSpecies{D, V}, E, B, Δt) where {D, V}
+  push_in_cartesian!(part, E, B, Δt)
 end
 
 function push_particles!(::BorisPusher{:rz},
-  part::KineticSpecies{D, V}, E, Δt) where {D, V}
-  push_in_cartesian!(part, E, Δt)
+  part::KineticSpecies{D, V}, E, B, Δt) where {D, V}
+  push_in_cartesian!(part, E, B, Δt)
   transform_from_cartesian_to_cylindrical!(part, Δt)
 end
 
-function push_in_cartesian!(part::KineticSpecies{D, V}, E, Δt) where {D, V}
-  np, id = part.np, part.id
-  x, v, q, m = part.x, part.v, part.q, part.m
-  F = q*E # Lorentz force, F=qE
-  a = F/m # acceleration,  F=ma
+function ⋅(u::Matrix{Float64}, v::Matrix{Float64})
+  n, m = size(u)
+  w = zeros(n)
+  for i=1:n
+    w[i,:] .= @views u[i,:] ⋅ v[i,:]
+  end
+  return w
+end
 
-  v[1:np,1:V] .= @views v[1:np,1:V] .+ Δt * a[1:np,1:V]
-  x[1:np,1:D] .= @views x[1:np,1:D] .+ Δt * v[1:np,1:D]
+function ×(u::Matrix{Float64}, v::Matrix{Float64})
+  n, m = size(u)
+  w = zeros(n, m)
+  for i=1:n
+    w[i,:] .= @views u[i,:] × v[i,:]
+  end
+  return w
+end
+
+function push_in_cartesian!(part::KineticSpecies{D, V}, E, B, Δt) where {D, V}
+  np, id = part.np, part.id
+  qm = part.q/part.m
+  x, v = view(part.x, 1:np, :), view(part.v, 1:np, :)
+  v⁻ = 0.5Δt * qm * E .+ v
+  t  = 0.5Δt * qm * B
+  t² = t ⋅ t
+  v′ = v⁻ .+ v⁻ × B
+  s  = 2.0 ./ (1.0 .+ t²) .* t
+  v⁺ = v⁻ .+ v′ × s
+
+  v[:,1:V] .= Δt * E * qm * 0.5 .+ v⁺
+  x[:,1:D] .= Δt * v[:,1:D] .+ x[:,1:D]
 end
 
 function transform_from_cartesian_to_cylindrical!(part::KineticSpecies{2, 3}, Δt)
