@@ -15,7 +15,6 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
 O  = create_fluid_species("O", 1.0, 0qe, 8mp, nx+1, ny+1)
 e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 50e3)
 using Chemistry, Circuit
@@ -30,11 +29,9 @@ nx, ny = size(config.grid)
 mx, my = size(config.cells)
 xx, yy = config.grid.coords
 δ = ones(nx, ny)
-εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny, 1)
-bcs[ 1, 1:ny, 1] .= 1
-bcs[nx, 1:ny, 1] .= 2
-set_permittivity(εr)
+bcs = zeros(Int8, nx, ny)
+bcs[ 1, 1:ny] .= 1
+bcs[nx, 1:ny] .= 2
 driven   = create_electrode(bcs .== 1, config; σ=1ε0)
 grounded = create_electrode(bcs .== 2, config; fixed=true)
 
@@ -53,11 +50,6 @@ function ParticleInCell.after_loop(i, t, dt)
   cd("/tmp")
   new_iteration("06_circuit", i, t, dt) do it
     save_records(it, "e-/")
-    #save_record(it, "rho")
-    #save_record(it, "phi")
-    #save_record(it, "ne-")
-    #save_record(it, "nO")
-    #save_record(it, "E")
     save_record(it, "Q1")
     save_record(it, "I1")
     save_record(it, "V1")
@@ -79,6 +71,6 @@ function ParticleInCell.exit_loop()
   save_document(probes, "probes")
 end
 
-ParticleInCell.init(ParticleInCell.MaxwellianSource(1e3/Δt, [0 Lx; 0 Ly], [0 0; 0 0]), e, Δt)
+ParticleInCell.init(ParticleInCell.MaxwellianSource{2,3}(1e3/Δt, [1.0Lx 1.0Ly], [0. 0. 0.]), e, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(0δ, config.grid), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts)

@@ -15,7 +15,6 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
 O  = create_kinetic_species("O",  20_000, 0qe, 8mp, 1)
 e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
 iO = create_kinetic_species("O+", 20_000,+1qe, 8mp, 1)
@@ -36,11 +35,9 @@ config.interactions = [collisions]
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
 xx, yy = config.grid.coords
-εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny, 1)
-bcs[ nx,  1, 1] = 1
-bcs[ nx, ny, 1] = 2
-set_permittivity(εr)
+bcs = zeros(Int8, nx, ny)
+bcs[ nx,  1] = 1
+bcs[ nx, ny] = 2
 create_electrode(bcs .== 1, config; σ=1e3ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
@@ -71,15 +68,23 @@ end
 function ParticleInCell.exit_loop()
   println("Exporting to XDMF...")
   cd("/tmp/05_dsmc")
+  electrons = new_document()
+  neutrals = new_document()
+  fields = new_document()
+  ions = new_document()
   xdmf(1:ts) do it
-    save_species(it, "xdmf/electrons.xdmf", "e-")
-    save_species(it, "xdmf/neutrals.xdmf", "O")
-    save_species(it, "xdmf/ions.xdmf", "O+")
-    save_fields(it,  "xdmf/fields.xdmf")
+    write_species(it, electrons, "e-")
+    write_species(it, neutrals, "O")
+    write_species(it, ions, "O+")
+    write_fields(it, fields)
   end
+  save_document(electrons, "electrons")
+  save_document(neutrals, "neutrals")
+  save_document(fields, "fields")
+  save_document(ions, "ions")
 end
 
 νth = thermal_speed(300, O.m)
-ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
-ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [0.     νth; 0.   νth]), O, Δt)
+ParticleInCell.init(ParticleInCell.MaxwellianSource{2,3}(5e3/Δt, [1.0Lx 1.0Ly], [.5e6 .5e6 0]), e, Δt)
+ParticleInCell.init(ParticleInCell.MaxwellianSource{2,3}(5e3/Δt, [1.0Lx 1.0Ly], [νth νth νth]), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts)

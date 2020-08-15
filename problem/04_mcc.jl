@@ -15,7 +15,6 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
 O  = create_fluid_species("O", 1.0, 0qe, 8mp, nx+1, ny+1)
 e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 1)
 iO = create_kinetic_species("O+", 20_000,+1qe, 8mp, 1)
@@ -37,11 +36,9 @@ nx, ny = size(config.grid)
 mx, my = size(config.cells)
 xx, yy = config.grid.coords
 δ = ones(nx, ny)
-εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny, 1)
-bcs[ nx,  1, 1] = 1
-bcs[ nx, ny, 1] = 2
-set_permittivity(εr)
+bcs = zeros(Int8, nx, ny)
+bcs[ nx,  1] = 1
+bcs[ nx, ny] = 2
 create_electrode(bcs .== 1, config; σ=1e3ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
@@ -53,7 +50,7 @@ function ParticleInCell.after_loop(i, t, dt)
   cd("/tmp")
   new_iteration("04_mcc", i, t, dt) do it
     save_record(it, "phi")
-    save_record(it, "nuMCC")
+    save_record(it, "nuMCC-e--1")
     save_record(it, "nO")
     save_record(it, "ne-")
     save_record(it, "nO+")
@@ -75,10 +72,10 @@ function ParticleInCell.exit_loop()
     write_fields(it, fields)
   end
   save_document(electrons, "electrons")
-  save_document(fields)
-  save_document(ions)
+  save_document(fields, "fields")
+  save_document(ions, "ions")
 end
 
-ParticleInCell.init(ParticleInCell.MaxwellianSource(5e3/Δt, [0 Lx; 0 Ly], [.5e6 -1e6; .5e6 -1e6]), e, Δt)
+ParticleInCell.init(ParticleInCell.MaxwellianSource{2,3}(5e3/Δt, [1.0Lx 1.0Ly], [.5e6 .5e6 .0]), e, Δt)
 ParticleInCell.init(ParticleInCell.DensitySource(5e3δ, config.grid), O, Δt)
 @time ParticleInCell.solve(config, Δt, ts)

@@ -15,7 +15,6 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 -0.05Δh/Δt; 0 0]
 e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1);
 γ = create_thermalized_beam(e, [Lx Ly], [+0.05Δh/Δt 0. 0.]; T=300K, rate=1.0/Δt)
 

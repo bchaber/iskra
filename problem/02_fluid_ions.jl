@@ -15,7 +15,6 @@ Lx = nx*Δh      # domain length in x direction
 Ly = ny*Δh      # domain length in y direction
 ############################################
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
-sx, sv = [0 Lx; 0 Ly], [0 0; 0 0]
 iO  = create_fluid_species("O+", 1.0, +1qe, 8mp, nx+1, ny+1)
 import RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = RegularGrid.create_uniform_grid(xs, ys)
@@ -27,11 +26,9 @@ nx, ny = size(config.grid)
 mx, my = size(config.cells)
 xx, yy = config.grid.coords
 δ = @. exp(-(xx-0.5Lx)^2/0.03Lx -(yy-0.5Ly)^2/0.03Ly)
-εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny, 1)
-bcs[ nx,  1, 1] = 1
-bcs[ nx, ny, 1] = 2
-set_permittivity(εr)
+bcs = zeros(Int8, nx, ny)
+bcs[ nx,  1] = 1
+bcs[ nx, ny] = 2
 create_electrode(bcs .== 1, config; σ=30ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
@@ -53,9 +50,11 @@ end
 function ParticleInCell.exit_loop()
   println("Exporting to XDMF...")
   cd("/tmp/02_fluid_ions")
+  fields = new_document()
   xdmf(1:ts) do it
-  	save_fields(it,  "xdmf/fields.xdmf")
+    write_fields(it, fields)
   end
+  save_document(fields, "fields")
 end
 
 ParticleInCell.init(ParticleInCell.DensitySource(1e5δ, config.grid), iO, Δt)
