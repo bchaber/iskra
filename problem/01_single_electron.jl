@@ -17,7 +17,7 @@ Ly = ny*Δh      # domain length in y direction
 xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 sx, sv = [0 Lx; 0 Ly], [0 -0.05Δh/Δt; 0 0]
 e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1);
-γ = create_gamma_ionization_source(1/Δt, sx, sv);
+γ = create_thermalized_beam(e, [Lx Ly], [+0.05Δh/Δt 0. 0.]; T=300K, rate=1.0/Δt)
 
 using RegularGrid, FiniteDifferenceMethod, ParticleInCell
 config.grid    = create_uniform_grid(xs, ys)
@@ -28,11 +28,9 @@ config.species = [e]
 ############################################
 nx, ny = size(config.grid)
 mx, my = size(config.cells)
-εr  = ones(mx, my, 1)
-bcs = zeros(Int8, nx, ny, 1)
-bcs[ nx, ny, 1] = 1
-bcs[ nx,  1, 1] = 2
-set_permittivity(εr)
+bcs = zeros(Int8, nx, ny)
+bcs[ nx, ny] = 1
+bcs[ nx,  1] = 2
 create_electrode(bcs .== 1, config; σ=-1ε0)
 create_electrode(bcs .== 2, config; fixed=true)
 ############################################
@@ -52,10 +50,14 @@ end
 function ParticleInCell.exit_loop()
   println("Exporting to XDMF...")
   cd("/tmp/01_single_particle")
+  electrons = new_document()
+  fields = new_document()
   xdmf(1:ts) do it
-  	save_species(it, "xdmf/electrons.xdmf", "e-")
-  	save_fields(it,  "xdmf/fields.xdmf")
+    write_species(it, electrons, "e-")
+    write_fields(it, fields)
   end
+  save_document(electrons, "electrons")
+  save_document(fields, "fields")
 end
 
 init(γ, e, Δt)
