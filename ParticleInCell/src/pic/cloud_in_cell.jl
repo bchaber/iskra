@@ -7,12 +7,11 @@ function particle_to_grid(part::KineticSpecies{2, V}, grid::CartesianGrid{2}, pu
 
   for p=1:np
     i, j, hx, hy = particle_cell(px, p, grid.Δh)
-    ΔV  = Δx * Δy
     # interpolate charge to nodes
-    u[i  ,j]   += (1.0-hx) * (1.0-hy) * pu(p) / ΔV
-    u[i+1,j]   +=     (hx) * (1.0-hy) * pu(p) / ΔV
-    u[i  ,j+1] += (1.0-hx) *     (hy) * pu(p) / ΔV
-    u[i+1,j+1] +=     (hx) *     (hy) * pu(p) / ΔV
+    u[i  ,j]   += (1.0-hx) * (1.0-hy) * pu(p)
+    u[i+1,j]   +=     (hx) * (1.0-hy) * pu(p)
+    u[i  ,j+1] += (1.0-hx) *     (hy) * pu(p)
+    u[i+1,j+1] +=     (hx) *     (hy) * pu(p)
   end
 
   return u
@@ -45,12 +44,11 @@ function particle_to_grid(part::KineticSpecies{2, V}, grid::AxialGrid{2}, pu) wh
 
   for p=1:np
     i, j, hr, hz = particle_cell(px, p, grid.Δh)
-    ΔV  = π * Δz * ((i*Δr)^2 - (i*Δr - Δr)^2)
     # interpolate charge to nodes
-    u[i  ,j]   += (1.0-hr) * (1.0-hz) * pu(p) / ΔV
-    u[i+1,j]   +=     (hr) * (1.0-hz) * pu(p) / ΔV
-    u[i  ,j+1] += (1.0-hr) *     (hz) * pu(p) / ΔV
-    u[i+1,j+1] +=     (hr) *     (hz) * pu(p) / ΔV
+    u[i  ,j]   += (1.0-hr) * (1.0-hz) * pu(p)
+    u[i+1,j]   +=     (hr) * (1.0-hz) * pu(p)
+    u[i  ,j+1] += (1.0-hr) *     (hz) * pu(p)
+    u[i+1,j+1] +=     (hr) *     (hz) * pu(p)
   end
 
   return u

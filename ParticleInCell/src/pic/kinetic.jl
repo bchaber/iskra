@@ -50,4 +50,4 @@ function remove_particles!(part, Δh, matches)
 end
 
 is_fluid(species :: KineticSpecies) = false
-density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.wg[p])
+density(species :: KineticSpecies, grid) = particle_to_grid(species, grid, (p) -> species.wg[p]) ./ cell_volume(grid)
