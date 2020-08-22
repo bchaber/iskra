@@ -8,6 +8,7 @@ module RegularGrid
       data::Dict{String,AbstractArray}
          n::NTuple{D,Integer}
         Δh::NTuple{D,Float64}
+       bcs::NTuple{D,Tuple{Symbol, Symbol}}
       node::Array{Float64,D}
     coords::NTuple{D,Array{Float64,D}}
     origin::NTuple{D,Float64}
@@ -27,10 +28,12 @@ module RegularGrid
         nx, ny = g.n
         V₀ = Δx * Δy
         V  = zeros(nx, ny) .+ V₀
-        V[ 1,:] .*= 0.5
-        V[nx,:] .*= 0.5
-        V[:, 1] .*= 0.5
-        V[:,ny] .*= 0.5
+        (left, right),
+        (bottom, top) = g.bcs
+        if left ≠ :periodic   V[ 1,:] .*= 0.5 end
+        if right ≠ :periodic  V[nx,:] .*= 0.5 end
+        if bottom ≠ :periodic V[:, 1] .*= 0.5 end
+        if top ≠ :periodic    V[:,ny] .*= 0.5 end
         return V
     end
 
@@ -43,12 +46,15 @@ module RegularGrid
         end
         V[ 1,:] .= π * Δz * Δr^2 * (0.75)
         V[nr,:] .= π * Δz * Δr^2 * (nr-0.25) 
-        V[:, 1] .*= 0.5
-        V[:,nz] .*= 0.5
+        ~, (bottom, top) = g.bcs
+        if bottom ≠ :periodic V[:, 1] .*= 0.5 end
+        if top ≠ :periodic    V[:,nz] .*= 0.5 end
         return V
     end
 
-    function create_uniform_grid(xx, yy)
+    function create_uniform_grid(xx, yy;
+        left=:open, right=:open,
+        bottom=:open, top=:open)
         nx, ny = length(xx), length(yy)
         xs, ys = xx[1], yy[1]
         Δx = length(xx) > 1 ? xx[2] - xx[1] : 1.0
@@ -56,23 +62,27 @@ module RegularGrid
         x = repeat(xx,   1, ny)
         y = repeat(yy', nx,  1)
         n = nx*ny
+        bcs = (left, right), (bottom, top)
         node = reshape(1:n, nx, ny)
         data = Dict{String,AbstractArray}()
-        CartesianGrid{2}(data, (nx, ny), (Δx, Δy), node, (x, y), (xs, ys))
+        CartesianGrid{2}(data, (nx, ny), (Δx, Δy), bcs, node, (x, y), (xs, ys))
     end
 
-    function create_uniform_grid(xx)
+    function create_uniform_grid(xx;
+        left=:open, right=:open)
         nx = length(xx)
         xs = xx[1]
         Δx = length(xx) > 1 ? xx[2] - xx[1] : 1.0
         x = xx
         n = nx
+        bcs = (left, right)
         node = 1:n
         data = Dict{String,AbstractArray}()
-        CartesianGrid{1}(data, (nx,), (Δx,), node, (x,), (xs,))
+        CartesianGrid{1}(data, (nx,), (Δx,), bcs, node, (x,), (xs,))
     end
 
-    function create_axial_grid(rr, zz)
+    function create_axial_grid(rr, zz;
+        bottom=:open, top=:open)
         nr, nz = length(rr), length(zz)
         rs, zs = rr[1], zz[1]
         Δr = length(rr) > 1 ? rr[2] - rr[1] : 1.0
@@ -80,9 +90,10 @@ module RegularGrid
         r = repeat(rr,   1, nz)
         z = repeat(zz', nr,  1)
         n = nr*nz
+        bcs = (:other, :other), (bottom, top)
         node = reshape(1:n, nr, nz)
         data = Dict{String,AbstractArray}()
-        AxialGrid{2}(data, (nr, nz), (Δr, Δz), node, (r, z), (rs, zs))
+        AxialGrid{2}(data, (nr, nz), (Δr, Δz), bcs, node, (r, z), (rs, zs))
     end
 
     function create_staggered_grid(g::CartesianGrid{2})
