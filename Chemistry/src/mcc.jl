@@ -1,6 +1,7 @@
 using ParticleInCell
 module MCC
 	using ParticleInCell
+	struct InelasticBackward end
 	struct ElasticIsotropic end
 	struct ElasticBackward end
 	struct Ionization energy :: Float64 end
@@ -128,6 +129,21 @@ function perform!(collision::MCC.Collision{MCC.ElasticBackward}, p, Δt, grid)
 	vr = sv .- tv
 	w  = mr1 .* sv .+ mr2 .* tv
 	vr_cp = norm(vr) * diffuse_reflection(vr)
+
+	sv .= w .+ mr2 * vr_cp;
+	tv .= w .- mr1 * vr_cp;
+end
+
+function perform!(collision::MCC.Collision{MCC.InelasticBackward}, p, Δt, grid)
+	source, target = collision.source, collision.target
+	mr1 = source.m/(source.m + target.m)
+	mr2 = target.m/(source.m + target.m)
+	tv = maxwellian_velocity(thermal_speed(target.T, target.m))
+	sv = view(source.v, p, :)
+
+	vr = sv .- tv
+	w  = mr1 .* sv .+ mr2 .* tv
+	vr_cp = rand() * norm(vr) * diffuse_reflection(vr)
 
 	sv .= w .+ mr2 * vr_cp;
 	tv .= w .- mr1 * vr_cp;
