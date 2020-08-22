@@ -179,7 +179,7 @@ function perform!(collision::MCC.Collision{MCC.Ionization}, p, Δt, grid)
 		if product == source
 			continue
 		end
-		mp = source.w0/product.w0 + rand()
+		mp = source.w0/product.w0
 		# assume the new electron and ion are created at the neutral temperature
 		for i=1:round(Integer, mp)
 			product.x[product.np+1,:] .= source.x[p,:]
