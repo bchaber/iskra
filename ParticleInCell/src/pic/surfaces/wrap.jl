@@ -1,4 +1,5 @@
 function discard!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) where {CS, D, V}
+  before = part.np
   for i=dims
     nx = grid.n[i] - 1
     Δx = grid.Δh[i]
@@ -12,6 +13,8 @@ function discard!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D)
       end
     end
   end
+  after = part.np
+  return before - after
 end
 
 function wrap!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) where {CS, D, V}
