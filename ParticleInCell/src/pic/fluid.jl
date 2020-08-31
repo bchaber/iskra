@@ -8,4 +8,4 @@ mutable struct FluidSpecies{D}
 end
 Base.show(io::IO, sp::FluidSpecies) = print(io, sp.name)
 is_fluid(species :: FluidSpecies) = true
-density(species :: FluidSpecies, _) = species.n
+density(species :: FluidSpecies, grid) = species.n #./ cell_volume(grid)
