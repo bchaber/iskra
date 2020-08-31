@@ -99,7 +99,7 @@ module ParticleInCell
     E = zeros(size(grid)..., 3)
     B = zeros(size(grid)..., 3)
 
-    for iteration=1:timesteps # iterate for ts time step
+    for iteration in 1:timesteps # iterate for ts time step
       # Create particles
       for src in sources
         sample!(src, src.species, Δt)
@@ -132,8 +132,6 @@ module ParticleInCell
       @field "E"   "V/m"   E grid withcomponents=true
       @field "B"   "A/m"   B grid withcomponents=true
       after_loop(iteration, iteration*Δt-Δt, Δt)
-
-      println("Time Step #", iteration)
     end
 
     exit_loop()
