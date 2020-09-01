@@ -41,11 +41,11 @@ module RegularGrid
         Δr, Δz = g.Δh
         nr, nz = g.n
         V  = zeros(nr, nz)
-        for i=1:nr
-            V[i,:] .= π * Δz * ((i*Δr + Δr)^2 - (i*Δr)^2)
+        for i=2:nr-1
+            V[i,:] .= π * Δz * ((i*Δr - 0.5Δr)^2 - (i*Δr - 1.5Δr)^2)
         end
-        V[ 1,:] .*= 0.25
-        #V[nr,:] .*= 1.0
+        V[ 1,:] .= π * Δz * (0.5Δr)^2
+        V[nr,:] .= π * Δz * ((nr*Δr - 1.0Δr)^2 - (nr*Δr - 1.5Δr)^2)
         ~, (bottom, top) = g.bcs
         if bottom ≠ :periodic V[:, 1] .*= 0.5 end
         if top ≠ :periodic    V[:,nz] .*= 0.5 end
