@@ -112,6 +112,13 @@ function isotropic_scattering(v)
     vec([sinχ*cosη sinχ*sinη cosχ] * T)
 end
 
+function specular_reflection(v, n)
+	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
+	sinχ, cosχ, sinη, cosη = 0.0, 1.0, 0.0, 1.0
+    T = unrotated(sinθ, cosθ, sinϕ, cosϕ)
+	vec([sinχ*cosη sinχ*sinη cosχ] * T)
+end
+
 function diffuse_reflection(v)
 	sinθ, cosθ, sinϕ, cosϕ = euler_angles(v)
 	sinχ, cosχ, sinη, cosη = cosine_distribution()
