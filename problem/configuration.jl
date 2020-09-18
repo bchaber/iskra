@@ -107,4 +107,35 @@ function create_fluid_species(name, μ, q, m, mx, my; T=300.0K)
   return species
 end
 
+function calculate_potential_energy(species)
+  ts = 0
+  Uk = zeros(ts)
+  for part in species
+    for i=1:ts
+      mass = part.m
+      vx = view(part.v, 1:part.np, 1)
+      vy = view(part.v, 1:part.np, 2)
+      vz = view(part.v, 1:part.np, 3)
+      uk = vx.^2 .+ vy.^2 .+ vz.^2
+      Uk[i] .+= 0.5sum(uk)*mass
+    end    
+  end
+  return Uk
+end
+
+function calculate_kinetic_energy(E, grid)
+  ts = 0
+  Up = zeros(ts)
+  volume = cell_volume(grid)
+  for i=1:ts
+    ε  = ε0
+    Ex = view(E, :, :, 1)
+    Ey = view(E, :, :, 2)
+    Ez = view(E, :, :, 3)
+    up = Ex.^2 .+ Ey.^2 .+ Ez.^2
+    Up[i] .+= 0.5sum(volume .* up)*ε
+  end
+  return Up
+end
+
 Config() = Config(nothing, nothing, nothing, [], [], [], nothing, nothing, nothing)
