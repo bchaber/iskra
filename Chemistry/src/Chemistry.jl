@@ -16,6 +16,7 @@ PIC = ParticleInCell
 include("reactions.jl")
 include("cross_section.jl")
 include("chemical_reaction_network.jl")
+include("see.jl")
 include("mcc.jl")
 include("dsmc.jl")
 include("lxcat.jl")
