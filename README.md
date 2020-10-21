@@ -17,10 +17,14 @@ To run this code few dependencies have to be installed in Julia (version >= 1.1)
 
 In Julia REPL press `]` and write the following commands to install iskra's depencies:
 ```
-add DataStructures
+add HDF5
+add LightXML
 add Unitful
-add WriteVTK
+add DataStructures
+add Interpolations
 ```
+
+There are few optional packages: `PyCall`, `PyPlot` and `GR`.
 
 After that one has to add to `~/.julia/config/startup.jl` following lines:
 
