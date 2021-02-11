@@ -1,0 +1,4 @@
+name = "Circuit"
+uuid = "7e860224-744c-42ca-bf58-1fe8616bc72e"
+authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
+version = "0.1.0"

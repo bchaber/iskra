@@ -1,0 +1,4 @@
+name = "XDMF"
+uuid = "5da06dc0-8aa7-46e0-a3cd-2433730ea4d5"
+authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
+version = "0.1.0"

@@ -1,0 +1,4 @@
+name = "ParticleInCell"
+uuid = "e3085975-d856-4472-b5ab-47582bc951ce"
+authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
+version = "0.1.0"

@@ -1,0 +1,8 @@
+name = "FiniteDifferenceMethod"
+uuid = "39659e79-18d4-4dff-9e66-41a18233f551"
+authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
+version = "0.1.0"
+
+[deps]
+RegularGrid = "b0707430-6b97-4baa-a412-de5724fe1c0f"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

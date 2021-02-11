@@ -1,0 +1,4 @@
+name = "Chemistry"
+uuid = "d3914808-6002-4400-801d-4818d12ae0b6"
+authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
+version = "0.1.0"

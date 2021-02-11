@@ -1,0 +1,10 @@
+name = "Diagnostics"
+uuid = "ddf5d45b-9ed5-48cd-860b-d84186b38dfa"
+authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
+version = "0.1.0"
+
+[deps]
+HDF5 = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+RegularGrid = "b0707430-6b97-4baa-a412-de5724fe1c0f"
