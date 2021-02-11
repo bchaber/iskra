@@ -21,10 +21,10 @@ function write_species(xdmf, xdoc, species)
   set_attributes(geometry, GeometryType="X_Y_Z")
 end
 
-function add_species(particles, fname::String, n::String, g::HDF5Group, geometry)
+function add_species(particles, fname::String, n::String, g::Group, geometry)
   np = length(read(g["id"]))
 
-  for m in names(g["position"])
+  for m in keys(g["position"])
     d = g["position/"*m]
     dataitem = new_child(geometry, "DataItem")
     set_attributes(dataitem, Name=m, Format="HDF5", NumberType="Float", Precision="8", Dimensions=np)

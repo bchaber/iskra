@@ -8,12 +8,12 @@ function forhdf5(v::NTuple{N,T}) where {N,T}
 end
 
 function addattribute(sym, node, field)
-  attr = attrs(node)
+  attr = attributes(node)
   attr[string(sym)] = forhdf5(field)
 end
 
 function addattributes(metadata, node; except=(), fields=nothing)
-  attr = attrs(node)
+  attr = attributes(node)
 
   if isnothing(fields)
     fields = metadata |> typeof |> fieldnames
@@ -33,9 +33,9 @@ function new_iteration(f::Function, prefix, i, t, dt)
 
   mkpath(prefix * "/hdf5")
   rootnode = h5open((@sprintf "%s/hdf5/data%d.h5" prefix i), "w")
-  basepath = g_create(rootnode, (@sprintf "data/%d" i))
-  meshesnode = g_create(basepath, root.meshesPath)
-  particlesnode = g_create(basepath, root.particlesPath)
+  basepath = create_group(rootnode, (@sprintf "data/%d" i))
+  meshesnode = create_group(basepath, root.meshesPath)
+  particlesnode = create_group(basepath, root.particlesPath)
   
   addattributes(root, rootnode)
   addattributes(fields, meshesnode)
@@ -50,7 +50,7 @@ function new_iteration(f::Function, prefix, i, t, dt)
 end
 
 
-function save_record(it::HDF5Group, key::String, record::ParticleRecord)
+function save_record(it::HDF5.Group, key::String, record::ParticleRecord)
   f = root.particlesPath * key
 
   for (component, output) in record.components
@@ -58,7 +58,7 @@ function save_record(it::HDF5Group, key::String, record::ParticleRecord)
     if length(record.input) > 1
       it[g] = output
     else
-      g_create(it, f)
+      create_group(it, f)
       addattribute(:value, it[g], record.input[1])
       addattribute(:shape, it[g], output |> size)
     end
@@ -67,7 +67,7 @@ function save_record(it::HDF5Group, key::String, record::ParticleRecord)
   addattributes(record.metadata, it[f]; except=(:unitSI,))
 end
 
-function save_record(it::HDF5Group, key::String, record::FieldRecord)
+function save_record(it::HDF5.Group, key::String, record::FieldRecord)
   f = root.meshesPath * key
 
   for (component, output) in record.components
@@ -78,7 +78,7 @@ function save_record(it::HDF5Group, key::String, record::FieldRecord)
   addattributes(record.metadata, it[f]; except=(:position, :unitSI))
 end
 
-function save_record(it::HDF5Group, key::String, record::CircuitProbeRecord)
+function save_record(it::HDF5.Group, key::String, record::CircuitProbeRecord)
   f = @sprintf "%s/%s" root.meshesPath key
   it[f] = record.data
   addattributes(record.metadata, it[f])

@@ -4,17 +4,17 @@ using Printf
 
 import LightXML: XMLDocument, XMLElement
 import LightXML: root, create_root, new_child, set_attributes, add_text, find_element, save_file
-import HDF5: HDF5File, HDF5Dataset, HDF5Group
-import HDF5: attrs, h5open, name, names
+import HDF5: File, Dataset, Group
+import HDF5: attributes, h5open, name
 
 export xdmf, new_document, save_document
 export write_fields, write_species, write_probes
 
-h5attr(g, a) = read(attrs(g)[a])
+h5attr(g, a) = read(attributes(g)[a])
 
 struct XDMFFile
   iteration :: Int64
-  file :: HDF5File
+  file :: File
 end
 
 include("fields.jl")

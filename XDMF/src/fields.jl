@@ -21,7 +21,7 @@ function write_fields(xdmf, xdoc)
 
   it = xdmf.file[@sprintf "/data/%d" iteration]
   fl = xdmf.file[@sprintf "/data/%d/fields" iteration]
-  for n in names(fl)
+  for n in keys(fl)
     o = h5attr(fl[n], "gridGlobalOffset")
     s = h5attr(fl[n], "gridSpacing")
     global o, s, d = add_field(fields, fname, n, fl[n], o, s)
@@ -61,7 +61,7 @@ function write_probes(xdmf, xdoc)
   set_attributes(topology, Dimensions="1")
   set_attributes(time, Value=h5attr(it, "time"))
 
-  for n in names(fl)
+  for n in keys(fl)
       attribute = new_child(fields, "Attribute")
       set_attributes(attribute;
         Name=n, AttributeType="Scalar", Center="Node")
@@ -81,7 +81,7 @@ function write_probes(xdmf, xdoc)
   add_text(spacing, "0")
 end
 
-function add_field(fields, fname::String, n::String, g::HDF5Dataset, origin, spacing)
+function add_field(fields, fname::String, n::String, g::Dataset, origin, spacing)
   dx, dy = size(g)
   o = @sprintf "0.0 %g %g" origin...
   s = @sprintf "0.0 %g %g" spacing...
@@ -97,9 +97,9 @@ function add_field(fields, fname::String, n::String, g::HDF5Dataset, origin, spa
   return o, s, d
 end
 
-function add_field(fields, fname::String, n::String, g::HDF5Group,
+function add_field(fields, fname::String, n::String, g::Group,
   origin, spacing)
-  for m in names(g)
+  for m in keys(g)
     global o, s, d = add_field(fields, fname, n*m, g[m], origin, spacing)
   end
   return o, s, d
