@@ -2,3 +2,6 @@ name = "Circuit"
 uuid = "7e860224-744c-42ca-bf58-1fe8616bc72e"
 authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
 version = "0.1.0"
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"

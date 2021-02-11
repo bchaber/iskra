@@ -2,3 +2,6 @@ name = "ParticleInCell"
 uuid = "e3085975-d856-4472-b5ab-47582bc951ce"
 authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
 version = "0.1.0"
+
+[deps]
+Diagnostics = "ddf5d45b-9ed5-48cd-860b-d84186b38dfa"

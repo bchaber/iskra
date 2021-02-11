@@ -45,6 +45,7 @@ uuid = "d3914808-6002-4400-801d-4818d12ae0b6"
 version = "0.1.0"
 
 [[Circuit]]
+deps = ["DataStructures"]
 path = "Circuit"
 uuid = "7e860224-744c-42ca-bf58-1fe8616bc72e"
 version = "0.1.0"
@@ -234,6 +235,7 @@ uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
 version = "0.10.1"
 
 [[ParticleInCell]]
+deps = ["Diagnostics"]
 path = "ParticleInCell"
 uuid = "e3085975-d856-4472-b5ab-47582bc951ce"
 version = "0.1.0"
@@ -367,6 +369,7 @@ uuid = "efce3f68-66dc-5838-9240-27a6d6f5f9b6"
 version = "0.5.3"
 
 [[XDMF]]
+deps = ["Printf"]
 path = "XDMF"
 uuid = "5da06dc0-8aa7-46e0-a3cd-2433730ea4d5"
 version = "0.1.0"
