@@ -15,24 +15,17 @@ The circuit is coupled using surface charge density on the electrode' surface. F
 Iskra tries to keep working with diagnostics (particles' positions and other parameters, field distributions, etc.) as simple as possible. The computational code makes different quantities of interest available for saving them by the user. Currently, the diagnostics data are stored according to OpenPMD standard (http://openpmd.org) in HDF5 files. They **cannot** be interpreted out of the box using openpmd-viewer (due to the way HDF5.jl stores strings). You have to remove `.decode()` here and there from openpmd-viewer Python files...
 
 # running
-To run this code few dependencies have to be installed in Julia (version >= 1.1):
+To run this code few dependencies have to be installed in Julia (version >= 1.5):
 
-In Julia REPL press `]` and write the following commands to install iskra's depencies:
+You can use the environment of the package:
+
 ```
-add HDF5
-add LightXML
-add Unitful
-add DataStructures
-add Interpolations
+$ cd iskra/
+$ ls *.toml
+Manifest.toml	Project.toml
+$ julia --project=. problem/01_single_electron.jl
+...
 ```
-
-There are few optional packages: `PyCall`, `PyPlot` and `GR`.
-
-After that one has to add to `~/.julia/config/startup.jl` following lines:
-
-```push!(LOAD_PATH, <PATH TO THE CLONED REPOSITORY>)```
-
-After that change directory to `<PATH TO THE CLONED REPOSITORY>/problem` and run `julia 01_single_electron.jl`.
 
 # verification
 
