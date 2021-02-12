@@ -15,7 +15,7 @@ struct FieldRecordMetadata{N}
   unitDimension :: NTuple{7, Float64}
   timeOffset :: Float64
 
-  axisLabels :: NTuple{N, String}
+  axisLabels :: NTuple{N, Char}
   dataOrder :: String
   geometry :: String
   geometryParameters :: String

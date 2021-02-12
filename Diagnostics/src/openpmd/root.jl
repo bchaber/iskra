@@ -6,11 +6,11 @@ ind(d::Unitful.Dimension{:Temperature}) = 5
 ind(d::Unitful.Dimension{:Amount})      = 6
 ind(d::Unitful.Dimension{:Luminosity})  = 7
 
-geo(grid::CartesianGrid{1}) = ("x",), "cartesian", 1
-geo(grid::CartesianGrid{2}) = ("x", "y"), "cartesian", 2
-geo(grid::CartesianGrid{3}) = ("x", "y", "z"), "cartesian", 3
-geo(grid::AxialGrid{1})     = ("r",), "cartesian", 2
-geo(grid::AxialGrid{2})     = ("r", "z"), "cartesian", 2
+geo(grid::CartesianGrid{1}) = ('x',), "cartesian", 1
+geo(grid::CartesianGrid{2}) = ('x', 'y'), "cartesian", 2
+geo(grid::CartesianGrid{3}) = ('x', 'y', 'z'), "cartesian", 3
+geo(grid::AxialGrid{1})     = ('r',), "cartesian", 2
+geo(grid::AxialGrid{2})     = ('r', 'z'), "cartesian", 2
 current_version() = "git+?"
 current_date() = Dates.format(Dates.now(), "Y/m/d HH:MM")
 
