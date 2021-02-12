@@ -2,14 +2,36 @@ const root = RootMetadata()
 const fields = FieldMetadata()
 const particles = ParticleMetadata()
 
-function forhdf5(v) v end
-function forhdf5(v::NTuple{N,T}) where {N,T}
-  N > 0 ? [v...] : Float64[]
+function HDF5.write_attribute(attr::HDF5.Attribute, memtype::HDF5.Datatype, strs::NTuple{N,Char}) where N
+  HDF5.write_attribute(attr, memtype, join(strs))
+end
+
+function HDF5.dataspace(v::NTuple{N,Char}) where N
+     HDF5.Dataspace(HDF5.h5s_create_simple(1, HDF5.hsize_t[N], HDF5.hsize_t[N]))
+end
+
+function HDF5.datatype(::NTuple{N,Char}) where N
+    type_id = HDF5.h5t_copy(HDF5.H5T_C_S1)
+    HDF5.h5t_set_size(type_id, 1)
+    HDF5.h5t_set_cset(type_id, HDF5.H5T_CSET_UTF8)
+    HDF5.Datatype(type_id)
+end
+
+function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Int64}, name::String) where N
+  setindex!(attr, [val...], name)
+end
+
+function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Float64}, name::String) where N
+  setindex!(attr, [val...], name)
+end
+
+function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, String}, name::String) where N
+  setindex!(attr, [val...], name)
 end
 
 function addattribute(sym, node, field)
   attr = attributes(node)
-  attr[string(sym)] = forhdf5(field)
+  attr[string(sym)] = field
 end
 
 function addattributes(metadata, node; except=(), fields=nothing)
@@ -24,7 +46,7 @@ function addattributes(metadata, node; except=(), fields=nothing)
       continue
     end
     field = getfield(metadata, sym)
-    attr[string(sym)] = forhdf5(field)
+    attr[string(sym)] = field
   end
 end
 
