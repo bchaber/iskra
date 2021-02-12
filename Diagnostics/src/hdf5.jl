@@ -2,28 +2,26 @@ const root = RootMetadata()
 const fields = FieldMetadata()
 const particles = ParticleMetadata()
 
-function HDF5.write_attribute(attr::HDF5.Attribute, memtype::HDF5.Datatype, strs::NTuple{N,Char}) where N
+HDF5.write_attribute(attr::HDF5.Attribute, memtype::HDF5.Datatype, strs::NTuple{N,Char}) where N =
   HDF5.write_attribute(attr, memtype, join(strs))
-end
 
 function HDF5.dataspace(v::NTuple{N,Char}) where N
-     HDF5.Dataspace(HDF5.h5s_create_simple(1, HDF5.hsize_t[N], HDF5.hsize_t[N]))
+  hs = HDF5.hsize_t[N]
+  ds = HDF5.h5s_create_simple(1, hs, hs)
+  HDF5.Dataspace(ds)
 end
 
 function HDF5.datatype(::NTuple{N,Char}) where N
-    type_id = HDF5.h5t_copy(HDF5.H5T_C_S1)
-    HDF5.h5t_set_size(type_id, 1)
-    HDF5.h5t_set_cset(type_id, HDF5.H5T_CSET_UTF8)
-    HDF5.Datatype(type_id)
+  dt = HDF5.h5t_copy(HDF5.H5T_C_S1)
+  HDF5.h5t_set_size(dt, 1)
+  HDF5.h5t_set_cset(dt, HDF5.H5T_CSET_UTF8)
+  HDF5.Datatype(dt)
 end
 
-function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Char}, name::String) where {N}
+Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Char}, name::String) where {N} =
   write_attribute(attr.parent, name, val)
-end
-
-function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, T}, name::String) where {N,T}
-  write_attribute(attr.parent, name, collect(val))
-end
+Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, T}, name::String) where {N,T} =
+  write_attribute(attr.parent, name, [val...])
 
 function addattribute(sym, node, field)
   attr = attributes(node)
