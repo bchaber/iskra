@@ -17,16 +17,12 @@ function HDF5.datatype(::NTuple{N,Char}) where N
     HDF5.Datatype(type_id)
 end
 
-function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Int64}, name::String) where N
-  setindex!(attr, [val...], name)
+function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Char}, name::String) where {N}
+  write_attribute(attr.parent, name, val)
 end
 
-function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, Float64}, name::String) where N
-  setindex!(attr, [val...], name)
-end
-
-function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, String}, name::String) where N
-  setindex!(attr, [val...], name)
+function Base.setindex!(attr::HDF5.Attributes, val::NTuple{N, T}, name::String) where {N,T}
+  write_attribute(attr.parent, name, collect(val))
 end
 
 function addattribute(sym, node, field)
