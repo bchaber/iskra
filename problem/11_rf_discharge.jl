@@ -12,7 +12,7 @@ f  = 13.56MHz
 nx = 128
 ny = 1
 ds = L/nx
-ts = 1_000
+ts = 512_000
 Δh = ds
 
 simulationVolume = nx * Δh * ny * Δh
@@ -93,7 +93,7 @@ end
 using Diagnostics
 function iteration(i, t, dt)
   apply_dirichlet(solver, bcs .== 1, 450sin(2π*f*t))
-  if i % 1 != 1
+  if i > (512_000 - 12_800)
     cd("/tmp")
     new_iteration("11_rf_discharge", i, t, dt) do it
       save_records(it, "e-/")
