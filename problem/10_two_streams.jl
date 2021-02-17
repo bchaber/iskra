@@ -59,6 +59,7 @@ end
 
 # + hooks
 function start(dt)
+  e.np = 0
   init(fwd, e, Δt)
   init(rev, e, Δt)
   # place ions in the same positions as electrons
