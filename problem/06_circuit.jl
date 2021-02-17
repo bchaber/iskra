@@ -18,11 +18,11 @@ xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 O  = create_fluid_species("O", 1.0, 0qe, 8mp, nx+1, ny+1)
 e  = create_kinetic_species("e-", 20_000,-1qe, 1me, 50e3)
 using Chemistry, Circuit
-import RegularGrid, FiniteDifferenceMethod, ParticleInCell
-config.grid    = RegularGrid.create_uniform_grid(xs, ys)
-config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
-config.pusher  = ParticleInCell.create_boris_pusher()
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
+config.grid    = create_uniform_grid(xs, ys)
+config.cells   = create_staggered_grid(config.grid)
+config.solver  = create_poisson_solver(config.grid, ε0)
+config.pusher  = create_boris_pusher()
 config.species = [e, O]
 ############################################
 nx, ny = size(config.grid)

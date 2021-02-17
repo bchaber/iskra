@@ -1,4 +1,4 @@
-using RegularGrid
+using RegularGrids
 
 mutable struct DensitySource{D}
   δ :: Array{Float64, D}

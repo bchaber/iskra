@@ -18,11 +18,11 @@ xs, ys = 0m:Δh:Lx, 0m:Δh:Ly
 e = create_kinetic_species("e-", 50_000,-1qe, 1me, 50e3)
 γ = create_thermalized_beam(e, [Lx/4 Ly/2], [0. 0. 0.]; dx=[Lx/4 Lx/4], T=300K, rate=20_000/Δt)
 
-import RegularGrid, FiniteDifferenceMethod, ParticleInCell
-config.grid    = RegularGrid.create_uniform_grid(xs, ys)
-config.cells   = RegularGrid.create_staggered_grid(config.grid)
-config.solver  = FiniteDifferenceMethod.create_poisson_solver(config.grid, ε0)
-config.pusher  = ParticleInCell.create_boris_pusher()
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
+config.grid    = create_uniform_grid(xs, ys)
+config.cells   = create_staggered_grid(config.grid)
+config.solver  = create_poisson_solver(config.grid, ε0)
+config.pusher  = create_boris_pusher()
 config.species = [e]
 ############################################
 nx, ny = size(config.grid)

@@ -6,7 +6,7 @@ module ParticleInCell
   using LinearAlgebra
   using Circuit
   using FiniteDifferenceMethod
-  using RegularGrid
+  using RegularGrids
 
   include("pic/kinetic.jl")
   include("pic/fluid.jl")

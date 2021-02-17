@@ -14,7 +14,7 @@ e = create_kinetic_species("e-", 20_000,-1qe, 1me, 1);
 γ = create_thermalized_beam(e, [Lx Ly], [+0.05Δh/Δt 0. 0.]; T=300K, rate=1.0/Δt)
 
 # + grid, solver and pusher
-using RegularGrid, FiniteDifferenceMethod, ParticleInCell
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
 grid    = create_uniform_grid(xs, ys)
 solver  = create_poisson_solver(grid, ε0)
 pusher  = create_boris_pusher()

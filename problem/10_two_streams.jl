@@ -42,7 +42,7 @@ fwd = create_thermalized_beam(e, [Lx Ly], [+νdrift 0 0]; T=300.0K, rate=electro
 rev = create_thermalized_beam(e, [Lx Ly], [-νdrift 0 0]; T=300.0K, rate=electronParticles/2/Δt)
 
 # + grid, solver and pusher
-using RegularGrid, FiniteDifferenceMethod, ParticleInCell
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
 grid    = create_uniform_grid(xs, ys)
 solver  = create_poisson_solver(grid, ε0)
 pusher  = create_boris_pusher()

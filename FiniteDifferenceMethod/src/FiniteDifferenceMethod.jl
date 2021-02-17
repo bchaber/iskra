@@ -8,7 +8,7 @@ module FiniteDifferenceMethod
     export calculate_electric_potential
     export calculate_advection_diffusion
     export calculate_magnetic_field
-    using RegularGrid
+    using RegularGrids
     using LinearAlgebra
  
     include("generalized_poisson.jl")

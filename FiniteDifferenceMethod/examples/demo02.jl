@@ -1,10 +1,10 @@
 import FiniteDifferenceMethod
-import RegularGrid
+import RegularGrids
 
 using GR
 h = 0.1
-g = RegularGrid.create_uniform_grid(0:h:0.5, [0.0])
-e = RegularGrid.create_staggered_grid(g)
+g = RegularGrids.create_uniform_grid(0:h:0.5, [0.0])
+e = RegularGrids.create_staggered_grid(g)
 nx, ny = size(g)
 e["eps"] = 10ones(nx+1, ny+1, 1)
 f = h^2*100ones(size(g))

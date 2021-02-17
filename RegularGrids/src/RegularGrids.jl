@@ -1,4 +1,4 @@
-module RegularGrid
+module RegularGrids
     export create_uniform_grid, create_staggered_grid
     export create_axial_grid
     export UniformGrid, CartesianGrid, AxialGrid

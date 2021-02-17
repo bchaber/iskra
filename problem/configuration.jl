@@ -1,6 +1,6 @@
 using ParticleInCell
 using FiniteDifferenceMethod
-using RegularGrid
+using RegularGrids
 
 mutable struct Config
   solver

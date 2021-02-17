@@ -1,12 +1,12 @@
 import FiniteDifferenceMethod
 import Circuit: @netlist, advance_circuit!, rlc
-import RegularGrid
+import RegularGrids
 
 σ0, ρ0 = 0.0, -1e-9
 m = 81
 h = 0.5/(m-1)
-g = RegularGrid.create_uniform_grid(0:h:(m-1)*h, [0.0])
-e = RegularGrid.create_staggered_grid(g)
+g = RegularGrids.create_uniform_grid(0:h:(m-1)*h, [0.0])
+e = RegularGrids.create_staggered_grid(g)
 nx, ny = size(g)
 se = round(Int64, nx/3)+1
 ee = round(Int64,2nx/3)-1

@@ -16,7 +16,7 @@ LightXML = "9c8b4983-aa76-5018-a973-4c85ecc9e179"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ParticleInCell = "e3085975-d856-4472-b5ab-47582bc951ce"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
-RegularGrid = "b0707430-6b97-4baa-a412-de5724fe1c0f"
+RegularGrids = "b0707430-6b97-4baa-a412-de5724fe1c0f"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 XDMF = "5da06dc0-8aa7-46e0-a3cd-2433730ea4d5"
 

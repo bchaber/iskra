@@ -88,7 +88,7 @@ deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Diagnostics]]
-deps = ["HDF5", "Printf", "RegularGrid", "Unitful"]
+deps = ["HDF5", "Printf", "RegularGrids", "Unitful"]
 path = "Diagnostics"
 uuid = "ddf5d45b-9ed5-48cd-860b-d84186b38dfa"
 version = "0.1.0"
@@ -110,7 +110,7 @@ uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
 version = "0.11.2"
 
 [[FiniteDifferenceMethod]]
-deps = ["LinearAlgebra", "RegularGrid"]
+deps = ["LinearAlgebra", "RegularGrids"]
 path = "FiniteDifferenceMethod"
 uuid = "39659e79-18d4-4dff-9e66-41a18233f551"
 version = "0.1.0"
@@ -235,7 +235,7 @@ uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
 version = "0.10.1"
 
 [[ParticleInCell]]
-deps = ["Chemistry", "Circuit", "Diagnostics", "FiniteDifferenceMethod", "RegularGrid"]
+deps = ["Chemistry", "Circuit", "Diagnostics", "FiniteDifferenceMethod", "RegularGrids"]
 path = "ParticleInCell"
 uuid = "e3085975-d856-4472-b5ab-47582bc951ce"
 version = "0.1.0"
@@ -273,8 +273,8 @@ git-tree-sha1 = "37d210f612d70f3f7d57d488cb3b6eff56ad4e41"
 uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
 version = "0.4.0"
 
-[[RegularGrid]]
-path = "RegularGrid"
+[[RegularGrids]]
+path = "RegularGrids"
 uuid = "b0707430-6b97-4baa-a412-de5724fe1c0f"
 version = "0.1.0"
 

@@ -16,7 +16,7 @@ e  = create_fluid_species("e-", 1.0,-1qe, 1me, nx+1, ny+1)
 
 # + grid, solver and pusher
 using Chemistry
-using RegularGrid, FiniteDifferenceMethod, ParticleInCell
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
 grid    = create_uniform_grid(xs, ys)
 solver  = create_poisson_solver(grid, ε0)
 pusher  = create_boris_pusher()

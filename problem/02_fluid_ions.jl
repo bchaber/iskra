@@ -13,7 +13,7 @@ ys = 0m:Δh:Ly
 iO = create_fluid_species("O+", 1.0, +1qe, 8mp, nx+1, ny+1)
 
 # + grid, solver and pusher
-using RegularGrid, FiniteDifferenceMethod, ParticleInCell
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
 grid    = create_uniform_grid(xs, ys)
 pusher  = nothing
 solver  = create_poisson_solver(grid, ε0)

@@ -16,7 +16,7 @@ iO = create_kinetic_species("O+", 20_000,+1qe, 8mp, 1)
 
 # + grid, solver and pusher
 using Chemistry
-using RegularGrid, FiniteDifferenceMethod, ParticleInCell
+using RegularGrids, FiniteDifferenceMethod, ParticleInCell
 grid    = create_uniform_grid(xs, ys)
 solver  = create_poisson_solver(grid, ε0)
 pusher  = create_boris_pusher()

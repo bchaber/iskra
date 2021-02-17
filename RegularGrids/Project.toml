@@ -1,4 +1,4 @@
-name = "RegularGrid"
+name = "RegularGrids"
 uuid = "b0707430-6b97-4baa-a412-de5724fe1c0f"
 authors = ["Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>"]
 version = "0.1.0"

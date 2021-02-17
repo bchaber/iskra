@@ -1,10 +1,10 @@
 import FiniteDifferenceMethod
-import RegularGrid
+import RegularGrids
 
 using GR
 
-g = RegularGrid.create_uniform_grid(0:0.1:1, 0:0.1:1)
-e = RegularGrid.create_staggered_grid(g)
+g = RegularGrids.create_uniform_grid(0:0.1:1, 0:0.1:1)
+e = RegularGrids.create_staggered_grid(g)
 e["eps"] = ones(12,12,1)
 e["eps"][5:8,5:8] .= 10.
 g["bcs"] = zeros(11, 11, 1)
