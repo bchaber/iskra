@@ -88,7 +88,7 @@ deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Diagnostics]]
-deps = ["LinearAlgebra", "Printf", "RegularGrid", "Unitful"]
+deps = ["HDF5", "Printf", "RegularGrid", "Unitful"]
 path = "Diagnostics"
 uuid = "ddf5d45b-9ed5-48cd-860b-d84186b38dfa"
 version = "0.1.0"
@@ -247,6 +247,12 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[ProgressMeter]]
+deps = ["Distributed", "Printf"]
+git-tree-sha1 = "6e9c89cba09f6ef134b00e10625590746ba1e036"
+uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
+version = "1.5.0"
 
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
