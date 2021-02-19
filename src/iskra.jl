@@ -12,6 +12,13 @@ module IskraRuntime
   using ProgressMeter
   using ParticleInCell
 
+  # define initial values
+  grid = solver = pusher = nothing
+  species = []
+  interactions = []
+  ParticleInCell.after_push(part, grid) = 
+    ParticleInCell.discard!(part, grid) 
+
   Random.seed!(0)
   if isdefined(Main, :PROBLEM)
     problem = joinpath(pwd(), Main.PROBLEM)
