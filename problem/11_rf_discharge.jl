@@ -18,11 +18,11 @@ ts = 512_000
 simulationVolume = nx * Δh * ny * Δh
 numCells         = nx * ny
 
-electronParticles    = 128 * numCells
+electronParticles    = 512 * numCells
 totalNumElectrons    = ne * simulationVolume
 electronNumRatio     = totalNumElectrons / electronParticles
 
-ionParticles         = 128 * numCells
+ionParticles         = 512 * numCells
 totalNumIons         = nHe * simulationVolume
 ionNumRatio          = totalNumIons / ionParticles
 
@@ -38,8 +38,8 @@ println("kB Te / me: ", .5thermal_speed(Te, me))
 # + species and sources
 xs = 0m:Δh:Lx
 ys = 0m:Δh:Ly
-e  = create_kinetic_species("e-", 50_000,-1qe, 1me, electronNumRatio);
-iHe = create_kinetic_species("He+", 50_000,+1qe, 3.99mp, electronNumRatio);
+e  = create_kinetic_species("e-", 200_000,-1qe, 1me, electronNumRatio);
+iHe = create_kinetic_species("He+", 200_000,+1qe, 3.99mp, electronNumRatio);
 He  = FluidSpecies("He", 1.0, 0qe, 3.99mp, nHe*ones(nx+1, ny+1), float(Tn))
 
 se  = create_thermalized_beam(e,  [Lx Ly], [0. 0. 0.]; T=Te, rate=electronParticles/Δt)
