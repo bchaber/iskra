@@ -52,11 +52,12 @@ struct RootMetadata
   meshesPath :: String
   particlesPath :: String
   author :: String
+  seed :: Integer
   software :: String
   softwareVersion :: String
   date :: String
 end
 
-RootMetadata() = RootMetadata("1.1.0", 1, "fileBased", "data%T.h5", "/data/%T",
-  "fields/", "particles/", "Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>",
+RootMetadata(seed=0) = RootMetadata("1.1.0", 1, "fileBased", "data%T.h5", "/data/%T",
+  "fields/", "particles/", "Bartosz Chaber <bartosz.chaber@ee.pw.edu.pl>", seed,
   "iskra", current_version(), current_date())
