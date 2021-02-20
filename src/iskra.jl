@@ -19,7 +19,12 @@ module IskraRuntime
   ParticleInCell.after_push(part, grid) = 
     ParticleInCell.discard!(part, grid) 
 
-  Random.seed!(0)
+  if isdefined(Main, :SEED)
+    Random.seed!(Main.SEED)
+  else
+    Random.seed!(0)
+  end
+  
   if isdefined(Main, :PROBLEM)
     problem = joinpath(pwd(), Main.PROBLEM)
   elseif length(ARGS) > 0
