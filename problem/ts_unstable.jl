@@ -9,7 +9,7 @@ me = qe = 1.0
 νtherm = thermal_speed(0K, me)
 νdrift = 0.01 #m/s
 mHe = 4.002602me/5.48579903e-04
-nHe = 0.001
+nHe = 0.01
 ne = 1nHe
 ts = 1000
 nx = 32
@@ -36,7 +36,7 @@ println("electrons: ", electronParticles, " wg: ", electronNumRatio)
 xs = 0m:Δh:Lx
 ys = 0m:Δh:Ly
 e   = create_kinetic_species("e-", 20_000,-1qe, 1me, electronNumRatio);
-iHe = create_kinetic_species("He+", 20_000, +0qe, 1mHe, electronNumRatio)
+iHe = create_kinetic_species("He+", 20_000, +1qe, 1mHe, electronNumRatio)
 
 fwd = create_thermalized_beam(e, [Lx Ly], [+νdrift 0 0]; T=0.0K, rate=electronParticles/2/Δt)
 rev = create_thermalized_beam(e, [Lx Ly], [-νdrift 0 0]; T=0.0K, rate=electronParticles/2/Δt)
@@ -65,7 +65,7 @@ function start(dt)
   e.x[:,1]  .+= 0.001cos.(2π .* e.x[:,1] ./ Lx)
   # place ions in the same positions as electrons
   iHe.x .= e.x
-  iHe.v .= 
+  iHe.v .= 0.0
   iHe.np = e.np
 end
 

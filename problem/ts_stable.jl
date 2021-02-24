@@ -19,9 +19,9 @@ ny = 1
 
 simulationVolume = nx * Δh * ny * Δh
 numCells         = nx * ny
-electronParticles    = 5000
+electronParticles    = 10_000
 totalNumElectrons    = ne * simulationVolume
-electronNumRatio     = totalNumElectrons / electronParticles  
+electronNumRatio     = totalNumElectrons / electronParticles
 
 Δt = 0.19634954084936207
 Lx = nx*Δh
@@ -65,7 +65,7 @@ function start(dt)
   e.x[:,1]  .+= 0.001cos.(2π .* e.x[:,1] ./ Lx)
   # place ions in the same positions as electrons
   iHe.x .= e.x
-  iHe.v .= 
+  iHe.v .= 0.0
   iHe.np = e.np
 end
 
