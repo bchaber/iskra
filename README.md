@@ -23,9 +23,22 @@ You can use the environment of the package:
 $ cd iskra/
 $ ls *.toml
 Manifest.toml	Project.toml
-$ julia --project=. problem/01_single_electron.jl
+$ julia --project src/iskra.jl problem/01_single_electron.jl
 ...
 ```
+
+Alternatively, you can run it from REPL:
+
+```
+$ julia --project
+julia> PROBLEM = "problem/01_single_electron.jl"
+julia> include("src/iskra.jl")
+...
+```
+
+Please, mind that the during the saving process of diagnostics data the current
+directory is changed, so to re-run some simulation you might want to change the
+directory in REPL.
 
 # verification
 
