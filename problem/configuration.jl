@@ -72,7 +72,7 @@ function create_electrode(nodes, ps, grid::CartesianGrid{2}; fixed=false, σ=0.0
 end
 
 function plasma_frequency(species::KineticSpecies, n)
-  q, m = species.q, species.q
+  q, m = species.q, species.m
   2π*q*sqrt(n/m)
 end
 
