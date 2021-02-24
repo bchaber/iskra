@@ -9,9 +9,9 @@ me = qe = 1.0
 νtherm = thermal_speed(0K, me)
 νdrift = 0.01 #m/s
 mHe = 4.002602me/5.48579903e-04
-nHe = 0.0001
+nHe = (0.001)^2
 ne = 1nHe
-ts = 1000
+ts = 3000
 nx = 32
 ny = 1
 Δh = 2π/nx
