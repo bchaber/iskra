@@ -16,6 +16,7 @@ nx = 32
 ny = 1
 Δh = 2π/nx
 ε0 = 1.0
+ωp = sqrt(ne * qe^2 / (me * ε0))
 
 simulationVolume = nx * Δh * ny * Δh
 numCells         = nx * ny
@@ -27,7 +28,7 @@ electronNumRatio     = totalNumElectrons / electronParticles
 Lx = nx*Δh
 Ly = ny*Δh
 
-println("Δt: ", Δt, "\nΔh: ", Δh, "\nLx: ", Lx)
+println("Δt: ", Δt, "\nΔh: ", Δh, "\nLx: ", Lx, "\nωp: ", ωp)
 println("νtherm: ", round(νtherm/c0; sigdigits=1), "c")
 println("νdrift: ", round(νdrift/c0; sigdigits=3), "c")
 println("electrons: ", electronParticles, " wg: ", electronNumRatio)
