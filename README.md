@@ -1,4 +1,4 @@
-# iskra
+# iskra [![DOI](https://zenodo.org/badge/202223612.svg)](https://zenodo.org/badge/latestdoi/202223612)
 A particle-in-cell simulator for spark simulations ("iskra" is the Polish word for spark).
 
 ![](../../blob/master/img/two-stream-rho-evolution.png)
