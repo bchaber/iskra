@@ -8,7 +8,7 @@ A particle-in-cell simulator for spark simulations ("iskra" is the Polish word f
 ![](../../blob/master/img/two-stream-rho-evolution.png)
 
 # origin
-The code started as a loosely based version of Lubos Brieda's MATLAB code ES-PIC (https://www.particleincell.com/2011/particle-in-cell-example/). Right now it supports 1D (X) and 2D (XY) electrostatic simulations of plasma (2D simulations in cylindrical coordinate system will apear soon).
+The code started as a loosely based version of Lubos Brieda's MATLAB code ES-PIC (https://www.particleincell.com/2011/particle-in-cell-example/). Right now it supports 1D (X) and 2D (XY) electrostatic simulations of plasma (2D simulations in cylindrical coordinate system will appear soon).
 Another source of inspiration also comes from Lubos Brieda (https://github.com/particleincell/Starfish). It helped implement DSMC and MCC in iskra.
 
 # features
