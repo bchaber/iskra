@@ -1,4 +1,8 @@
-# iskra [![DOI](https://zenodo.org/badge/202223612.svg)](https://zenodo.org/badge/latestdoi/202223612)
+<p align="center">
+  <img src="https://github.com/bchaber/iskra/blob/master/logo.svg" width="256px" alt="The logo is based on a symbol of the highest Slavic god: Perun found at https://commons.wikimedia.org/wiki/File:Thundermarks.svg"/>
+  <h1>iskra</h1>
+</p>
+
 A particle-in-cell simulator for spark simulations ("iskra" is the Polish word for spark).
 
 ![](../../blob/master/img/two-stream-rho-evolution.png)
