@@ -11,6 +11,11 @@ A particle-in-cell simulator for spark simulations ("iskra" is the Polish word f
 The code started as a loosely based version of Lubos Brieda's MATLAB code ES-PIC (https://www.particleincell.com/2011/particle-in-cell-example/). Right now it supports 1D (X) and 2D (XY) electrostatic simulations of plasma (2D simulations in cylindrical coordinate system will appear soon).
 Another source of inspiration also comes from Lubos Brieda (https://github.com/particleincell/Starfish). It helped implement DSMC and MCC in iskra.
 
+# publications
+Below is the list of publications using this project:
+
+[1] B. Chaber, "Particle-in-Cell code for gas discharge simulations," 2020 IEEE 21st International Conference on Computational Problems of Electrical Engineering (CPEE), 2020, pp. 1-4, doi: 10.1109/CPEE50798.2020.9238682.
+
 # features
 In this code we try to keep a few separate modules: for the field solver, the grid, particle-in-cell algorithm and circuit simulations.
 
