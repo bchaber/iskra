@@ -7,7 +7,7 @@ A particle-in-cell simulator for spark simulations ("iskra" is the Polish word f
 
 ![](../../blob/master/img/two-stream-rho-evolution.png)
 
-# announcement
+# :construction_worker: announcement
 Currently the code is being rewritten and will be significantly faster. The field solvers were moved to a separate repositories (namely: [pole](https://github.com/bchaber/pole) and [fala](https://github.com/bchaber/fala)). We plan to put the improved version of the code in Spring 2022.
 
 # origin
