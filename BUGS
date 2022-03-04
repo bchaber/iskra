@@ -1,2 +1,0 @@
-+ After dumping particle positions before removing some of them, remove! can change the number of particles.
-+ When the last particle is deleted, and in the same time one particle is created, the new particle gets id of the removed one and particle tracer detects it as a sudden change in the positions
