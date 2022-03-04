@@ -12,14 +12,14 @@ Currently the code is being rewritten and will be significantly faster. The fiel
 
 # origin
 The code started as a loosely based version of Lubos Brieda's MATLAB code ES-PIC (https://www.particleincell.com/2011/particle-in-cell-example/). Right now it supports 1D (X) and 2D (XY) electrostatic simulations of plasma (2D simulations in cylindrical coordinate system will appear soon).
-Another source of inspiration also comes from Lubos Brieda (https://github.com/particleincell/Starfish). It helped implement DSMC and MCC in iskra.
+Another source of inspiration also comes from Lubos Brieda (https://github.com/particleincell/Starfish). It has helped implement DSMC and MCC in iskra.
 
 # publications
 Below is the list of publications using this project:
 
-[1] B. Chaber, "Particle-in-Cell code for gas discharge simulations," 2020 IEEE 21st International Conference on Computational Problems of Electrical Engineering (CPEE), 2020, pp. 1-4, doi: 10.1109/CPEE50798.2020.9238682.
-[2] W. Łodyga, B. Chaber, "Parallel implementation of a Particle-in-Cell code in Julia programming language," 2021 22nd International Conference on Computational Problems of Electrical Engineering (CPEE), 2021, doi: 10.1109/CPEE54040.2021.9585274
-[3] B. Chaber, "Cell-centered, geometric multigrid field solver for Particle-in-Cell simulations," 2021 22nd International Conference on Computational Problems of Electrical Engineering (CPEE), 2021, doi: 10.1109/CPEE54040.2021.9585258
+- [1] B. Chaber, "Particle-in-Cell code for gas discharge simulations," 2020 IEEE 21st International Conference on Computational Problems of Electrical Engineering (CPEE), 2020, pp. 1-4, doi: 10.1109/CPEE50798.2020.9238682.
+- [2] W. Łodyga, B. Chaber, "Parallel implementation of a Particle-in-Cell code in Julia programming language," 2021 22nd International Conference on Computational Problems of Electrical Engineering (CPEE), 2021, doi: 10.1109/CPEE54040.2021.9585274
+- [3] B. Chaber, "Cell-centered, geometric multigrid field solver for Particle-in-Cell simulations," 2021 22nd International Conference on Computational Problems of Electrical Engineering (CPEE), 2021, doi: 10.1109/CPEE54040.2021.9585258
 
 # features
 Currently, we are focused on the basic Particle-in-Cell implementation for a collissionless plasma.
