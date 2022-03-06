@@ -1,0 +1,3 @@
+[submodule "pole"]
+	path = pole
+	url = https://github.com/bchaber/pole
