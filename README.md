@@ -45,6 +45,6 @@ Alternatively, you start Jupyter Notebook with: `$ julia --project -e "import IJ
 This code has been partialy verified against XOOPIC from PTSG (http://ptsg.egr.msu.edu).
 We have compared two-stream instability simulation and got similar results from both codes.
 
-# disclimer
+# disclaimer
 Expect many sharp edges of this code. If you try to modify too much you will find a bear trying to eat you. Be careful.
 
