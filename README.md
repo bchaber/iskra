@@ -30,8 +30,7 @@ To run the project install the IJulia:
 
 ```
 $ cd iskra/
-$ ls *.toml
-Manifest.toml	Project.toml
+$ git submodule update --init --recursive
 $ julia --project
 julia> import Pkg
 julia> Pkg.add("IJulia")
