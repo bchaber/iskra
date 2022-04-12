@@ -1,3 +1,9 @@
+#        .
+#       / \
+#      /   \
+#     /     \
+# -+-o-+-o-+-o-+-
+
 function particle_to_grid!(u, part::KineticSpecies{1, V}, grid::CartesianGrid{1}, pu) where V
   n = grid.n[1] - 1
   for p=1:part.np
@@ -25,9 +31,26 @@ function particle_to_grid!(u, part::KineticSpecies{1, V}, grid::CartesianGrid{1}
 end
 
 function grid_to_particle!(pu::Vector{SVector{V, Float64}}, grid::CartesianGrid{1}, part::KineticSpecies{1, V}, u) where V
+  n = grid.n[1] - 1
   for p=1:part.np
     i, _, hx, _ = particle_cell(part, p, grid.Δh)
-    pu[p] = (1.0-hx) * u[i] + (hx) * u[i+1]
+    if hx == 0.5
+      pu[p] = 0.5(u[i] + u[i+1])
+    elseif hx < 0.5
+      pu[p] = (0.5 + hx) * 0.5(u[i] + u[i+1])
+      if i > 1
+        pu[p] += (0.5 - hx) * 0.5(u[i-1] + u[i])
+      else
+        pu[p] += (0.5 - hx) * 0.5(u[i] + u[i+1])
+      end
+    elseif hx > 0.5
+      pu[p] = (1.5 - hx) * 0.5(u[i] + u[i+1])
+      if i < n
+        pu[p] += (hx - 0.5) * 0.5(u[i+1] + u[i+2])
+      else
+        pu[p] += (hx - 0.5) * 0.5(u[i] + u[i+1])
+      end
+    end
   end
 
   return pu
