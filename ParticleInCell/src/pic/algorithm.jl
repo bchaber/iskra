@@ -54,8 +54,16 @@
         diagnostics["n"*part.name][:, iteration] .= n
       end
       # Calculate electric field
-      calculate_electric_potential(solver, ρ)
+      calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
+      if 700 > iteration > 100
+        for j=30:33
+          E[j] = @SVector [1.5e9sin(2pi*iteration/100), 0.0, 0.0]
+        end
+        for j=90:93
+          E[j] = @SVector [1.5e9sin(2pi*iteration/100), 0.0, 0.0]
+        end
+      end
       # Solve reactions
       for interaction in interactions
         perform!(interaction, E, Δt, config)
