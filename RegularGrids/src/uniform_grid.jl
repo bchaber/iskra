@@ -1,6 +1,6 @@
     struct UniformGrid{C, D}
       data::Dict{String,AbstractArray}
-         n::NTuple{D,Integer}
+         n::NTuple{D,Int64}
         Δh::NTuple{D,Float64}
        bcs::NTuple{D,Tuple{Symbol, Symbol}}
       node::Array{Float64,D}
