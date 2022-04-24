@@ -7,12 +7,12 @@ mutable struct KineticSpecies{D, V}
   w0 :: Float64 # default weight of new particle
   wg :: Vector{Float64} # number of particles per macroparticle
   id :: Vector{UInt32} # identifier
-  name :: String
+  name :: Symbol
 end
 
 Base.show(io::IO, sp::KineticSpecies) = print(io, sp.name)
 particle_uuids(N::Int64) = collect(UInt32(1):UInt32(N))
-KineticSpecies{D,V}(name::String, N::Int64, q=0.0, m=0.0, weight=1.0) where {D, V} =
+KineticSpecies{D,V}(name::Symbol, N::Int64, q=0.0, m=0.0, weight=1.0) where {D, V} =
   KineticSpecies{D,V}(
     zeros(SVector{D, Float64}, N),
     zeros(SVector{V, Float64}, N),

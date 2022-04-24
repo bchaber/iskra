@@ -15,16 +15,15 @@
     return nothing
   end
 
-  function advance!(fluid::FluidSpecies, E, B, Δt, config) end
-  function advance!(part::KineticSpecies, E, B, Δt, config)
-    pusher = config.pusher
-    grid = config.grid
+  function advance!(fluid::FluidSpecies, E, B, Δt, pusher, grid) end
+  function advance!(part::KineticSpecies, E, B, Δt, pusher, grid)
     data = pusher.data[part.name]
 
     grid_to_particle!(data.E, grid, part, E)
     grid_to_particle!(data.B, grid, part, B)
     push_particles!(pusher, part, Δt)
     after_push(part, grid)
+    return nothing
   end
 
   function solve(config, Δt=1e-5, timesteps=200)
@@ -42,8 +41,10 @@
     ρ = zeros(Float64, size(grid) .- 1)
     E = zeros(SVector{3, Float64}, size(grid)...)
     B = zeros(SVector{3, Float64}, size(grid)...)
-    ve = view(reinterpret(Float64, E), 1:3:3length(E))
-
+    J = zeros(length(grid))
+    Ex = view(reinterpret(Float64, E), 1:3:3length(E))
+    Ey = view(reinterpret(Float64, E), 2:3:3length(E))
+    Ez = view(reinterpret(Float64, E), 3:3:3length(E))
     enter_loop()
     for iteration in 1:timesteps # iterate for ts time step
       # Calculate charge number density
@@ -51,30 +52,30 @@
       for part in species
         number_density!(n, part, grid)
         ρ .+= n * part.q
-        diagnostics["n"*part.name][:, iteration] .= n
+        #diagnostics["n"*part.name][:, iteration] .= n
+      end
+      # Calculate current density
+      for part in species
       end
       # Calculate electric field
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
-      if 700 > iteration > 100
-        for j=30:33
-          E[j] = @SVector [1.5e9sin(2pi*iteration/100), 0.0, 0.0]
-        end
-        for j=90:93
-          E[j] = @SVector [1.5e9sin(2pi*iteration/100), 0.0, 0.0]
-        end
-      end
+      #if 700 > iteration > 100
+      #  v = @SVector [1.5e9sin(2pi*iteration/100.0), 0.0, 0.0]
+      #  for j=30:33 E[j] = v end
+      #  for j=90:93 E[j] = v end
+      #end
       # Solve reactions
       for interaction in interactions
         perform!(interaction, E, Δt, config)
       end
       # Advance species
       for part in species
-        advance!(part, E, B, Δt, config)
+        advance!(part, E, B, Δt, pusher, grid)
       end
       diagnostics["rho"][:, iteration] .= ρ
       diagnostics["phi"][:, iteration] .= ϕ
-      diagnostics["Ex"][:,  iteration] .= ve
+      diagnostics["Ex"][:,  iteration] .= Ex
       after_loop(iteration, iteration*Δt-Δt, Δt)
     end
     exit_loop()

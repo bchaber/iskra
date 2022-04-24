@@ -1,4 +1,4 @@
-function discard!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) where {CS, D, V}
+function discard!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}, dims) where {CS, D, V}
   before = part.np
   for i=dims
     nx = grid.n[i] - 1
@@ -17,7 +17,7 @@ function discard!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D)
   return before - after
 end
 
-function wrap!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) where {CS, D, V}
+function wrap!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}, dx, dims) where {CS, D, V}
   for i=dims
     nx = grid.n[i] - 1
     Δx = grid.Δh[i]
@@ -27,7 +27,7 @@ function wrap!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}; dims=1:D) wh
     for p=1:part.np
       α = fld(px[p][i] - ox, Lx)
       if α ≠ 0
-        px[p] -= [(i == j) ? α*Lx : 0.0 for j in 1:D]
+        px[p] -= α * Lx * dx
       end
     end
   end

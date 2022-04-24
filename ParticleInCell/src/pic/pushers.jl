@@ -6,11 +6,11 @@ struct BorisPusherData{T}
 end
 
 struct BorisPusher{CS}
-  data :: Dict{String, BorisPusherData{Vector{SVector{3, Float64}}}}
+  data :: Dict{Symbol, BorisPusherData{Vector{SVector{3, Float64}}}}
 end
 
 function create_boris_pusher(species)
-  data = Dict{String,BorisPusherData}()
+  data = Dict{Symbol,BorisPusherData}()
   for part in species
     if is_fluid(part) continue end
     data[part.name] = BorisPusherData(
@@ -27,7 +27,7 @@ function push_particles!(pusher::BorisPusher{:xy},
   push_in_cartesian!(part, data, Δt)
 end
 
-function push_in_cartesian!(part::KineticSpecies{D,3}, data::BorisPusherData, Δt) where {D}
+function push_in_cartesian!(part::KineticSpecies{1,3}, data::BorisPusherData, Δt)
   E, B = data.E, data.B
   V, I = data.V, data.I
   x, v = part.x, part.v
@@ -44,7 +44,7 @@ function push_in_cartesian!(part::KineticSpecies{D,3}, data::BorisPusherData, Δ
     v⁺ = v⁻ + v′ × s
 
     v[i] = V[i] + v⁺
-    x[i] = x[i] + Δt * v[i][1:D]
+    x[i] += Δt * @SVector[v[i][1]]
   end
   return nothing
 end
