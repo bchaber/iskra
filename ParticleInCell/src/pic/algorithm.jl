@@ -18,11 +18,38 @@
   function advance!(fluid::FluidSpecies, E, B, Δt, pusher, grid) end
   function advance!(part::KineticSpecies, E, B, Δt, pusher, grid)
     data = pusher.data[part.name]
-
     grid_to_particle!(data.E, grid, part, E)
     grid_to_particle!(data.B, grid, part, B)
     push_particles!(pusher, part, Δt)
     after_push(part, grid)
+    return nothing
+  end
+  
+  function average_electric_field(E)
+    for i = 2:length(E)
+      E[i-1] += E[i]
+      E[i-1] /= 2.0
+    end
+    return nothing
+  end
+
+  function current_deposition(J, part, Δx, Δt)
+    c = Δx/Δt
+    for p=1:part.np
+      i, _, hx, _ = particle_cell(part, p, grid.Δh)
+      h2 = hx
+      h1 = mod(h2 - part.v[p][1] / c, 1.0)
+
+      b1 = abs(0.5 - h1)
+      b2 = abs(0.5 - h2)
+      
+      if h1 > 0.5 && h2 < 0.5
+        J[i+1] += b1 - b2
+      else
+        J[i]   += b1
+        J[i+1] += 1.0 - b2
+      end
+    end
     return nothing
   end
 
@@ -41,7 +68,7 @@
     ρ = zeros(Float64, size(grid) .- 1)
     E = zeros(SVector{3, Float64}, size(grid)...)
     B = zeros(SVector{3, Float64}, size(grid)...)
-    J = zeros(length(grid))
+    Jx = zeros(length(grid))
     Ex = view(reinterpret(Float64, E), 1:3:3length(E))
     Ey = view(reinterpret(Float64, E), 2:3:3length(E))
     Ez = view(reinterpret(Float64, E), 3:3:3length(E))
@@ -55,11 +82,15 @@
         #diagnostics["n"*part.name][:, iteration] .= n
       end
       # Calculate current density
+      fill!(Jx, 0.0)
       for part in species
+        current_deposition(Jx, part, first(grid.Δh), Δt)
       end
+      Jx /= Δt
       # Calculate electric field
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
+      average_electric_field(E)
       #if 700 > iteration > 100
       #  v = @SVector [1.5e9sin(2pi*iteration/100.0), 0.0, 0.0]
       #  for j=30:33 E[j] = v end
@@ -76,6 +107,7 @@
       diagnostics["rho"][:, iteration] .= ρ
       diagnostics["phi"][:, iteration] .= ϕ
       diagnostics["Ex"][:,  iteration] .= Ex
+      diagnostics["Jx"][:,  iteration] .= Jx
       after_loop(iteration, iteration*Δt-Δt, Δt)
     end
     exit_loop()

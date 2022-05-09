@@ -8,22 +8,19 @@ function particle_to_grid!(u, part::KineticSpecies{1, V}, grid::CartesianGrid{1}
   n = grid.n[1] - 1
   for p=1:part.np
     i, _, hx, _ = particle_cell(part, p, grid.Δh)
-    if hx == 0.5
-      u[i] += pu[p]
-    elseif hx < 0.5
-      u[i] += (0.5 + hx) * pu[p]
-      if i > 1
-        u[i-1] += (0.5 - hx) * pu[p]
-      else
-        u[i]   += (0.5 - hx) * pu[p]
-      end
-    elseif hx > 0.5
-      u[i] += (1.5 - hx) * pu[p]
-      if i < n
-        u[i+1] += (hx - 0.5) * pu[p]
-      else
-        u[i]   += (hx - 0.5) * pu[p]
-      end
+    b = abs(0.5 - hx)
+    a = 1.0 - b
+
+    if i == 1 || i == n
+      u[i] += hx > 0.5 ? b * pu[p] : a * pu[p]
+    end
+    
+    if hx > 0.5
+      u[i]   += b * pu[p]
+      u[i+1] += a * pu[p]
+    else
+      u[i-1] += b * pu[p]
+      u[i]   += a * pu[p]
     end
   end
 
@@ -34,23 +31,19 @@ function grid_to_particle!(pu::Vector{SVector{V, Float64}}, grid::CartesianGrid{
   n = grid.n[1] - 1
   for p=1:part.np
     i, _, hx, _ = particle_cell(part, p, grid.Δh)
-    if hx == 0.5
-      pu[p] = 0.5(u[i] + u[i+1])
-    elseif hx < 0.5
-      pu[p] = (0.5 + hx) * 0.5(u[i] + u[i+1])
-      if i > 1
-        pu[p] += (0.5 - hx) * 0.5(u[i-1] + u[i])
-      else
-        pu[p] += (0.5 - hx) * 0.5(u[i] + u[i+1])
-      end
-    elseif hx > 0.5
-      pu[p] = (1.5 - hx) * 0.5(u[i] + u[i+1])
-      if i < n
-        pu[p] += (hx - 0.5) * 0.5(u[i+1] + u[i+2])
-      else
-        pu[p] += (hx - 0.5) * 0.5(u[i] + u[i+1])
-      end
+    b = abs(0.5 - hx)
+    a = 1.0 - b
+
+    if i == 1 || i == n
+      pu[p] += hx > 0.5 ? b * u[i] : a * u[i]
     end
+    
+    if hx > 0.5
+      pu[p] += b * u[i]
+      pu[p] += a * u[i+1]
+    else
+      pu[p] += b * u[i-1]
+      pu[p] += a * u[i]
   end
 
   return pu
