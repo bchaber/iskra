@@ -26,6 +26,9 @@ function wrap!(part::KineticSpecies{D,V}, grid::UniformGrid{CS, D}, dx, dims) wh
     px = part.x
     for p=1:part.np
       α = fld(px[p][i] - ox, Lx)
+      if p == 1190
+        println(part, " wrap: ", α, " x: ", px[p], " ", α * Lx * dx)
+      end
       if α ≠ 0
         px[p] -= α * Lx * dx
       end
