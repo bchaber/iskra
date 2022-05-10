@@ -35,14 +35,12 @@ function grid_to_particle!(pu::Vector{SVector{V, Float64}}, grid::CartesianGrid{
     a = 1.0 - b
 
     if i == 1 || i == n
-      pu[p] += a * u[i]
+      pu[p] = a * u[i]
     else
       if hx > 0.5
-        pu[p] += a * u[i]
-        pu[p] += b * u[i+1]
+        pu[p] = b * u[i+1] + a * u[i]
       else
-        pu[p] += b * u[i-1]
-        pu[p] += a * u[i]
+        pu[p] = b * u[i-1] + a * u[i]
       end
     end
   end

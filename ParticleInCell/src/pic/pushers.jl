@@ -42,11 +42,17 @@ function push_in_cartesian!(part::KineticSpecies{1,3}, data::BorisPusherData, Δ
 
     s  = 2.0 / (1.0 + (t ⋅ t)) * t
     v⁺ = v⁻ + v′ × s
+    #if any(isnan.(V[i] + v⁺))
+    #  println("E: ", E[i], " B: ", B[i])
+    #  println("V: ", V[i], " V: ", I[i])
+    #  println("b: ", b, " t: ", t)
+    #  println("v⁻: ", v⁻, " v′: ", v′)
+    #end
 
-    if i == 1190
-      println(part, " vel: ", v[i][1], " => ", V[i][1] + v⁺[1])
-      println(part, " pos: ", x[i][1], " => ", x[i][1] + Δt * (V[i][1] + v⁺[1]))
-    end
+    #if i == 1190
+    #  println(part, " vel: ", v[i][1], " => ", V[i][1] + v⁺[1])
+    #  println(part, " pos: ", x[i][1], " => ", x[i][1] + Δt * (V[i][1] + v⁺[1]))
+    #end
     v[i] = V[i] + v⁺
     x[i] += Δt * @SVector[v[i][1]]
   end

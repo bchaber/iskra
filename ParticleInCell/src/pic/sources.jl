@@ -1,3 +1,5 @@
+import Random
+
 mutable struct MaxwellianSource{D, V}
    rate :: Float64
    wx :: SVector{D, Float64}
@@ -12,6 +14,7 @@ mutable struct MaxwellianSource{D, V}
 end
 
 function sample!(config :: MaxwellianSource{D, V}, species :: KineticSpecies{D, V}, Δt) where {D, V}
+  println("Sampling with the following seed: ", Random.GLOBAL_SEED)
   wx, wv = config.wx, config.wv
   dx, dv = config.dx, config.dv
   px, pv = species.x, species.v

@@ -36,42 +36,50 @@
   function current_deposition(j, part, Δx, Δt)
     j .= 0.0
     c  = Δx/Δt
+    nx = length(j) - 1
     for p=1:part.np
       i, _, h, _ = particle_cell(part, p, grid.Δh)
-
-      hh = h - part.v[p][1] / c
+      vp = part.v[p][1]
+      hh = h - vp / c
       di = fld(hh, 1.0)
       
-      h1 = mod(hh / c, 1.0)
+      h1 = mod(hh, 1.0)
       h2 = h
+
+      if vp < 0
+        h1, h2 = h2, h1
+        i += 1
+      end
+
       b1 = abs(0.5 - h1)
       b2 = abs(0.5 - h2)
       
+      println("i: ", i, " h1: ", h1, " h2: ", h2, " di: ", di)
       if di == 0
-        if h1 < 0.5 && h2 > 0.5
+        if h1 < 0.5 && h2 < 0.5
+          j[i] += c * (b1 - b2)
+        elseif h1 > 0.5 && h2 > 0.5
+          j[i < nx ? i+1 : 1] += c * (b2 - b1)
+        elseif h1 < 0.5 && h2 > 0.5
           j[i]   += c * b1
-          j[i+1] += c * b2
+          j[i < nx ? i+1 : 1] += c * b2
         end
       else
         if h1 < 0.5 && h2 < 0.5
-          if i == 1
-            println(part, " p: ", p, " id: ", part.id[p]) 
-            println(part, " i: ", i, " x: ", part.x[p], " v: ", part.v[p])
-          end
-          j[i-1] += c * b1
+          j[i > 1 ? i-1 : nx] += c * b1
           j[i]   += c * (1.0 - b2)
         elseif h1 > 0.5 && h2 > 0.5
           j[i]   += c * (1.0 - b1)
-          j[i+1] += c * b2
+          j[i < nx ? i+1 : 1] += c * b2
         elseif h1 > 0.5 && h2 < 0.5
-          j[i] = c * (1.0 - b1 - b2)
+          j[i] += c * (1.0 - b1 - b2)
         end
       end
     end
     return nothing
   end
 
-  function solve(config, Δt=1e-5, timesteps=200)
+function solve(config, Δt=1e-5, timesteps=200)
     diagnostics = config.diagnostics
     pusher = config.pusher
     interactions = config.interactions
@@ -103,7 +111,7 @@
       # Calculate electric field
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
-      #average_electric_field(E)
+      average_electric_field(E)
       #if 700 > iteration > 100
       #  v = @SVector [1.5e9sin(2pi*iteration/100.0), 0.0, 0.0]
       #  for j=30:33 E[j] = v end
@@ -121,6 +129,7 @@
       fill!(Jx, 0.0)
       for part in species
         current_deposition(j, part, first(grid.Δh), Δt)
+        println(part, " ", maximum(j))
         Jx .+= j * part.q
       end
       diagnostics["rho"][:, iteration] .= ρ
