@@ -54,7 +54,6 @@
       b1 = abs(0.5 - h1)
       b2 = abs(0.5 - h2)
       
-      println("i: ", i, " h1: ", h1, " h2: ", h2, " di: ", di)
       if di == 0
         if h1 < 0.5 && h2 < 0.5
           j[i] += c * (b1 - b2)
@@ -64,7 +63,17 @@
           j[i]   += c * b1
           j[i < nx ? i+1 : 1] += c * b2
         end
-      else
+      elseif di < 0.0
+        if h1 < 0.5 && h2 < 0.5
+          j[i > 1 ? i-1 : nx] += c * b1
+          j[i]   += c * (1.0 - b2)
+        elseif h1 > 0.5 && h2 > 0.5
+          j[i]   += c * (1.0 - b1)
+          j[i < nx ? i+1 : 1] += c * b2
+        elseif h1 > 0.5 && h2 < 0.5
+          j[i] += c * (1.0 - b1 - b2)
+        end
+      elseif di > 0.0
         if h1 < 0.5 && h2 < 0.5
           j[i > 1 ? i-1 : nx] += c * b1
           j[i]   += c * (1.0 - b2)
