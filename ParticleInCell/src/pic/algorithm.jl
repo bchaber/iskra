@@ -46,43 +46,84 @@
       h1 = mod(hh, 1.0)
       h2 = h
 
-      if vp < 0
-        h1, h2 = h2, h1
-        i += 1
-      end
-
       b1 = abs(0.5 - h1)
       b2 = abs(0.5 - h2)
       
-      if di == 0
-        if h1 < 0.5 && h2 < 0.5
-          j[i] += c * (b1 - b2)
-        elseif h1 > 0.5 && h2 > 0.5
-          j[i < nx ? i+1 : 1] += c * (b2 - b1)
-        elseif h1 < 0.5 && h2 > 0.5
-          j[i]   += c * b1
-          j[i < nx ? i+1 : 1] += c * b2
+      if vp > 0.0
+        #print("vp > 0")
+        if di == 0
+          #print(" i1=i2")
+          if     h1 < 0.5 && h2 > 0.5 #println(" a)")
+            j[i]   += c * b1
+            j[i+1] += c * b2
+            if i == nx
+              j[1] += c * b2
+            end
+          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+            j[i+1]   += c * -(b1 - b2)
+            if i == nx
+              j[1] += c * -(b1 - b2)
+            end
+          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+            j[i] += c * -(b2 - b1)
+            if i == 1
+              j[nx + 1] += c * -(b2 - b1)
+            end
+          end
+
+        else # moves to another cell
+          #print(" i1/i2")
+          if     h1 > 0.5 && h2 < 0.5 #println(" a)")
+            j[i]   += c * (1. - b1 - b2)
+            if i == 1
+              j[nx + 1] += c * (1. - b1 - b2)
+            end
+          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+            j[i]   += c * (1. - b1)
+            j[i+1] += c * b2
+          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+            j[i > 1 ? i-1 : nx + 1] += c * b1
+            j[i]   += c * (1. - b2)
+          end
+
         end
-      elseif di < 0.0
-        if h1 < 0.5 && h2 < 0.5
-          j[i > 1 ? i-1 : nx] += c * b1
-          j[i]   += c * (1.0 - b2)
-        elseif h1 > 0.5 && h2 > 0.5
-          j[i]   += c * (1.0 - b1)
-          j[i < nx ? i+1 : 1] += c * b2
-        elseif h1 > 0.5 && h2 < 0.5
-          j[i] += c * (1.0 - b1 - b2)
+
+      else # vp < 0.0
+        #print("vp < 0")
+        if di == 0
+          #print(" i1=i2")
+          if     h1 > 0.5 && h2 < 0.5 #println(" a)")
+            j[i]   += c * (-b2)
+            j[i+1] += c * (-b1)
+          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+            j[i+1]   += c * -(b1 - b2)
+            if i == nx
+              j[1] += c * -(b1 - b2)
+            end
+          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+            j[i] += c * -(b2 - b1)
+            #if i == 1
+            #  j[nx + 1] += c * -(b2 - b1)
+            #end
+          end
+
+        else # moves to another cell
+          #print(" i1/i2")
+          if     h1 < 0.5 && h2 > 0.5 #println(" a)")
+            j[i+1] += c * -(1. - b1 - b2)
+            if i == nx
+              j[1] += c * -(1. - b1 - b2)
+            end
+          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+            j[i < nx ? i+2 : 2] += c *-(1. - b2)
+            j[i+1] += c * (+b1)
+          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+            j[i]   += c * (-b2)
+            j[i+1] += c * -(1. - b1)
+          end
+
         end
-      elseif di > 0.0
-        if h1 < 0.5 && h2 < 0.5
-          j[i > 1 ? i-1 : nx] += c * b1
-          j[i]   += c * (1.0 - b2)
-        elseif h1 > 0.5 && h2 > 0.5
-          j[i]   += c * (1.0 - b1)
-          j[i < nx ? i+1 : 1] += c * b2
-        elseif h1 > 0.5 && h2 < 0.5
-          j[i] += c * (1.0 - b1 - b2)
-        end
+
       end
     end
     return nothing
@@ -136,9 +177,10 @@ function solve(config, Δt=1e-5, timesteps=200)
       end
       # Calculate current density
       fill!(Jx, 0.0)
+      #print("it. ", iteration, " ")
       for part in species
         current_deposition(j, part, first(grid.Δh), Δt)
-        println(part, " ", maximum(j))
+        #println(part, " ", maximum(j))
         Jx .+= j * part.q
       end
       diagnostics["rho"][:, iteration] .= ρ
