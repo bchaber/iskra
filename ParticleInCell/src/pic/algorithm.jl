@@ -33,9 +33,8 @@
     return nothing
   end
 
-  function current_deposition(j, part, Δx, Δt)
+  function current_deposition!(j, part, grid, c)
     j .= 0.0
-    c  = Δx/Δt
     nx = length(j) - 1
     for p=1:part.np
       i, _, h, _ = particle_cell(part, p, grid.Δh)
@@ -126,6 +125,7 @@
 
       end
     end
+    j ./= cell_volume(grid)
     return nothing
   end
 
@@ -179,10 +179,11 @@ function solve(config, Δt=1e-5, timesteps=200)
       fill!(Jx, 0.0)
       #print("it. ", iteration, " ")
       for part in species
-        current_deposition(j, part, first(grid.Δh), Δt)
-        #println(part, " ", maximum(j))
+        Δx = first(grid.Δh)
+        current_deposition!(j, part, grid, Δx/Δt)
         Jx .+= j * part.q
       end
+
       diagnostics["rho"][:, iteration] .= ρ
       diagnostics["phi"][:, iteration] .= ϕ
       diagnostics["Ex"][:,  iteration] .= Ex
