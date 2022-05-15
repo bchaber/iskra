@@ -125,6 +125,7 @@
 
       end
     end
+    j .*= part.w0
     j ./= cell_volume(grid)
     return nothing
   end
@@ -149,6 +150,10 @@ function solve(config, Δt=1e-5, timesteps=200)
     Ex = view(reinterpret(Float64, E), 1:3:3length(E))
     Ey = view(reinterpret(Float64, E), 2:3:3length(E))
     Ez = view(reinterpret(Float64, E), 3:3:3length(E))
+    Bx = view(reinterpret(Float64, B), 1:3:3length(B))
+    By = view(reinterpret(Float64, B), 2:3:3length(B))
+    Bz = view(reinterpret(Float64, B), 3:3:3length(B))
+    
     enter_loop()
     for iteration in 1:timesteps # iterate for ts time step
       # Calculate charge number density
@@ -162,11 +167,11 @@ function solve(config, Δt=1e-5, timesteps=200)
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
       average_electric_field(E)
-      #if 700 > iteration > 100
-      #  v = @SVector [1.5e9sin(2pi*iteration/100.0), 0.0, 0.0]
-      #  for j=30:33 E[j] = v end
-      #  for j=90:93 E[j] = v end
-      #end
+      
+      t = iteration * Δt
+      for j=20:25 Ex[j] = 0.5e6sin(2π * 1.21e9 * t) end
+      for j=22:23 Ex[j] = 1.0e6sin(2π * 1.21e9 * t) end
+      
       # Solve reactions
       for interaction in interactions
         perform!(interaction, E, Δt, config)
