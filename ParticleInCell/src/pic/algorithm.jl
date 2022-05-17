@@ -15,6 +15,7 @@
     return nothing
   end
 
+  function after_solver(config, context) end
   function advance!(fluid::FluidSpecies, E, B, Δt, pusher, grid) end
   function advance!(part::KineticSpecies, E, B, Δt, pusher, grid)
     data = pusher.data[part.name]
@@ -130,23 +131,23 @@
     return nothing
   end
 
-function solve(config, Δt=1e-5, timesteps=200)
-    diagnostics = config.diagnostics
-    pusher = config.pusher
-    interactions = config.interactions
-    species = config.species
-    solver = config.solver
-    grid  = config.grid
-    Δt = float(Δt)
+function solve(config, pusher, solver, grid, interactions, timesteps, context)
+    species = config.particles
+    Δt = config.timestep
+    Δx = config.cellsize
 
+    c = Δx / Δt
     ϕ = solution(solver)
     ∇ = gradient(solver)
-    n = zeros(Float64, size(grid) .- 1)
-    j = zeros(Float64, size(grid))
-    ρ = zeros(Float64, size(grid) .- 1)
-    E = zeros(SVector{3, Float64}, size(grid)...)
-    B = zeros(SVector{3, Float64}, size(grid)...)
-    Jx = zeros(length(grid))
+
+    ρ = config.density #zeros(Float64, size(grid) .- 1)
+    E = config.electric #zeros(SVector{3, Float64}, size(grid)...)
+    B = config.magnetic #zeros(SVector{3, Float64}, size(grid)...)
+    J = config.current #zeros(Float64, size(grid) .+ 1)
+    
+    n = similar(ρ)
+    j = similar(J)
+    
     Ex = view(reinterpret(Float64, E), 1:3:3length(E))
     Ey = view(reinterpret(Float64, E), 2:3:3length(E))
     Ez = view(reinterpret(Float64, E), 3:3:3length(E))
@@ -154,20 +155,21 @@ function solve(config, Δt=1e-5, timesteps=200)
     By = view(reinterpret(Float64, B), 2:3:3length(B))
     Bz = view(reinterpret(Float64, B), 3:3:3length(B))
     
-    enter_loop()
+    enter_loop(config, context)
     for iteration in 1:timesteps # iterate for ts time step
+      t = Δt * (iteration - 1)
       # Calculate charge number density
       fill!(ρ, 0.0)
       for part in species
         number_density!(n, part, grid)
         ρ .+= n * part.q
-        #diagnostics["n"*part.name][:, iteration] .= n
       end
       # Calculate electric field
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
       average_electric_field(E)
-      
+      after_solver(config, context)
+
       t = iteration * Δt
       for j=20:25 Ex[j] = 0.5e6sin(2π * 1.21e9 * t) end
       for j=22:23 Ex[j] = 1.0e6sin(2π * 1.21e9 * t) end
@@ -181,20 +183,16 @@ function solve(config, Δt=1e-5, timesteps=200)
         advance!(part, E, B, Δt, pusher, grid)
       end
       # Calculate current density
-      fill!(Jx, 0.0)
-      #print("it. ", iteration, " ")
+      
+      fill!(J, 0.0)
       for part in species
-        Δx = first(grid.Δh)
-        current_deposition!(j, part, grid, Δx/Δt)
-        Jx .+= j * part.q
+        current_deposition!(j, part, grid, c)
+        J .+= j * part.q
       end
 
-      diagnostics["rho"][:, iteration] .= ρ
-      diagnostics["phi"][:, iteration] .= ϕ
-      diagnostics["Ex"][:,  iteration] .= Ex
-      diagnostics["Jx"][:,  iteration] .= Jx
-      after_loop(iteration, iteration*Δt-Δt, Δt)
+      after_loop(iteration, t, Δt)
     end
     exit_loop()
     println("Complete!")
   end
+  
