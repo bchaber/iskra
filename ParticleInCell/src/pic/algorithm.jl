@@ -61,14 +61,14 @@
             end
           elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
             j[i+1]   += c * -(b1 - b2)
-            if i == nx
-              j[1] += c * -(b1 - b2)
-            end
+            #if i == nx
+            #  j[1] += c * -(b1 - b2)
+            #end
           elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
             j[i] += c * -(b2 - b1)
-            if i == 1
-              j[nx + 1] += c * -(b2 - b1)
-            end
+            #if i == 1
+            #  j[nx + 1] += c * -(b2 - b1)
+            #end
           end
 
         else # moves to another cell
@@ -82,7 +82,11 @@
             j[i]   += c * (1. - b1)
             j[i+1] += c * b2
           elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
-            j[i > 1 ? i-1 : nx + 1] += c * b1
+            if i > 1
+              j[i-1]    += c * b1
+            else
+              j[nx + 1] += c * b1
+            end
             j[i]   += c * (1. - b2)
           end
 
@@ -115,7 +119,11 @@
               j[1] += c * -(1. - b1 - b2)
             end
           elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
-            j[i < nx ? i+2 : 2] += c *-(1. - b2)
+            if i < nx
+              j[i+2] += c *-(1. - b2)
+            else
+              j[2]   += c *-(1. - b2)
+            end
             j[i+1] += c * (+b1)
           elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
             j[i]   += c * (-b2)
