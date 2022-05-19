@@ -15,14 +15,15 @@
     return nothing
   end
 
-  function after_solver(config, context) end
+  function after_solver(state, config, iteration) end
+  function after_pusher(state, config, iteration) end
+  
   function advance!(fluid::FluidSpecies, E, B, Δt, pusher, grid) end
   function advance!(part::KineticSpecies, E, B, Δt, pusher, grid)
     data = pusher.data[part.name]
     grid_to_particle!(data.E, grid, part, E)
     grid_to_particle!(data.B, grid, part, B)
     push_particles!(pusher, part, Δt)
-    after_push(part, grid)
     return nothing
   end
   
@@ -139,19 +140,19 @@
     return nothing
   end
 
-function solve(config, pusher, solver, grid, interactions, timesteps, context)
-    species = config.particles
-    Δt = config.timestep
-    Δx = config.cellsize
+function solve(state, pusher, solver, grid, interactions, timesteps, context)
+    species = state.particles
+    Δt = state.timestep
+    Δx = state.cellsize
 
     c = Δx / Δt
     ϕ = solution(solver)
     ∇ = gradient(solver)
 
-    ρ = config.density #zeros(Float64, size(grid) .- 1)
-    E = config.electric #zeros(SVector{3, Float64}, size(grid)...)
-    B = config.magnetic #zeros(SVector{3, Float64}, size(grid)...)
-    J = config.current #zeros(Float64, size(grid) .+ 1)
+    ρ = state.density
+    E = state.electric
+    B = state.magnetic
+    J = state.current
     
     n = similar(ρ)
     j = similar(J)
@@ -163,7 +164,7 @@ function solve(config, pusher, solver, grid, interactions, timesteps, context)
     By = view(reinterpret(Float64, B), 2:3:3length(B))
     Bz = view(reinterpret(Float64, B), 3:3:3length(B))
     
-    enter_loop(config, context)
+    enter_loop(context, state)
     for iteration in 1:timesteps # iterate for ts time step
       t = Δt * (iteration - 1)
       # Calculate charge number density
@@ -176,7 +177,7 @@ function solve(config, pusher, solver, grid, interactions, timesteps, context)
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
       average_electric_field(E)
-      after_solver(config, context)
+      after_solver(context, state, iteration)
 
       t = iteration * Δt
       for j=20:25 Ex[j] = 0.5e6sin(2π * 1.21e9 * t) end
@@ -191,16 +192,16 @@ function solve(config, pusher, solver, grid, interactions, timesteps, context)
         advance!(part, E, B, Δt, pusher, grid)
       end
       # Calculate current density
-      
+      after_pusher(context, state, iteration)
       fill!(J, 0.0)
       for part in species
         current_deposition!(j, part, grid, c)
         J .+= j * part.q
       end
 
-      after_loop(iteration, t, Δt)
+      after_loop(context, state, iteration)
     end
-    exit_loop()
+    exit_loop(context, state)
     println("Complete!")
   end
   

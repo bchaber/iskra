@@ -1,5 +1,5 @@
-struct ParticleInCellState{D, V, F, S} where {D <: Number, V <: Number, S <: Number, F}
-    particles :: NTuple{KineticSpecies{D, V}, S}
+struct ParticleInCellState{D, V, F, S}
+    particles :: NTuple{S, KineticSpecies{D, V}}
     potential :: Array{F, D}
     electric :: Array{SVector{V, F}, D}
     magnetic :: Array{SVector{V, F}, D}
@@ -8,8 +8,4 @@ struct ParticleInCellState{D, V, F, S} where {D <: Number, V <: Number, S <: Num
 
     timestep :: Float64
     cellsize :: Float64
-end
-
-struct TwoStreamInstability
-
 end
