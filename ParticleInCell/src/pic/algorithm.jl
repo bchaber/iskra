@@ -27,10 +27,10 @@
     return nothing
   end
   
-  function average_electric_field(E)
-    for i = 2:length(E)
-      E[i-1] += E[i]
-      E[i-1] /= 2.0
+  function average_over_cells(F)
+    for i = 2:length(F)
+      F[i-1] += F[i]
+      F[i-1] /= 2.0
     end
     return nothing
   end
@@ -176,12 +176,9 @@ function solve(state, pusher, solver, grid, interactions, timesteps, context)
       # Calculate electric field
       calculate_electric_potential(solver, copy(ρ))
       ∇(ϕ; result=E)
-      average_electric_field(E)
+      average_over_cells(E)
+      average_over_cells(J)
       after_solver(context, state, iteration)
-
-      t = iteration * Δt
-      for j=20:25 Ex[j] = 0.5e6sin(2π * 1.21e9 * t) end
-      for j=22:23 Ex[j] = 1.0e6sin(2π * 1.21e9 * t) end
       
       # Solve reactions
       for interaction in interactions
