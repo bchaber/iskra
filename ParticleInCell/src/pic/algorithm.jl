@@ -52,38 +52,22 @@
       b2 = abs(0.5 - h2)
       
       if vp > 0.0
-        #print("vp > 0")
         if di == 0
-          #print(" i1=i2")
-          if     h1 < 0.5 && h2 > 0.5 #println(" a)")
+          if     h1 < 0.5 && h2 > 0.5
             j[i]   += c * b1
             j[i+1] += c * b2
-            if i == nx
-              j[1] += c * b2
-            end
-          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+          elseif h1 > 0.5 && h2 > 0.5
             j[i+1]   += c * -(b1 - b2)
-            #if i == nx
-            #  j[1] += c * -(b1 - b2)
-            #end
-          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+          elseif h1 < 0.5 && h2 < 0.5
             j[i] += c * -(b2 - b1)
-            #if i == 1
-            #  j[nx + 1] += c * -(b2 - b1)
-            #end
           end
-
-        else # moves to another cell
-          #print(" i1/i2")
-          if     h1 > 0.5 && h2 < 0.5 #println(" a)")
+        else
+          if     h1 > 0.5 && h2 < 0.5
             j[i]   += c * (1. - b1 - b2)
-            if i == 1
-              j[nx + 1] += c * (1. - b1 - b2)
-            end
-          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+          elseif h1 > 0.5 && h2 > 0.5
             j[i]   += c * (1. - b1)
             j[i+1] += c * b2
-          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+          elseif h1 < 0.5 && h2 < 0.5
             if i > 1
               j[i-1]    += c * b1
             else
@@ -91,43 +75,28 @@
             end
             j[i]   += c * (1. - b2)
           end
-
         end
-
-      else # vp < 0.0
-        #print("vp < 0")
+      else
         if di == 0
-          #print(" i1=i2")
-          if     h1 > 0.5 && h2 < 0.5 #println(" a)")
+          if     h1 > 0.5 && h2 < 0.5
             j[i]   += c * (-b2)
             j[i+1] += c * (-b1)
-          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+          elseif h1 > 0.5 && h2 > 0.5
             j[i+1]   += c * -(b1 - b2)
-            if i == nx
-              j[1] += c * -(b1 - b2)
-            end
-          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+          elseif h1 < 0.5 && h2 < 0.5
             j[i] += c * -(b2 - b1)
-            #if i == 1
-            #  j[nx + 1] += c * -(b2 - b1)
-            #end
           end
-
-        else # moves to another cell
-          #print(" i1/i2")
-          if     h1 < 0.5 && h2 > 0.5 #println(" a)")
+        else
+          if     h1 < 0.5 && h2 > 0.5
             j[i+1] += c * -(1. - b1 - b2)
-            if i == nx
-              j[1] += c * -(1. - b1 - b2)
-            end
-          elseif h1 > 0.5 && h2 > 0.5 #println(" b)")
+          elseif h1 > 0.5 && h2 > 0.5
             if i < nx
               j[i+2] += c *-(1. - b2)
             else
               j[2]   += c *-(1. - b2)
             end
             j[i+1] += c * (+b1)
-          elseif h1 < 0.5 && h2 < 0.5 #println(" c)")
+          elseif h1 < 0.5 && h2 < 0.5
             j[i]   += c * (-b2)
             j[i+1] += c * -(1. - b1)
           end
@@ -157,13 +126,6 @@ function solve(state, pusher, solver, grid, interactions, timesteps, context)
     
     n = similar(ρ)
     j = similar(J)
-    
-    Ex = view(reinterpret(Float64, E), 1:3:3length(E))
-    Ey = view(reinterpret(Float64, E), 2:3:3length(E))
-    Ez = view(reinterpret(Float64, E), 3:3:3length(E))
-    Bx = view(reinterpret(Float64, B), 1:3:3length(B))
-    By = view(reinterpret(Float64, B), 2:3:3length(B))
-    Bz = view(reinterpret(Float64, B), 3:3:3length(B))
     
     enter_loop(context, state)
     for iteration in 1:timesteps # iterate for ts time step
