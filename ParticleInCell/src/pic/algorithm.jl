@@ -32,6 +32,7 @@
       F[i-1] += F[i]
       F[i-1] /= 2.0
     end
+    F[end] = F[end-1]
     return nothing
   end
 
