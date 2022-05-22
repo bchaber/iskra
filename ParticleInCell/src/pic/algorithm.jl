@@ -162,6 +162,5 @@ function solve(state, pusher, solver, grid, interactions, timesteps, context)
       after_loop(context, state, iteration)
     end
     exit_loop(context, state)
-    println("Complete!")
   end
   
